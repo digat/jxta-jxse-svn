@@ -463,10 +463,7 @@ public class ConfigDialog extends Frame {
         }
 
         /**
-         * Get the current state.
-         * 
-         * @return {@code true} if the checkbox is enabled and selected,
-         *  {@code false} otherwise
+         * {@inheritDoc}
          */
         public boolean getState() {
             return useMe.getState() && isEnabled();
@@ -490,9 +487,7 @@ public class ConfigDialog extends Frame {
         }
 
         /**
-         * Set the useme checkbox state.
-         * 
-         * @param state new state
+         * {@inheritDoc}
          */
         public void setState(boolean state) {
             useMe.setState(state); // sometimes redundant but not always.
@@ -508,7 +503,7 @@ public class ConfigDialog extends Frame {
         /**
          * Returns the value of the host field
          *
-         * @return the value of the host field
+         * @return the value of the hot field
          */
         public String getHost() {
             return host.getText().trim();
@@ -960,9 +955,7 @@ public class ConfigDialog extends Frame {
         }
 
         /**
-         * Set the enabled/disabled state of the IP transport panel components.
-         * 
-         * @param state {@code true} to enable, {@code false} otherwise
+         * {@inheritDoc}
          */
         public void setState(boolean state) {
             useMe.setState(state);

@@ -345,7 +345,7 @@ public final class RendezVousServiceImpl implements RendezVousService {
         }
 
         if (Logging.SHOW_INFO && LOG.isLoggable(Level.INFO)) {
-            LOG.info("Rendezvous Service started");
+            LOG.info("Rendezvous Serivce started");
         }
 
         return Module.START_OK;

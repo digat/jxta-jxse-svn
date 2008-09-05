@@ -333,26 +333,31 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
             return;
         }
 
-        // See if a specific interface has been defined for us to use.
-        interfaceAddressStr = adv.getMulticastInterface();
-        if (null == interfaceAddressStr) {
-            // Use the default TCP interface if none specified.
-            interfaceAddressStr = adv.getInterfaceAddress();
-        }
-        
         // Determine the local interface to use. If the user specifies one, use
         // that. Otherwise, use the all the available interfaces.
-        if (interfaceAddressStr != null) {
+        if (adv.getMulticastInterface() != null) {
             try {
-                usingInterface = InetAddress.getByName(interfaceAddressStr);
+                usingInterface = InetAddress.getByName(adv.getMulticastInterface());
             } catch (UnknownHostException failed) {
                 if (Logging.SHOW_WARNING && LOG.isLoggable(Level.WARNING)) {
-                    LOG.log(Level.WARNING, "Invalid address for local interface address, using default", failed);
+                    LOG.warning("Invalid address for local interface address, using default");
                 }
                 usingInterface = IPUtils.ANYADDRESS;
             }
         } else {
-            usingInterface = IPUtils.ANYADDRESS;
+            interfaceAddressStr = adv.getInterfaceAddress();
+            if (interfaceAddressStr != null) {
+                try {
+                    usingInterface = InetAddress.getByName(interfaceAddressStr);
+                } catch (UnknownHostException failed) {
+                    if (Logging.SHOW_WARNING && LOG.isLoggable(Level.WARNING)) {
+                        LOG.warning("Invalid address for local interface address, using default");
+                    }
+                    usingInterface = IPUtils.ANYADDRESS;
+                }
+            } else {
+                usingInterface = IPUtils.ANYADDRESS;
+            }
         }
 
         // Start the servers

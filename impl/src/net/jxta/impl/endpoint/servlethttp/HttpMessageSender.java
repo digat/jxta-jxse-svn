@@ -164,6 +164,8 @@ class HttpMessageSender implements MessageSender {
                 HttpClientMessenger aMessenger = eachMessenger.next();
 
                 eachMessenger.remove();
+                
+                aMessenger.doShutdown();
             }
         }
         

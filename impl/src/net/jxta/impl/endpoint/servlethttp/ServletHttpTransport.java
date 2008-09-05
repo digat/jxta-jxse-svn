@@ -374,9 +374,7 @@ public final class ServletHttpTransport implements Module {
     }
 
     /**
-     * Get the EndpointService instance we attach to.
-     * 
-     * @return EndpointService instance
+     * {@inheritDoc}
      */
     EndpointService getEndpointService() {
         return endpoint;

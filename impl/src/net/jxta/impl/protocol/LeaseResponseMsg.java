@@ -530,11 +530,7 @@ public class LeaseResponseMsg {
     }
     
     /**
-     * Get the lease response as a document encoded as the specified
-     * MIME type.
-     * 
-     * @param mediaType media type to encode as
-     * @return document instance
+     *  {@inheritDoc}
      */
     public Document getDocument(MimeMediaType mediaType) {
         if (null == serverID) {

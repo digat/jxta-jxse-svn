@@ -60,7 +60,6 @@ import net.jxta.discovery.DiscoveryService;
 import net.jxta.document.Advertisement;
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.document.Element;
-import net.jxta.document.StructuredDocument;
 import net.jxta.document.XMLElement;
 import net.jxta.endpoint.EndpointService;
 import net.jxta.exception.PeerGroupException;
@@ -69,8 +68,6 @@ import net.jxta.exception.ServiceNotFoundException;
 import net.jxta.id.ID;
 import net.jxta.id.IDFactory;
 import net.jxta.impl.loader.RefJxtaLoader;
-import net.jxta.impl.protocol.PeerGroupConfigAdv;
-import net.jxta.impl.protocol.PeerGroupConfigFlag;
 import net.jxta.impl.protocol.PSEConfigAdv;
 import net.jxta.impl.protocol.PlatformConfig;
 import net.jxta.impl.util.TimeUtils;
@@ -104,7 +101,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.jxta.content.ContentService;
 
 /**
  * Provides common services for most peer group implementations.
@@ -120,36 +116,21 @@ public abstract class GenericPeerGroup implements PeerGroup {
      *  Holder for configuration parameters for groups in the process of being created.
      */
     private final static Map<ID, ConfigParams> group_configs = Collections.synchronizedMap(new HashMap<ID, ConfigParams>());
-    
+
     /**
-     * Default compatibility equater instance.
+     * The loader - use the getter and setter for modifying the ClassLoader for
+     * a security manager.
+     * <p/>
+     * This should eventually be group scoped rather than implementation scoped.
+     * We are currently allowing classes to loaded into contexts which they
+     * should not be known. 
      */
-    private static final CompatibilityEquater COMP_EQ =
-            new CompatibilityEquater() {
+    private final static JxtaLoader loader = new RefJxtaLoader(new URL[0], new CompatibilityEquater() {
+
                 public boolean compatible(Element test) {
-                    return CompatibilityUtils.isCompatible(test);
+                    return StdPeerGroup.isCompatible(test);
                 }
-            };
-
-    /**
-     * Statically scoped JxtaLoader which is used as the root of the
-     * JXTA class loader hierarchy.  The world peer group defers to the
-     * static loader as it's parent class loader.
-     * <p/>
-     * This class loader is a concession.  Use the group-scoped loader
-     * instead.
-     * <p/>
-     * XXX 20080817 mcumings - I'd like this to go away entirely, now that
-     * each group has it's own JxtaLoader instance.  If the root loader was
-     * simply the JxtaLoader used by the WPG things would make more sense.
-     */
-    private final static JxtaLoader staticLoader =
-            new RefJxtaLoader(new URL[0], COMP_EQ);
-
-    /**
-     * The PeerGroup-specific JxtaLoader instance.
-     */
-    private JxtaLoader loader;
+            });
 
     /*
      * Shortcuts to well known services.
@@ -162,7 +143,6 @@ public abstract class GenericPeerGroup implements PeerGroup {
     private RendezVousService rendezvous;
     private PeerInfoService peerinfo;
     private AccessService access;
-    private ContentService content;
 
     /**
      * This peer's advertisement in this group.
@@ -216,9 +196,9 @@ public abstract class GenericPeerGroup implements PeerGroup {
     /**
      * Counts the number of times an interface to this group has been given out.
      * This is decremented every time an interface object is GCed or its owner 
-     * calls {@link unref()}.
-     * <p/
-     * >When it reaches zero, if it is time to tear-down the group instance;
+     * calls unref().
+     *
+     * <p/>When it reaches zero, if it is time to tear-down the group instance;
      * nomatter what the GC thinks. There are threads that need to be stopped
      * before the group instance object ever becomes un-reachable.
      */
@@ -323,17 +303,10 @@ public abstract class GenericPeerGroup implements PeerGroup {
     }
 
     /**
-     * Get a JxtaLoader instance which can be used to load modules
-     * irrespective of the PeerGroup.
-     * 
-     * @return JxtaLoader instance
-     * @deprecated this statically scoped JxtaLoader instance should be phased
-     *  out of use in favor of the group-scoped JxtaLoaders available via the
-     *  {@code getLoader()} method.
+     * {@inheritDoc}
      */
-    @Deprecated
     public static JxtaLoader getJxtaLoader() {
-        return staticLoader;
+        return loader;
     }
 
     public GenericPeerGroup() {
@@ -408,15 +381,9 @@ public abstract class GenericPeerGroup implements PeerGroup {
 
         result.append('[');
         result.append(masterRefCount.get());
-        result.append(",");
-        result.append(loader.hashCode());
         result.append(']');
 
-        if (parentGroup == null) {
-            result.append(" / [");
-            result.append(staticLoader.hashCode());
-            result.append("]");
-        } else {
+        if (null != parentGroup) {
             result.append(" / ");
             result.append(parentGroup.toString());
         }
@@ -539,9 +506,6 @@ public abstract class GenericPeerGroup implements PeerGroup {
         }
         if (accessClassID.equals(mcid)) {
             access = (AccessService) service;
-        }
-        if (contentClassID.equals(mcid)) {
-            content = (ContentService) service;
         }
     }
 
@@ -703,11 +667,12 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if ((null != implAdv.getCode()) && (null != implAdv.getUri())) {
             try {
                 // Good one. Try it.
-                Class<? extends Module> clazz;
+                Class<Module> clazz;
+
                 try {
-                    clazz = loader.loadClass(implAdv.getModuleSpecID());
+                    clazz = (Class<Module>) loader.findClass(implAdv.getModuleSpecID());
                 } catch (ClassNotFoundException notLoaded) {
-                    clazz = loader.defineClass(implAdv);
+                    clazz = (Class<Module>) loader.defineClass(implAdv);
                 }
 
                 if (null == clazz) {
@@ -1073,36 +1038,6 @@ public abstract class GenericPeerGroup implements PeerGroup {
                 published = true;
             }
 
-            // Now that we have our PeerGroupAdvertisement, we can pull out
-            // the config to see if we have any PeerGroupConfigAdv params
-            if (null == parentGroup) {
-                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("Setting up group loader -> static loader");
-                }
-                loader = new RefJxtaLoader(new URL[0], staticLoader, COMP_EQ, this);
-            } else {
-                ClassLoader upLoader = parentGroup.getLoader();
-                StructuredDocument cfgDoc =
-                        peerGroupAdvertisement.getServiceParam(
-                        PeerGroup.peerGroupClassID);
-                PeerGroupConfigAdv pgca;
-                if (cfgDoc != null) {
-                    pgca = (PeerGroupConfigAdv)
-                            AdvertisementFactory.newAdvertisement((XMLElement)
-                            peerGroupAdvertisement.getServiceParam(PeerGroup.peerGroupClassID));
-                    if (pgca.isFlagSet(PeerGroupConfigFlag.SHUNT_PARENT_CLASSLOADER)) {
-                        // We'll shunt to the same class loader that loaded this
-                        // class, but not the JXTA form (to prevent Module
-                        // definitions).
-                        upLoader = getClass().getClassLoader();
-                    }
-                }
-                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("Setting up group loader -> " + upLoader);
-                }
-                loader = new RefJxtaLoader(new URL[0], upLoader, COMP_EQ, this);
-            }
-
             // If we still do not have a config adv, make one with the minimal info in it.
             // All groups but the Platform and the netPG are in that case.
             // In theory a plain ConfigParams would be enough for subgroups. But for now
@@ -1298,8 +1233,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
      * object and wants to notify its abandoning it. Has no effect on the real
      * group object.
      */
-    public boolean unref() {
-        return true;
+    public void unref() {
     }
 
     /**
@@ -1349,26 +1283,24 @@ public abstract class GenericPeerGroup implements PeerGroup {
             throw new IllegalStateException("Group has been shutdown. getInterface() is not available");
         }
 
-        if (initComplete) {
-            // If init is complete the group can become sensitive to its ref 
-            // count reaching zero. Before there could be transient references
-            // before there is a chance to give a permanent reference to the
-            // invoker of newGroup.
-            stopWhenUnreferenced = true;
-        }
-
         int new_count = masterRefCount.incrementAndGet();
-        
-        PeerGroupInterface pgInterface = new RefCountPeerGroupInterface(this);
 
         if (Logging.SHOW_INFO && LOG.isLoggable(Level.INFO)) {
             Throwable trace = new Throwable("Stack Trace");
             StackTraceElement elements[] = trace.getStackTrace();
 
-            LOG.info("[" + pgInterface + "] GROUP REF COUNT INCREMENTED TO: " + new_count + " by\n\t" + elements[2]);
+            LOG.info("[" + getPeerGroupID() + "] GROUP REF COUNT INCREMENTED TO: " + masterRefCount.get() + " by\n\t" + elements[2]);
         }
 
-        return pgInterface;
+        if (initComplete) {
+            // If init is complete the group can become sensitive to its ref 
+                // count reaching zero. Before there could be transient
+                // references before there is a chance to give a permanent
+                // reference to the invoker of newGroup.
+            stopWhenUnreferenced = true;
+        }
+
+        return new RefCountPeerGroupInterface(this);
     }
 
     /**
@@ -1678,16 +1610,6 @@ public abstract class GenericPeerGroup implements PeerGroup {
             return null;
         }
         return (AccessService) access.getInterface();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public ContentService getContentService() {
-        if (content == null) {
-            return null;
-        }
-        return (ContentService) content.getInterface();
     }
 
     /**

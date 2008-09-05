@@ -473,9 +473,7 @@ public class PSEAccessService implements AccessService {
     }
     
     /**
-     * Get the PeerGroup this service is running in.
-     * 
-     * @return PeerGroup instance
+     * {@inheritDoc}
      */
     PeerGroup getPeerGroup() {
         return group;

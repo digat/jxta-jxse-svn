@@ -55,6 +55,12 @@
  */
 package net.jxta.impl.peergroup;
 
+import net.jxta.exception.ServiceNotFoundException;
+import net.jxta.id.ID;
+import net.jxta.logging.Logging;
+import net.jxta.peergroup.PeerGroup;
+import net.jxta.service.Service;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -63,48 +69,41 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.jxta.id.ID;
-import net.jxta.logging.Logging;
-import net.jxta.peergroup.PeerGroup;
-import net.jxta.service.Service;
-
-import net.jxta.exception.ServiceNotFoundException;
-
 /**
- * Provides a very-strong (counted) reference to a peergroup.  When the peer 
- * group reference count reaches zero, the peergroup terminates itself. We don't 
- * depend upon GC for managing peergroup life-cycle as there are too many strong
- * references from the various services that prevent the peer group from ever 
- * being finalized. The alternative, to give out only weak references to the 
- * peer group seems impractical.
+ * A PeerGroupInterface object that also serves as a very-strong reference to 
+ * the peergroup. When the last such goes away, the peergroup terminates itself
+ * despite the existence of aeternal strong references from the various 
+ * service's threads that would prevent it from ever being finalized. The 
+ * alternative, to give only weak references to threads, seems impractical.
  */
 class RefCountPeerGroupInterface extends PeerGroupInterface {
 
     /**
      * Logger
      */
-    private final static transient Logger LOG = Logger.getLogger(RefCountPeerGroupInterface.class.getName());
+    private final static Logger LOG = Logger.getLogger(RefCountPeerGroupInterface.class.getName());
 
     /**
      *  Map for resolving multiple instances of a single MCID by role #.
      */
     private final Map<ID, ID[]> roleMap;
-    
+
     /**
-     *  Constructs an interface object that front-ends the provided PeerGroup.
+     * Constructs an interface object that front-ends a given
+     * PeerGroup object.
      *
      * @param theRealThing the peer group
      */
     RefCountPeerGroupInterface(GenericPeerGroup theRealThing) {
-        this(theRealThing, null);
+        super(theRealThing);
+        roleMap = null;
     }
 
     /**
-     * Constructs an interface object that front-ends the provided PeerGroup.
      * 
      * @param theRealThing the peer group
-     * @param roleMap  Map of MCIDs for groups with multiple role ids of a 
-     * single service.
+     * @param roleMap Map of MCIDs for groups with multiple role ids of a single
+     *  service.
      */
     RefCountPeerGroupInterface(GenericPeerGroup theRealThing, Map<ID, ID[]> roleMap) {
         super(theRealThing);
@@ -119,11 +118,11 @@ class RefCountPeerGroupInterface extends PeerGroupInterface {
         try {
             if (!unrefed.get()) {
                 if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
-                    LOG.log(Level.SEVERE, "[" + getPeerGroupID() + "] Referenced Group has been GCed. This is an application error. Please call stopApp() before releasing Peer Group references. {" + instance + "}");
+                    LOG.severe("[" + getPeerGroupID() + "] Referenced Group has been GCed. This is an application error. Please call stopApp() before releasing Peer Group references.");
                 }
-
-                unref();
             }
+
+            unref();
         } finally {
             super.finalize();
         }
@@ -132,19 +131,22 @@ class RefCountPeerGroupInterface extends PeerGroupInterface {
     /**
      * {@inheritDoc}
      * <p/>
-     * Normally the interface object protects the real object's start and stop 
-     * methods from being called. Unlike the weak peer group interface objects, 
-     * we do call the real {@link PeerGroup#startApp(String[])} as even the
-     * creator of a group does not have access to the real object. So we must
-     * invoke the peer group {@code startApp()} which is responsible for
-     * ensuring that it is executed only once (if needed).
+     * Normally it is ignored. By definition, the interface object protects the 
+     * real object's start/stop methods from being called. Unlike the weak
+     * peer group interface objects, we do call the real startApp() method as 
+     * even the creator of a group does not have access to the real object. So 
+     * the interface has to forward startApp() to the peer group, which is 
+     * responsible for ensuring that it is executed only once (if needed).
+     *
+     * @param arg A table of strings arguments.
+     * @return int status indication.
      */
     @Override
     public int startApp(String[] args) {
         PeerGroup temp = groupImpl;
 
         if (unrefed.get() || (null == temp)) {
-            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used. {" + instance + "}");
+            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used.");
         }
 
         return temp.startApp(args);
@@ -156,16 +158,16 @@ class RefCountPeerGroupInterface extends PeerGroupInterface {
      * Since THIS is already an interface object it could return itself.
      * However, the group wants to know about the number of interfaces objects
      * floating around so we have the group make a new one. This way, 
-     * applications which want to use {@link #unref()} on interfaces can avoid 
-     * sharing interface objects by using {@link #getInterface()} as a sort of 
-     * clone with the additional ref-counting semantics.
+     * applications which want to use unref() on interfaces can avoid sharing
+     * interface objects by using getInterface() as a sort of clone with the 
+     * additional ref-counting semantics.
      */
     @Override
     public PeerGroup getInterface() {
         PeerGroup temp = groupImpl;
 
         if (unrefed.get() || (null == temp)) {
-            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used. {" + instance + "}");
+            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used.");
         }
 
         return temp.getInterface();
@@ -186,7 +188,7 @@ class RefCountPeerGroupInterface extends PeerGroupInterface {
         PeerGroup temp = groupImpl;
 
         if (unrefed.get() || (null == temp)) {
-            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used. {" + instance + "}");
+            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used.");
         }
 
         return new PeerGroupInterface(this);
@@ -194,19 +196,24 @@ class RefCountPeerGroupInterface extends PeerGroupInterface {
 
     /**
      * {@inheritDoc}
+     * <p/>
+     * We can't call super() because we have to ensure that the unreferencing
+     * happens only once.
      */
     @Override
-    public boolean unref() {
-        if (!unrefed.get()) {
-            ((GenericPeerGroup) groupImpl).decRefCount();
+    public void unref() {
+        if (unrefed.compareAndSet(false, true)) {
+            try {
+                ((GenericPeerGroup) groupImpl).decRefCount();
+            } finally {
+                groupImpl = null;
+            }
         }
-        
-        return super.unref();
     }
 
     /**
      * Service-specific role mapping is implemented here.
-     */
+     **/
 
     /**
      * {@inheritDoc}
@@ -224,7 +231,7 @@ class RefCountPeerGroupInterface extends PeerGroupInterface {
         PeerGroup temp = groupImpl;
 
         if (unrefed.get() || (null == temp)) {
-            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used. {" + instance + "}");
+            throw new IllegalStateException("This Peer Group interface object has been unreferenced and can no longer be used.");
         }
 
         if (roleMap != null) {

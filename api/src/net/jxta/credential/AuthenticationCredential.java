@@ -77,16 +77,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Authentication credentials are used by JXTA Membership Services as the
+ * Authenication credentials are used by JXTA Membership Services as the
  * basis for applications for peergroup membership. The AuthenticationCredential
- * provides two important pieces of information:
+ * provides two important pieces of inforamtion:
  * <ul>
- * <li>the authentication method being requested</li>
+ * <li>the authetication method being requested</li>
  * <li>identity information which will be provided to that authentication
  * method.</li>
  * <ul>
  * <p/>
- * Not all authentication methods use the identity information.
+ * Not all authentication methods use the identity nformation.
  *
  * @see net.jxta.credential.Credential
  * @see net.jxta.membership.MembershipService

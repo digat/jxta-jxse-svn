@@ -142,11 +142,7 @@ public abstract class StdRendezVousService extends RendezVousServiceProvider {
     }
 
     /**
-     * Start the rendezvous service with a listener.
-     * 
-     * @param argv module start arguments
-     * @param handler rdv protocol handler instance
-     * @return module start status code
+     * {@inheritDoc}
      */
     protected int startApp(String[] argv, StdRdvProtocolListener handler) {
 

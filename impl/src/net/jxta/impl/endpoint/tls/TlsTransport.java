@@ -292,9 +292,7 @@ public class TlsTransport implements Module, MessageSender, MessageReceiver {
     }
     
     /**
-     * Get the PeerGroup this service is running in.
-     * 
-     * @return PeerGroup instance
+     * {@inheritDoc}
      */
     PeerGroup getPeerGroup() {
         return group;

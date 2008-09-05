@@ -89,8 +89,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -98,122 +96,98 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A limited document caching mechanism for services that search and exchange 
- * jxta documents.
+ * This class implements a limited document caching mechanism
+ * intended to provide cache for services that have a need for cache
+ * to search and exchange jxta documents.
  * <p/>
  * Only Core Services are intended to use this mechanism.
  */
-public final class Cm {
+public final class Cm implements Runnable {
 
     /**
      * Logger.
      */
     private final static Logger LOG = Logger.getLogger(Cm.class.getName());
-    /**
-     * adv types
-     */
-    private final static String[] DIRNAME = {"Peers", "Groups", "Adv", "Raw"};
-    /**
-     * Default period in milliseconds at which expired record GC will occur.
-     */
-    public final static long DEFAULT_GC_MAX_INTERVAL = TimeUtils.ANHOUR;
-    /**
-     * Period in milliseconds at which we will check to see if it is time to GC.
-     */
-    private final static long GC_CHECK_PERIOD = TimeUtils.AMINUTE;
-    /**
-     * Alternative to GC. If we accumulate this many changes without a GC then
-     * we start the GC early.
-     */
-    private final static  int MAX_INCONVENIENCE_LEVEL = 1000;
-    private final static String DATABASE_FILE_NAME = "advertisements";
-    /**
-     *  Shared timer for scheduling GC tasks.
-     */
-    private final static Timer GC_TIMER = new Timer("CM GC Timer", true);
+
     /**
      * the name we will use for the base directory
      */
-    private final File ROOTDIRBASE;
+    final File ROOTDIRBASE;
+
     /**
-     * The Executor we use for our tasks.
+     * adv types
      */
-    private final Executor executor;
+    private static final String[] DIRNAME = {"Peers", "Groups", "Adv", "Raw"};
+
+    // garbage collect once an hour
+    public static final long DEFAULT_GC_MAX_INTERVAL = 1 * TimeUtils.ANHOUR;
+
     /*
-     *  record db
+     *  expiration db
      */
-    private final BTreeFiler cacheDB;
-    /**
-     * Record indexer.
-     */
-    private final Indexer indexer;
-     /**
-     * If {@code true} then we will track changes to the indexes.
-     */
-    private boolean trackDeltas;
-    /**
-     * The current set of database changes we have accumulated.
-     */
+    private BTreeFiler cacheDB = null;
+    private Indexer indexer = null;
+    private final static String databaseFileName = "advertisements";
+
+    private boolean stop = false;
+
+    private boolean trackDeltas = false;
     private final Map<String, List<SrdiMessage.Entry>> deltaMap = new HashMap<String, List<SrdiMessage.Entry>>(3);
+
     /**
      * file descriptor for the root of the cm
      */
-    protected final File rootDir;
-   /**
-     * If {@code true} then this cache has been stopped.
-     */
-    private boolean stop = false;
-    /**
-     * The timer task we use for scheduling our GC operations.
-     */
-    private final GC_Task gcTask;
-    /**
-     * The absolute time in milliseconds after which the next GC operation will
-     * begin.
-     */
+    protected File rootDir;
+
+    private Thread gcThread = null;
     private long gcTime = 0;
-    /**
-     * The maximum period between GC operations.
-     */
-    private final long gcMaxInterval;
-    /**
-     * Measure of accumulated number of record changes since the last GC. If 
-     * this reaches {@link #MAX_INCONVENIENCE_LEVEL} then the GC operation will  
-     * be started early.
-     */
-    private AtomicInteger inconvenienceLevel = new AtomicInteger(0);
+    private final long gcMinInterval = 1000L * 60L;
+    private long gcMaxInterval = DEFAULT_GC_MAX_INTERVAL;
+    
+    
+    private final int maxInconvenienceLevel = 1000;
+    private volatile int inconvenienceLevel = 0;
 
     /**
      * Constructor for cm
      *
-     * @param executor The Executor we will use for executing tasks.
-     * @param storeRoot   persistence location
-     * @param areaName    storage area name
-     * @param gcInterval  garbage collect max interval in milliseconds or &lt;= 0 to use default value.
-     * @param trackDeltas when true deltas are tracked
-     * @throws IOException thrown for failures initilzing the CM store.
+     * @param areaName  the name of the cm sub-dir to create
+     *                  <p/>
+     *                  NOTE: Default garbage interval once an hour
+     * @param storeRoot store root dir
      */
-    public Cm(Executor executor, URI storeRoot, String areaName, long gcInterval, boolean trackDeltas) throws IOException {
-        this.executor = executor;
+    public Cm(URI storeRoot, String areaName) {
+        // Default garbage collect once an hour
+        this(Thread.currentThread().getThreadGroup(), storeRoot, areaName, DEFAULT_GC_MAX_INTERVAL, false);
+    }
+
+    /**
+     * Constructor for cm
+     *
+     * @param threadGroup     the thread group
+     * @param storeRoot   persistence location
+     * @param gcinterval  garbage collect max interval
+     * @param trackDeltas when true deltas are tracked
+     * @param areaName    storage area name
+     */
+    public Cm(ThreadGroup threadGroup, URI storeRoot, String areaName, long gcinterval, boolean trackDeltas) {
         this.trackDeltas = trackDeltas;
-        this.gcMaxInterval = (0 >= gcInterval) ? DEFAULT_GC_MAX_INTERVAL : gcInterval;
+        this.gcMaxInterval = gcinterval;
+        this.gcTime = System.currentTimeMillis() + gcMaxInterval;
 
         ROOTDIRBASE = new File(new File(storeRoot), "cm");
 
         try {
-            rootDir = new File(new File(ROOTDIRBASE, areaName).getAbsolutePath());
+            rootDir = new File(ROOTDIRBASE, areaName);
+            rootDir = new File(rootDir.getAbsolutePath());
             if (!rootDir.exists()) {
                 // We need to create the directory
                 if (!rootDir.mkdirs()) {
-                    throw new IOException("Cm cannot create directory " + rootDir);
+                    throw new RuntimeException("Cm cannot create directory " + rootDir);
                 }
             }
 
@@ -234,7 +208,7 @@ public final class Cm {
             cacheDB = new BTreeFiler();
             // no deffered checkpoint
             cacheDB.setSync(chkPoint);
-            cacheDB.setLocation(rootDir.getAbsolutePath(), DATABASE_FILE_NAME);
+            cacheDB.setLocation(rootDir.getAbsolutePath(), databaseFileName);
 
             if (!cacheDB.open()) {
                 cacheDB.create();
@@ -244,7 +218,7 @@ public final class Cm {
 
             // Index
             indexer = new Indexer(chkPoint);
-            indexer.setLocation(rootDir.getAbsolutePath(), DATABASE_FILE_NAME);
+            indexer.setLocation(rootDir.getAbsolutePath(), databaseFileName);
 
             if (!indexer.open()) {
                 indexer.create();
@@ -255,11 +229,9 @@ public final class Cm {
             if (System.getProperty("net.jxta.impl.cm.index.rebuild") != null) {
                 rebuildIndex();
             }
-
-            // Install Record GC task.
-            gcTime = TimeUtils.toAbsoluteTimeMillis(gcMaxInterval);
-            gcTask = new GC_Task();
-            GC_TIMER.scheduleAtFixedRate(gcTask, GC_CHECK_PERIOD, GC_CHECK_PERIOD);
+            gcThread = new Thread(threadGroup, this, "CM GC Thread interval : " + gcMinInterval);
+            gcThread.setDaemon(true);
+            gcThread.start();
 
             if (Logging.SHOW_CONFIG && LOG.isLoggable(Level.CONFIG)) {
                 LOG.config("Instantiated Cm for: " + rootDir.getAbsolutePath());
@@ -268,10 +240,18 @@ public final class Cm {
             if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
                 LOG.log(Level.SEVERE, "Unable to Initialize databases", de);
             }
-            IOException failure = new IOException("Unable to Initialize databases");
-            failure.initCause(de);
-            
-            throw failure;
+            throw new UndeclaredThrowableException(de, "Unable to Initialize databases");
+        } catch (Throwable e) {
+            if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
+                LOG.log(Level.SEVERE, "Unable to create Cm", e);
+            }
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else if (e instanceof Error) {
+                throw (Error) e;
+            } else {
+                throw new UndeclaredThrowableException(e, "Unable to create Cm");
+            }
         }
     }
 
@@ -323,55 +303,51 @@ public final class Cm {
      * @param dn          contains the name of the folder
      * @param threshold   the max number of results
      * @param expirations List to contain expirations
-     * @return List<InputStream> containing the files
+     * @return List Strings containing the name of the
+     *         files
      */
     public List<InputStream> getRecords(String dn, int threshold, List<Long> expirations) {
         return getRecords(dn, threshold, expirations, false);
     }
 
     public synchronized List<InputStream> getRecords(String dn, int threshold, List<Long> expirations, boolean purge) {
-        ArrayList<InputStream> res = new ArrayList<InputStream>();
+        List<InputStream> res = new ArrayList<InputStream>();
 
-        IndexQuery iq = new IndexQuery(IndexQuery.SW, new Value(dn));
-        try {
-            SearchCallback callback = new SearchCallback(cacheDB, indexer, threshold, purge);
-            cacheDB.query(iq, callback);
-
-            Collection<SearchResult> searchResults = callback.results;
-
-            res.ensureCapacity(searchResults.size());
-            if (null != expirations) {
-                expirations.clear();
+        if (dn == null) {
+            if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                LOG.fine("null directory name");
             }
-
-            for (SearchResult aResult : searchResults) {
-                res.add(aResult.value.getInputStream());
-                if (null != expirations) {
-                    expirations.add(aResult.expiration);
+            return res;
+        } else {
+            IndexQuery iq = new IndexQuery(IndexQuery.SW, new Value(dn));
+            try {
+                cacheDB.query(iq, new SearchCallback(cacheDB, indexer, res, expirations, threshold, purge));
+            } catch (DBException dbe) {
+                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                    LOG.log(Level.FINE, "Exception during getRecords(): ", dbe);
+                }
+            } catch (IOException ie) {
+                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                    LOG.log(Level.FINE, "Exception during getRecords(): ", ie);
                 }
             }
-        } catch (DBException dbe) {
-            if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                LOG.log(Level.FINE, "Exception during getRecords(): ", dbe);
-            }
-        } catch (IOException ie) {
-            if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                LOG.log(Level.FINE, "Exception during getRecords(): ", ie);
-            }
+            return res;
         }
-
-        return res;
     }
 
-    public synchronized void garbageCollect() {
-        // calling getRecords() is good enough since it removes expired entries
-        Map<String, NameIndexer> map = indexer.getIndexers();
+    public void garbageCollect() {
+        // calling getRecords is good enough since it removes
+        // expired entries
+        Map map = indexer.getIndexers();
+        Iterator it = map.keySet().iterator();
+        long t0;
 
-        for (String indexName : map.keySet()) {
-            long t0 = TimeUtils.timeNow();
+        while (it != null && it.hasNext()) {
+            t0 = System.currentTimeMillis();
+            String indexName = (String) it.next();
             getRecords(indexName, Integer.MAX_VALUE, null, true);
-            if (Logging.SHOW_FINER && LOG.isLoggable(Level.FINER)) {
-                LOG.finer("Cm garbageCollect :" + indexName + " in :" + (TimeUtils.timeNow() - t0));
+            if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                LOG.fine("Cm garbageCollect :" + indexName + " in :" + (System.currentTimeMillis() - t0));
             }
         }
     }
@@ -476,12 +452,14 @@ public final class Cm {
         }
         Long exp = (Long) record.getMetaData(Record.EXPIRATION);
         Long life = (Long) record.getMetaData(Record.LIFETIME);
-        long expiresin = TimeUtils.toRelativeTimeMillis(life);
+        long expiresin = life - System.currentTimeMillis();
 
         if (expiresin <= 0) {
             if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
                 LOG.fine(
-                        MessageFormat.format("Record expired lifetime   : {0} expiration: {1} expires in: {2}", life, exp, expiresin));
+                        MessageFormat.format("Record expired lifetime   : {0} expiration: {1} expires in: {2}", life, exp
+                                ,
+                                expiresin));
                 LOG.fine(MessageFormat.format("Record expires on :{0}", new Date(life)));
             }
             return -1;
@@ -490,7 +468,7 @@ public final class Cm {
                 LOG.fine(MessageFormat.format("Record lifetime: {0} expiration: {1} expires in: {2}", life, exp, expiresin));
                 LOG.fine(MessageFormat.format("Record expires on :{0}", new Date(life)));
             }
-            return Math.min(expiresin, exp);
+            return Math.min(expiresin, exp.longValue());
         }
     }
 
@@ -689,7 +667,7 @@ public final class Cm {
                     // make sure we don't override the original value
                     if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
                         LOG.fine(MessageFormat.format("Overriding attempt to decrease adv lifetime from : {0} to :{1}",
-                                new Date(oldLife), new Date(absoluteLifetime)));
+                                                     new Date(oldLife), new Date(absoluteLifetime)));
                     }
                     absoluteLifetime = oldLife;
                 }
@@ -765,7 +743,7 @@ public final class Cm {
                     // make sure we don't override the original value
                     if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
                         LOG.fine(MessageFormat.format("Overriding attempt to decrease adv lifetime from : {0} to :{1}",
-                                new Date(oldLife), new Date(absoluteLifetime)));
+                                                            new Date(oldLife), new Date(absoluteLifetime)));
                     }
                     absoluteLifetime = oldLife;
                 }
@@ -885,34 +863,26 @@ public final class Cm {
         }
     }
 
-    private final static class SearchResult {
-
-        final Value value;
-        final long expiration;
-
-        SearchResult(Value value, long expiration) {
-            this.value = value;
-            this.expiration = expiration;
-        }
-    }
 
     private final class SearchCallback implements BTreeCallback {
 
-        private final BTreeFiler cacheDB;
-        private final Indexer indexer;
-        private final int threshold;
-        private final Collection<SearchResult> results;
-        private final boolean purge;
+        private BTreeFiler cacheDB = null;
+        private Indexer indexer = null;
+        private int threshold;
+        private List<InputStream> results;
+        private List<Long> expirations;
+        private boolean purge;
 
-        SearchCallback(BTreeFiler cacheDB, Indexer indexer, int threshold) {
-            this(cacheDB, indexer, threshold, false);
+        SearchCallback(BTreeFiler cacheDB, Indexer indexer, List<InputStream> results, List<Long> expirations, int threshold) {
+            this(cacheDB, indexer, results, expirations, threshold, false);
         }
 
-        SearchCallback(BTreeFiler cacheDB, Indexer indexer, int threshold, boolean purge) {
+        SearchCallback(BTreeFiler cacheDB, Indexer indexer, List<InputStream> results, List<Long> expirations, int threshold, boolean purge) {
             this.cacheDB = cacheDB;
             this.indexer = indexer;
+            this.results = results;
             this.threshold = threshold;
-            this.results = new ArrayList((threshold < 200) ? threshold : 200);
+            this.expirations = expirations;
             this.purge = purge;
         }
 
@@ -921,9 +891,6 @@ public final class Cm {
          */
         public boolean indexInfo(Value val, long pos) {
             if (results.size() >= threshold) {
-                if (Logging.SHOW_FINER && LOG.isLoggable(Level.FINER)) {
-                    LOG.finer("SearchCallback.indexInfo reached Threshold :" + threshold);
-                }
                 return false;
             }
             if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
@@ -963,13 +930,15 @@ public final class Cm {
                         }
                     }
                 } else {
-                    inconvenienceLevel.incrementAndGet();
+                    ++inconvenienceLevel;
                 }
                 return true;
             }
 
-            results.add(new SearchResult(record.getValue(), exp));
-
+            if (expirations != null) {
+                expirations.add(exp);
+            }
+            results.add(record.getValue().getInputStream());
             return true;
         }
     }
@@ -1010,37 +979,19 @@ public final class Cm {
      * @param attribute   attribute to search on
      * @param threshold   threshold
      * @param expirations List to contain expirations
-     * @return Enumeration containing of all the documents as InputStreams
+     * @return Enumeration containing of all the documents names
      */
     public synchronized List<InputStream> search(String dn, String attribute, String value, int threshold, List<Long> expirations) {
-
+        List<InputStream> res = new ArrayList<InputStream>();
+        IndexQuery iq = getIndexQuery(value);
         try {
-            IndexQuery iq = getIndexQuery(value);
-
-            SearchCallback callback = new SearchCallback(cacheDB, indexer, threshold);
-            indexer.search(iq, dn + attribute, callback);
-            Collection<SearchResult> searchResults = callback.results;
-
-            List<InputStream> res = new ArrayList<InputStream>(searchResults.size());
-            if (null != expirations) {
-                expirations.clear();
-            }
-
-            for (SearchResult aResult : searchResults) {
-                res.add(aResult.value.getInputStream());
-                if (null != expirations) {
-                    expirations.add(aResult.expiration);
-                }
-            }
-
-            return res;
+            indexer.search(iq, dn + attribute, new SearchCallback(cacheDB, indexer, res, expirations, threshold));
         } catch (Exception ex) {
             if (Logging.SHOW_WARNING && LOG.isLoggable(Level.WARNING)) {
-                LOG.log(Level.WARNING, "Failure while searching in index", ex);
+                LOG.log(Level.WARNING, "Exception while searching in index", ex);
             }
-
-            return Collections.emptyList();
         }
+        return res;
     }
 
     /**
@@ -1053,14 +1004,16 @@ public final class Cm {
     public synchronized List<SrdiMessage.Entry> getEntries(String dn, boolean clearDeltas) {
         List<SrdiMessage.Entry> res = new ArrayList<SrdiMessage.Entry>();
         try {
-            Map<String, NameIndexer> map = indexer.getIndexers();
+            Map map = indexer.getIndexers();
             BTreeFiler listDB = indexer.getListDB();
+            Iterator it = map.keySet().iterator();
 
-            for (String indexName : map.keySet()) {
+            while (it != null && it.hasNext()) {
+                String indexName = (String) it.next();
                 // seperate the index name from attribute
                 if (indexName.startsWith(dn)) {
-                    String attr = indexName.substring(dn.length());
-                    NameIndexer idxr = map.get(indexName);
+                    String attr = indexName.substring((dn).length());
+                    NameIndexer idxr = (NameIndexer) map.get(indexName);
                     idxr.query(null, new Indexer.SearchCallback(listDB, new EntriesCallback(cacheDB, res, attr, Integer.MAX_VALUE)));
                 }
             }
@@ -1082,66 +1035,58 @@ public final class Cm {
      * @param dn the relative dir name
      * @return SrdiMessage.Entries
      */
-    public List<SrdiMessage.Entry> getDeltas(String dn) {
+    public synchronized List<SrdiMessage.Entry> getDeltas(String dn) {
         List<SrdiMessage.Entry> result = new ArrayList<SrdiMessage.Entry>();
+        List<SrdiMessage.Entry> deltas = deltaMap.get(dn);
 
-        synchronized (deltaMap) {
-            List<SrdiMessage.Entry> deltas = deltaMap.get(dn);
-
-            if (deltas != null) {
-                result.addAll(deltas);
-                deltas.clear();
-            }
+        if (deltas != null) {
+            result.addAll(deltas);
+            deltas.clear();
         }
-
         return result;
     }
 
-    /**
-     * Clear all the SRDI message entries for the specified directory.
-     * 
-     * @param dn  the relative dir name
-     */
-    private void clearDeltas(String dn) {
-        synchronized (deltaMap) {
-            List<SrdiMessage.Entry> deltas = deltaMap.get(dn);
+    private synchronized void clearDeltas(String dn) {
 
-            if (deltas != null) {
-                deltas.clear();
-            }
+        List<SrdiMessage.Entry> deltas = deltaMap.get(dn);
+
+        if (deltas == null) {
+            return;
         }
+        deltas.clear();
     }
 
-    private void addDelta(String dn, Map<String, String> indexables, long exp) {
+    private synchronized void addDelta(String dn, Map<String, String> indexables, long exp) {
+
         if (trackDeltas) {
-            List<SrdiMessage.Entry> newDeltas = new ArrayList<SrdiMessage.Entry>(indexables.size());
+            Iterator<Map.Entry<String, String>> eachIndex = indexables.entrySet().iterator();
 
-            for (Map.Entry<String, String> anEntry : indexables.entrySet()) {
-                SrdiMessage.Entry entry = new SrdiMessage.Entry(anEntry.getKey(), anEntry.getValue(), exp);
-            }
-
-            if (Logging.SHOW_FINER && LOG.isLoggable(Level.FINER)) {
-                LOG.finer("Adding " + newDeltas.size() + "entires to '" + dn + "' deltas");
-            }
-
-            synchronized (deltaMap) {
+            if (eachIndex.hasNext()) {
                 List<SrdiMessage.Entry> deltas = deltaMap.get(dn);
 
                 if (deltas == null) {
-                    deltaMap.put(dn, newDeltas);
-                } else {
-                    deltas.addAll(newDeltas);
+                    deltas = new ArrayList<SrdiMessage.Entry>();
+                    deltaMap.put(dn, deltas);
+                }
+                while (eachIndex.hasNext()) {
+                    Map.Entry<String, String> anEntry = eachIndex.next();
+                    String attr = anEntry.getKey();
+                    String value = anEntry.getValue();
+                    SrdiMessage.Entry entry = new SrdiMessage.Entry(attr, value, exp);
+
+                    deltas.add(entry);
+                    if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                        LOG.fine("Added entry  :" + entry + " to deltas");
+                    }
                 }
             }
         }
     }
 
-    public void setTrackDeltas(boolean trackDeltas) {
+    public synchronized void setTrackDeltas(boolean trackDeltas) {
         this.trackDeltas = trackDeltas;
-        synchronized (deltaMap) {
-            if (!trackDeltas) {
-                deltaMap.clear();
-            }
+        if (!trackDeltas) {
+            deltaMap.clear();
         }
     }
 
@@ -1153,8 +1098,7 @@ public final class Cm {
             cacheDB.close();
             indexer.close();
             stop = true;
-            gcTask.cancel();
-            GC_TIMER.purge();
+            notify();
         } catch (DBException ex) {
             if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
                 LOG.log(Level.SEVERE, "Unable to close advertisments.tbl", ex);
@@ -1162,76 +1106,54 @@ public final class Cm {
         }
     }
 
-    private final class GC_Task extends TimerTask {
+    /**
+     * {@inheritDoc}
+     */
+    public synchronized void run() {
+        try {
+            while (!stop) {
+                try {
+                    if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                        LOG.fine("waiting " + gcMinInterval + "ms before garbage collection");
+                    }
+                    wait(gcMinInterval);
+                } catch (InterruptedException woken) {
+                    Thread.interrupted();
 
-        /**
-         * {@inheritDoc}
-         * <p/>
-         * Responsible for initiating GC operations.
-         */
-        public void run() {
-            try {
+                    if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                        LOG.log(Level.FINE, "Thread interrupted", woken);
+                    }
+                }
+
                 if (stop) {
                     // if asked to stop, exit
-                    return;
+                    break;
                 }
 
-                // Decide if it's time to run the GC operation.
-                if ((inconvenienceLevel.get() > MAX_INCONVENIENCE_LEVEL) || (TimeUtils.timeNow() > gcTime)) {
-                    inconvenienceLevel.set(0);
-                    gcTime = TimeUtils.toAbsoluteTimeMillis(gcMaxInterval);
+                if ((inconvenienceLevel > maxInconvenienceLevel) || (System.currentTimeMillis() > gcTime)) {
 
-                    executor.execute(new RecordGC());
-                }
-            } catch (Throwable all) {
-                if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
-                    LOG.log(Level.SEVERE, "Uncaught Throwable in thread :" + Thread.currentThread().getName(), all);
+                    if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                        LOG.fine("Garbage collection started");
+                    }
+                    garbageCollect();
+                    inconvenienceLevel = 0;
+                    gcTime = System.currentTimeMillis() + gcMaxInterval;
+                    if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                        LOG.fine("Garbage collection completed");
+                    }
                 }
             }
+        } catch (Throwable all) {
+            if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
+                LOG.log(Level.SEVERE, "Uncaught Throwable in thread :" + Thread.currentThread().getName(), all);
+            }
+        } finally {
+            gcThread = null;
         }
     }
 
-    /**
-     * An Executor task which performs the record garbage collection operation.
-     */
-    private final class RecordGC implements Runnable {
-
-        /**
-         * {@inheritDoc}
-         * <p/>
-         * Responsible for exuting record GC operations.
-         */
-        public void run() {
-            try {
-                long gcStart = TimeUtils.timeNow();
-
-                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("Starting Garbage collection");
-                }
-
-                garbageCollect();
-
-                long gcStop = TimeUtils.timeNow();
-
-                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("Garbage collection completed in " + (gcStop - gcStart) + "ms.");
-                }
-            } catch (Throwable all) {
-                if (Logging.SHOW_SEVERE && LOG.isLoggable(Level.SEVERE)) {
-                    LOG.log(Level.SEVERE, "Uncaught Throwable in thread :" + Thread.currentThread().getName(), all);
-                }
-            }
-        }
-    }
-
-    /**
-     * Rebuilds record indexes by reading every record and generating 
-     * new/replacement index entries.
-     * 
-     * @throws net.jxta.impl.xindice.core.DBException
-     * @throws java.io.IOException
-     */
     private synchronized void rebuildIndex() throws DBException, IOException {
+
         if (Logging.SHOW_INFO && LOG.isLoggable(Level.INFO)) {
             LOG.info("Rebuilding indices");
         }
@@ -1244,8 +1166,8 @@ public final class Cm {
 
     private static final class RebuildIndexCallback implements BTreeCallback {
 
-        private final BTreeFiler database;
-        private final Indexer index;
+        private BTreeFiler database = null;
+        private Indexer index = null;
 
         RebuildIndexCallback(BTreeFiler database, Indexer index) {
             this.database = database;
@@ -1263,29 +1185,24 @@ public final class Cm {
                     return true;
                 }
 
-                long exp = calcExpiration(record);
-                if (exp < 0) {
-                    database.deleteRecord(record.getKey());
-                } else {
-                    InputStream is = record.getValue().getInputStream();
-                    XMLDocument asDoc = (XMLDocument) StructuredDocumentFactory.newStructuredDocument(MimeMediaType.XMLUTF8, is);
-                    Advertisement adv = AdvertisementFactory.newAdvertisement(asDoc);
-                    Map<String, String> indexables = getIndexfields(adv.getIndexFields(), asDoc);
+                InputStream is = record.getValue().getInputStream();
+                XMLDocument asDoc = (XMLDocument) StructuredDocumentFactory.newStructuredDocument(MimeMediaType.XMLUTF8, is);
+                Advertisement adv = AdvertisementFactory.newAdvertisement(asDoc);
+                Map<String, String> indexables = getIndexfields(adv.getIndexFields(), asDoc);
 
-                    String dn = getDirName(adv);
-                    Map<String, String> keyedIdx = addKey(dn, indexables);
+                String dn = getDirName(adv);
+                Map<String, String> keyedIdx = addKey(dn, indexables);
 
-                    if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                        LOG.fine("Restoring index " + keyedIdx + " at " + pos);
-                    }
-                    index.addToIndex(keyedIdx, pos);
+                if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
+                    LOG.fine("Restoring index " + keyedIdx + " at " + pos);
                 }
+                index.addToIndex(keyedIdx, pos);
             } catch (Exception ex) {
                 if (Logging.SHOW_WARNING && LOG.isLoggable(Level.WARNING)) {
                     LOG.log(Level.WARNING, "Exception rebuilding index  at " + pos, ex);
                 }
+                return true;
             }
-
             return true;
         }
     }

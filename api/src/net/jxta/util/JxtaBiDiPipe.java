@@ -66,7 +66,6 @@ import net.jxta.endpoint.EndpointService;
 import net.jxta.endpoint.Message;
 import net.jxta.endpoint.MessageElement;
 import net.jxta.endpoint.Messenger;
-import net.jxta.endpoint.ByteArrayMessageElement;
 import net.jxta.endpoint.StringMessageElement;
 import net.jxta.endpoint.TextDocumentMessageElement;
 import net.jxta.id.ID;
@@ -492,17 +491,17 @@ public class JxtaBiDiPipe implements PipeMsgListener, OutputPipeListener, Reliab
         }
         return (Properties) connectionProperties.clone();
     }
-    
+
     /**
      * get the connection property
      *
-     * @return byte[] byte[] representation of connection property
+     * @return String stringified connection property
      */
-    private byte[] getConnectionPropertiesBytes() {
-        return propertiesToBytes(connectionProperties);
-    }    
-    
-    private byte[] propertiesToBytes(Properties properties) {
+    private String getConnectionPropertiesString() {
+        return propertiesToString(connectionProperties);
+    }
+
+    private String propertiesToString(Properties properties) {
         if(properties == null) {
             return null;
         }
@@ -512,7 +511,7 @@ public class JxtaBiDiPipe implements PipeMsgListener, OutputPipeListener, Reliab
             properties.store(bos, null);
         } catch (IOException e) {
         }
-        return bos.toByteArray();
+        return bos.toString();
     }
 
     /**
@@ -557,13 +556,13 @@ public class JxtaBiDiPipe implements PipeMsgListener, OutputPipeListener, Reliab
 
             msg.addMessageElement(JxtaServerPipe.nameSpace,
                     new StringMessageElement(JxtaServerPipe.directSupportedTag, Boolean.toString(true), null));
-            
-            byte[] connectionPropertiesBytes
-                    = this.getConnectionPropertiesBytes();
-            if (connectionPropertiesBytes != null) {
+
+            String connectionPropertiesString
+                    = this.getConnectionPropertiesString();
+            if (connectionPropertiesString != null) {
                 msg.addMessageElement(JxtaServerPipe.nameSpace,
-                        new ByteArrayMessageElement(JxtaServerPipe.connectionPropertiesTag, null, connectionPropertiesBytes, null));
-            }             
+                        new StringMessageElement(JxtaServerPipe.connectionPropertiesTag, connectionPropertiesString, null));
+            }
 
             msg.addMessageElement(JxtaServerPipe.nameSpace,
                     new TextDocumentMessageElement(JxtaServerPipe.remPeerTag,

@@ -772,7 +772,7 @@ public abstract class ThreadedMessenger extends AbstractMessenger implements Run
      */
 
     /**
-     * Close underlying connection.
+     * {@inheritDoc}
      */
     protected abstract void closeImpl();
 
@@ -794,9 +794,7 @@ public abstract class ThreadedMessenger extends AbstractMessenger implements Run
     protected abstract void sendMessageBImpl(Message msg, String service, String param) throws IOException;
 
     /**
-     * Get the logical destination endpoint address.
-     * 
-     * @return endpoint address
+     * {@inheritDoc}
      */
     protected abstract EndpointAddress getLogicalDestinationImpl();
 }

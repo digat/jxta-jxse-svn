@@ -59,6 +59,8 @@
 
 package net.jxta;
 
+import java.lang.Package;
+
 /**
  * Provides easy access to Java Package information for the JXSE API.
  */

@@ -60,7 +60,6 @@ import net.jxta.document.MimeMediaType;
 import net.jxta.document.XMLElement;
 import net.jxta.exception.PeerGroupException;
 import net.jxta.id.ID;
-import net.jxta.impl.content.ContentServiceImpl;
 import net.jxta.impl.endpoint.cbjx.CbJxDefs;
 import net.jxta.impl.membership.pse.PSEMembershipService;
 import net.jxta.peergroup.PeerGroup;
@@ -85,9 +84,7 @@ public class ShadowPeerGroup extends StdPeerGroup {
      *  @return The default module impl advertisement for this class.
      */
     public static ModuleImplAdvertisement getDefaultModuleImplAdvertisement() {
-        ModuleImplAdvertisement implAdv = CompatibilityUtils.createModuleImplAdvertisement(
-                PeerGroup.refNetPeerGroupSpecID, ShadowPeerGroup.class.getName(),
-                "Default Network PeerGroup reference implementation");
+        ModuleImplAdvertisement implAdv = mkImplAdvBuiltin(PeerGroup.refNetPeerGroupSpecID, ShadowPeerGroup.class.getName(), "Default Network PeerGroup reference implementation");
 
         // Build the param section now.
         StdPeerGroupParamAdv paramAdv = new StdPeerGroupParamAdv();
@@ -105,7 +102,6 @@ public class ShadowPeerGroup extends StdPeerGroup {
         paramAdv.addService(PeerGroup.pipeClassID, PeerGroup.refPipeSpecID);
         paramAdv.addService(PeerGroup.peerinfoClassID, PeerGroup.refPeerinfoSpecID);
         paramAdv.addService(PeerGroup.proxyClassID, PeerGroup.refProxySpecID);
-        paramAdv.addService(PeerGroup.contentClassID, ContentServiceImpl.MODULE_SPEC_ID);
 
         // High-level Message Transports.
         paramAdv.addProto(PeerGroup.routerProtoClassID, PeerGroup.refRouterProtoSpecID);

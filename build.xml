@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- vi:set expandtab shiftwidth=4 softtabstop=4:
+<!--
 
-Copyright (c) 2003-2008 Sun Microsystems, Inc. All rights reserved.
+Copyright (c) 2003-2007 Sun Microsystems, Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, 
 are permitted provided that the following conditions are met: 
@@ -71,7 +71,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
         doc - The destination directory for documentation.
         apidoc - The destination directory for API documentation.
         impldoc - The destination directory for implementation documentation.
-        combineddoc - The destination directory for combined API and implementation documentation.
         jnlp - The destination directory for jnlp built objects.
         lib - The source directory for dependent libraries.
         rpm - The destination directory for rpm built objects.
@@ -110,11 +109,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
     <property name="api" value="${basedir}/api/src" />
     <property name="impl" value="${basedir}/impl/src" />
     <property name="test" value="${basedir}/test/src" />
-    <property name="test_res" value="${basedir}/test/resources" />
-    <property name="test_logging_cfg" value="${basedir}/test/logging.properties" />
-    <property name="test_junit_output" value="no" />
-    <property name="test_junit_includes" value="${basedir}/test/junit.includes" />
-    <property name="test_junit_excludes" value="${basedir}/test/junit.excludes" />
     <property name="tutorials" value="${basedir}/tutorials" />
     <property name="build" value="${basedir}/classes" />
     <property name="build_meter_generated" value="${basedir}/build_generated" />
@@ -126,7 +120,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
     <property name="doc" value="${basedir}/doc" />
     <property name="apidoc" value="${doc}/api" />
     <property name="impldoc" value="${doc}/impl" />
-    <property name="combineddoc" value="${doc}/combined" />
     <property name="jnlp" value="${basedir}/jnlp" />
     <property name="rpm" value="${basedir}/rpm" />
     
@@ -205,14 +198,9 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
         </path>
         
         <path id="test.classpath">
-            <pathelement location="${test_res}" />
             <pathelement location="${jxtajar}" />
             <pathelement path="${build_test}" />
-            <pathelement location="${tools}/junit-4.4.jar" />
-            <pathelement location="${tools}/jmock-2.5.0/jmock-2.5.0.jar" />
-            <pathelement location="${tools}/jmock-2.5.0/jmock-junit4-2.5.0.jar" />
-            <pathelement location="${tools}/jmock-2.5.0/hamcrest-core-1.1.jar" />
-            <pathelement location="${tools}/jmock-2.5.0/hamcrest-library-1.1.jar" />
+            <pathelement location="${tools}/junit.jar" />
         </path>
     </target>
     
@@ -308,17 +296,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
         </javac>
     </target>
     
-    <!-- This target exists for Maven2 repository integration -->
-    <target name="-source-jar" description="Creates source jar file">
-        <delete file="${dist}/jxse-src-${net.jxta.build.version}.jar" />
-        
-        <jar destfile="${dist}/jxse-src-${net.jxta.build.version}.jar">
-            <fileset dir="${basedir}/api/src" />
-            <fileset dir="${basedir}/impl/src" />
-            <fileset dir="${basedir}" includes="license.txt" />
-        </jar>
-    </target>
-    
     <target name="-source-tbz2" description="Creates source tar.bz2 file">
         <delete file="${dist}/jxse-src-${net.jxta.build.version}.tar.bz2" />
         
@@ -329,7 +306,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
                 <exclude name="**/classes/**" />
                 <exclude name="dist/**" />
                 <exclude name="jnlp/**" />
-                <exclude name="maven2release/**" />
                 <exclude name="nbproject/private/**" />
                 <exclude name="tmp/**" />
                 <exclude name="rpm/**" />
@@ -348,7 +324,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
                 <exclude name="**/classes/**" />
                 <exclude name="dist/**" />
                 <exclude name="jnlp/**" />
-                <exclude name="maven2release/**" />
                 <exclude name="nbproject/private/**" />
                 <exclude name="tmp/**" />
                 <exclude name="rpm/**" />
@@ -365,7 +340,6 @@ $Id: build.xml,v 1.188 2007/05/14 20:22:08 bondolo Exp $
                 <exclude name="**/classes/**" />
                 <exclude name="dist/**" />
                 <exclude name="jnlp/**" />
-                <exclude name="maven2release/**" />
                 <exclude name="nbproject/private/**" />
                 <exclude name="rpm/**" />
                 <exclude name="tmp/**" />
@@ -517,6 +491,7 @@ href="bcprov-ext.jnlp">
     
     <target name="javadoc" depends="-prepare, -meterConfig" description="Creates HTML javadoc for JXTA APIs, References IMPL and Extensions">
         <mkdir dir="${apidoc}" />
+        
         <javadoc source="${source}" destdir="${apidoc}" access="protected" use="true" overview="${api}/net/jxta/overview.html" windowtitle="JXSE API" additionalparam="-notimestamp -breakiterator -quiet">
             <link href="http://java.sun.com/j2se/1.5.0/docs/api" />
             <classpath>
@@ -524,11 +499,8 @@ href="bcprov-ext.jnlp">
             </classpath>
             <sourcepath>
                 <pathelement location="${api}" />
-                <pathelement location="${impl}" />
-                <pathelement location="${build_meter_generated}" />
             </sourcepath>
             <package name="net.jxta.*" />
-            <excludepackage name="net.jxta.impl.*" />
             <group title="JXSE API" packages="net.jxta.*" />
             <doctitle>JXSE ${net.jxta.build.version}</doctitle>
             <header>&lt;a href='http://jxta-jxse.dev.java.net' target='_blank'&gt;JXTA&lt;/a&gt;</header>
@@ -540,38 +512,13 @@ href="bcprov-ext.jnlp">
             <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
             <link href="http://www.bouncycastle.org/docs/docs1.5/" />
             <link href="http://java.sun.com/products/servlet/2.3/javadoc/" />
-            <!-- The following used to reference a "current" subdir but this no longer held current apidocs -->
-            <link href="https://jxta-docs.dev.java.net/nonav/jxse-javadoc/2.5/jxse/api/" offline="true" packagelistLoc="${apidoc}" />
-            <classpath>
-                <path refid="compile.classpath" />
-            </classpath>
+            <link href="https://jxta-docs.dev.java.net/nonav/jxse-javadoc/current/api/" offline="true" packagelistLoc="${apidoc}" />
             <sourcepath>
                 <pathelement location="${api}" />
                 <pathelement location="${impl}" />
-                <pathelement location="${build_meter_generated}" />
             </sourcepath>
             <package name="net.jxta.impl.*" />
             <group title="JXSE Reference Implementation (see &lt;a href='#implnote'&gt;note&lt;/a&gt;)" packages="net.jxta.impl.*" />
-            <doctitle>JXSE ${net.jxta.build.version}</doctitle>
-            <header>&lt;a href='http://jxta-jxse.dev.java.net' target='_blank'&gt;JXTA&lt;/a&gt;</header>
-            <footer>JXSE</footer>
-        </javadoc>
-
-        <mkdir dir="${combineddoc}" />
-        <javadoc source="${source}" destdir="${combineddoc}" access="package" use="true" overview="${impl}/net/jxta/impl/overview.html" windowtitle="JXSE Reference Implementation" additionalparam="-notimestamp -breakiterator -quiet">
-            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
-            <link href="http://www.bouncycastle.org/docs/docs1.5/" />
-            <link href="http://java.sun.com/products/servlet/2.3/javadoc/" />
-            <classpath>
-                <path refid="compile.classpath" />
-            </classpath>
-            <sourcepath>
-                <pathelement location="${api}" />
-                <pathelement location="${impl}" />
-                <pathelement location="${build_meter_generated}" />
-            </sourcepath>
-            <package name="net.jxta.*" />
-            <group title="JXSE Reference Implementation (see &lt;a href='#implnote'&gt;note&lt;/a&gt;)" packages="net.jxta.*" />
             <doctitle>JXSE ${net.jxta.build.version}</doctitle>
             <header>&lt;a href='http://jxta-jxse.dev.java.net' target='_blank'&gt;JXTA&lt;/a&gt;</header>
             <footer>JXSE</footer>
@@ -607,14 +554,6 @@ href="bcprov-ext.jnlp">
             <fileset dir="${apidoc}/.." includes="api/" />
             <fileset dir="${impldoc}/.." includes="impl/" />
         </zip>
-    </target>
-   
-    <!-- This target exists for Maven2 repository integration -->
-    <target name="-javadoc-jar" description="Creates jar file of combined javadoc">
-        <jar destfile="${dist}/jxse-doc-${net.jxta.build.version}.jar">
-            <exclude name="**/.*" />
-            <fileset dir="${combineddoc}" />
-        </jar>
     </target>
     
     <target name="-lib-tbz2" description="creates tar.bz2 file of libs">
@@ -692,7 +631,7 @@ href="bcprov-ext.jnlp">
             <classpath>
                 <pathelement location="${build}" />
                 <fileset refid="lib.files" />
-		<path refid="test.classpath" />
+                <pathelement location="${tools}/junit.jar" />
             </classpath>
             <src path="${test}" />
         </javac>
@@ -707,47 +646,54 @@ href="bcprov-ext.jnlp">
     
     <target name="runtest" depends="-test.compile" description="Console JUnit test runner">
         <delete dir="${tmp}/JUnit" />
-       
-        <junit
-            printsummary="on"
-            haltonerror="no"
-            haltonfailure="no"
-            fork="yes"
-            forkmode="once"
-            showoutput="${test_junit_output}"
-            >
+        
+        <java classname="junit.textui.TestRunner" fork="yes">
             <jvmarg value="-Xms${net.jxta.jvm.xms}" />
-            <jvmarg value="-Xms${net.jxta.jvm.xms}" />
-            <jvmarg value="-DJXTA_HOME=${tmp}/JUnit" />
-            <jvmarg value="-Dnet.jxta.tls.password=${net.jxta.tls.password}" />
-            <jvmarg value="-Djava.util.logging.config.file=${test_logging_cfg}" />
-            <jvmarg value="-Dnet.jxta.impl.loader.RefJxtaLoader.maxTransferTime=2000" />
+            <jvmarg value="-Xmx${net.jxta.jvm.xmx}" />
+            <sysproperty key="JXTA_HOME" value="${tmp}/JUnit" />
+            <sysproperty key="net.jxta.tls.password" value="${net.jxta.tls.password}" />
             <classpath>
                 <pathelement location="${build_test}" />
                 <pathelement location="${build}" />
-		<path refid="test.classpath" />
+                <pathelement location="${tools}/junit.jar" />
                 <fileset refid="lib.files" />
                 <pathelement location="${api}" />
                 <pathelement location="${impl}" />
                 <pathelement location="${basedir}" />
             </classpath>
-            <formatter type="plain"/>
-            <batchtest fork="yes" todir="${tmp}">
-                <fileset dir="${test}"
-                    includesfile="${test_junit_includes}"
-                    excludesfile="${test_junit_excludes}"
-                    />
-            </batchtest>
-        </junit>
-
+            <arg value="net.jxta.AllTests" />
+        </java>
         <delete dir="${tmp}/JUnit" />
     </target>
+    
+    <target name="runtestui" depends="-test.compile" description="GUI JUnit test runner">
+        <delete dir="${tmp}/JUnit" />
+        
+        <java classname="junit.swingui.TestRunner" fork="yes">
+            <jvmarg value="-Xms${net.jxta.jvm.xms}" />
+            <jvmarg value="-Xmx${net.jxta.jvm.xmx}" />
+            <sysproperty key="JXTA_HOME" value="${tmp}/JUnit" />
+            <sysproperty key="net.jxta.tls.password" value="${net.jxta.tls.password}" />
+            <classpath>
+                <pathelement location="${build_test}" />
+                <pathelement location="${build}" />
+                <pathelement location="${tools}/junit.jar" />
+                <fileset refid="lib.files" />
+                <pathelement location="${api}" />
+                <pathelement location="${impl}" />
+                <pathelement location="${basedir}/" />
+            </classpath>
+        </java>
+        
+        <delete dir="${tmp}/Junit" />
+    </target>
+    
     
     <target name="-tutorials.compile" description="Compiles tutorials">
         <ant inheritAll="false" antfile="${basedir}/tutorials/build.xml" target="compile"/>
     </target>
-
-
+    
+    
     <!-- meta targets -->
   
     <target name="all" depends="clean, signjar" description="Clean build of core targets" />
@@ -757,7 +703,6 @@ href="bcprov-ext.jnlp">
             <antcall inheritRefs="true" target="-source-tbz2"/>
             <antcall inheritRefs="true" target="-source-tgz"/>
             <antcall inheritRefs="true" target="-source-zip"/>
-            <antcall inheritRefs="true" target="-source-jar"/>
             <sequential>
                 <antcall inheritRefs="true" target="signjar"/>
                 <parallel>
@@ -773,7 +718,6 @@ href="bcprov-ext.jnlp">
                     <antcall inheritRefs="true" target="-javadoc-tbz2"/>
                     <antcall inheritRefs="true" target="-javadoc-tgz"/>
                     <antcall inheritRefs="true" target="-javadoc-zip"/>
-                    <antcall inheritRefs="true" target="-javadoc-jar"/>
                 </parallel>
             </sequential>
         </parallel>
@@ -786,5 +730,4 @@ href="bcprov-ext.jnlp">
             </fileset>
         </copy>
     </target>
-
 </project>

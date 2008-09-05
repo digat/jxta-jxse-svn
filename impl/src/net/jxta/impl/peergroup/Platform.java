@@ -77,7 +77,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.jxta.impl.content.ContentServiceImpl;
 
 /**
  * Provides the implementation for the World PeerGroup. The World peer group
@@ -105,10 +104,7 @@ public class Platform extends StdPeerGroup {
      *  @return The default module impl advertisement for this class.
      */
     public static ModuleImplAdvertisement getDefaultModuleImplAdvertisement() {
-        ModuleImplAdvertisement implAdv = 
-                CompatibilityUtils.createModuleImplAdvertisement(
-                PeerGroup.refPlatformSpecID, Platform.class.getName(),
-                "Standard World PeerGroup Reference Implementation");
+        ModuleImplAdvertisement implAdv = mkImplAdvBuiltin(PeerGroup.refPlatformSpecID, Platform.class.getName(), "Standard World PeerGroup Reference Implementation");
 
         // Build the param section now.
         StdPeerGroupParamAdv paramAdv = new StdPeerGroupParamAdv();
@@ -126,7 +122,6 @@ public class Platform extends StdPeerGroup {
         paramAdv.addService(PeerGroup.discoveryClassID, PeerGroup.refDiscoverySpecID);
         paramAdv.addService(PeerGroup.rendezvousClassID, PeerGroup.refRendezvousSpecID);
         paramAdv.addService(PeerGroup.peerinfoClassID, PeerGroup.refPeerinfoSpecID);
-        paramAdv.addService(PeerGroup.contentClassID, ContentServiceImpl.MODULE_SPEC_ID);
 
         // Do the Message Transports
 
@@ -184,20 +179,17 @@ public class Platform extends StdPeerGroup {
             throw new PeerGroupException("World PeerGroup cannot be instantiated with a parent group!");
         }
 
-        // XXX 20080817 mcumings - Need to find a way to have this passed in
-        //     so that we can use the passed-in loader as the overall root
-        //     loader.
-        JxtaLoader loader = getJxtaLoader();
-        
         ModuleImplAdvertisement implAdv = (ModuleImplAdvertisement) impl;
+        
         if(null == implAdv) {
-            implAdv = loader.findModuleImplAdvertisement(getClass());
+            implAdv = getJxtaLoader().findModuleImplAdvertisement(getClass());
         }
 
         if (null != jxtaHome) {
             try {
                 URL downloadablesURL = jxtaHome.resolve("Downloaded/").toURL();
-                loader.addURL(downloadablesURL);
+
+                getJxtaLoader().addURL(downloadablesURL);
             } catch (MalformedURLException badPath) {
                 if (Logging.SHOW_WARNING && LOG.isLoggable(Level.WARNING)) {
                     LOG.warning("Could not install path for downloadables into JXTA Class Loader.");
@@ -237,7 +229,7 @@ public class Platform extends StdPeerGroup {
      */
     @Override
     public ModuleImplAdvertisement getAllPurposePeerGroupImplAdvertisement() {
-        JxtaLoader loader = getLoader();
+        JxtaLoader loader = getJxtaLoader();
 
         // For now, use the well know NPG naming, it is not identical to the 
         // allPurpose PG because we use the class ShadowPeerGroup which 

@@ -170,7 +170,7 @@ public class LeaseRequestMsg {
     
     /**
      * Construct from a XLMElement
-     */
+     **/
     public LeaseRequestMsg(Element root) {
         if (!XMLElement.class.isInstance(root)) {
             throw new IllegalArgumentException(getClass().getName() + " only supports XLMElement");
@@ -374,7 +374,7 @@ public class LeaseRequestMsg {
      *  Our DOCTYPE
      *
      *  @return the type of this message.
-     */
+     **/
     public static String getMessageType() {
         return "jxta:LeaseRequestMsg";
     }
@@ -405,12 +405,8 @@ public class LeaseRequestMsg {
     }
     
     /**
-     * Get the lease request as a document encoded as the specified
-     * MIME type.
-     * 
-     * @param mediaType media type to encode as
-     * @return document instance
-     */
+     *  {@inheritDoc}
+     **/
     public Document getDocument(MimeMediaType mediaType) {
         
         if (null == getClientID()) {

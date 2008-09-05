@@ -55,16 +55,7 @@
  */
 package net.jxta.peergroup;
 
-import java.io.IOException;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import net.jxta.access.AccessService;
-import net.jxta.content.ContentService;
 import net.jxta.discovery.DiscoveryService;
 import net.jxta.document.Advertisement;
 import net.jxta.document.Element;
@@ -88,6 +79,15 @@ import net.jxta.protocol.PeerGroupAdvertisement;
 import net.jxta.rendezvous.RendezVousService;
 import net.jxta.resolver.ResolverService;
 import net.jxta.service.Service;
+
+import java.io.IOException;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 
 /**
  * Peer groups are formed as a collection of peers that have agreed upon a
@@ -417,13 +417,6 @@ public interface PeerGroup extends Service {
             ModuleClassID.create(URI.create(WK_ID_PREFIX + "0000001005"));
 
     /**
-     * Well known module class identifier: content service
-     */
-    public final static ModuleClassID contentClassID =
-            ModuleClassID.create(URI.create(
-            "urn:jxta:uuid-DDC5CA55578E4AB99A0AA81D2DC6EF3F05"));
-
-    /**
      * Well known group specification identifier: the platform
      */
     public final static ModuleSpecID refPlatformSpecID =
@@ -662,11 +655,10 @@ public interface PeerGroup extends Service {
      * <p/>
      * Compatibility is checked and load is attempted. If compatible and loaded
      * successfully, the resulting Module is initialized and returned.
-     * In most cases {@link #loadModule(net.jxta.id.ID, net.jxta.platform.ModuleSpecID, int)} 
-     * should be preferred, since unlike this method, it will try all  
-     * compatible implementation advertisements until one works. The home group 
-     * of the new module (its' parent group if the new Module is a group) will 
-     * be this group.
+     * In most cases the other loadModule() method should be preferred, since
+     * unlike this one, it will seek many compatible implementation
+     * advertisements and try them all until one works. The home group of the new
+     * module (its' parent group if the new Module is a group) will be this group.
      *
      * @param assignedID Id to be assigned to that module (usually its ClassID).
      * @param impl       An implementation advertisement for that module.
@@ -879,19 +871,10 @@ public interface PeerGroup extends Service {
      * Return the Access Service for this Peer Group. This service is present in
      * every Peer Group.
      *
-     * @return The Access Service for this Peer Group.
+     * @return AccessService The Access Service for this Peer Group.
      * @since JXTA 2.1
      */
     public AccessService getAccessService();
-
-    /**
-     * Return the Content Service for this Peer Group. This service is present
-     * in every Peer Group.
-     *
-     * @return The Content Service for this Peer Group.
-     * @since JXTA 2.6
-     */
-    public ContentService getContentService();
 
     // A few convenience methods. This information is available from the peer and peergroup advertisement.
 
@@ -913,7 +896,8 @@ public interface PeerGroup extends Service {
      * Return the Name of this group. This name is not canonical, meaning that
      * there may be other groups with the same name.
      *
-     * @return This groups's name or <code>null</code> if no name was specified.
+     * @return String This groups's name or <code>null</code>  if no name was
+     *         specified.
      */
     public String getPeerGroupName();
 
@@ -921,7 +905,8 @@ public interface PeerGroup extends Service {
      * Return the name of the local peer within this group. This name is not
      * canonical, meaning that there may be other peers with the same name.
      *
-     * @return This peer's name or <code>null</code> if no name was specified.
+     * @return String This peer's name or <code>null</code> if no name was
+     *         specified.
      */
     public String getPeerName();
 
@@ -958,11 +943,8 @@ public interface PeerGroup extends Service {
      * Explicitly notifies a group interface that it will no-longer be used
      * (similar to dispose). Does nothing to a real group object, only has an
      * effect on a group interface.
-     * 
-     * @return If {@code true} then interface was unreferenced. If {@code false}
-     * then the interface had previously been unreferenced.
      */
-    public boolean unref();
+    public void unref();
 
     /**
     *   {@inheritDoc}
@@ -970,33 +952,36 @@ public interface PeerGroup extends Service {
     public PeerGroup getInterface();
 
     /**
-     * Returns a weak interface object that represents this group.
+     * Returns a weak interface object that represents this
+     * group.
      * <p/>
-     * A weak interface object has no life-cycle privileges over the group that
-     * it represents and therefore its users have no accountability. A weak
-     * interface object is safe to give away but holds no promise of sustained
-     * validity.
+     * A weak interface object has no life-cycle privileges over
+     * the group that it represents and therefore its users have
+     * no accountability. A weak interface object is safe to
+     * give away but holds no promise of sustained validity.
      * <p/>
-     * Whatever code gave away a weak interface object retains the power of
-     * terminating the group object from which it was obtained, thereby making 
-     * the weak interface object invalid.
+     * Whatever code gave away a weak interface object retains
+     * the power of terminating the group object from which it
+     * was obtained, thereby making the weak interface
+     * object invalid.
      * <p/>
-     * A weak interface object is immutable; its {@link #unref()} and 
-     * {@link Service#stopApp()} methods do nothing. Its validity is exactly 
-     * that of the group or interface object from which it was obtained.
+     * A weak interface object is immutable; its unref and stopApp
+     * methods do nothing. Its validity is exactly that of the
+     * group or interface object from which it was obtained.
      * <p/>
-     * A weak interface object can be obtained from an interface object, or from
-     * a real group object, or from a weak interface object. In the later case, 
-     * the object returned may be the original weak interface object since such 
-     * objects are immutable.
+     * A weak interface object can be obtained from an interface
+     * object, or from a real group object, or from a weak interface
+     * object. In the later case, the object returned may be
+     * the original weak interface object since such objects
+     * are immutable.
      * <p/>
      * Whatever code obtains a weak interface object from a group object or
-     * regular interface object, remains entirely liable for invoking 
-     * {@link #unref()} on the initial object before discarding it. Giving away a
-     * weak interface object is not equivalent to transferring ownership of the 
-     * original.
+     * regular interface object, remains entirely liable for invoking unref
+     * on the initial object before discarding it. Giving away a weak interface
+     * object is not equivalent to transferring ownership of the original.
      *
-     * @return A weak interface object that represents this PeerGroup object.
+     * @return PeerGroup A weak interface object that represents this
+     *         PeerGroup object.
      * @since JXTA 2.2
      */
     public PeerGroup getWeakInterface();
@@ -1005,8 +990,8 @@ public interface PeerGroup extends Service {
      * Returns the parent group of this peer group. Not all peer groups have a
      * parent and some implementations may not reveal their parents.
      *
-     * @return The parent peer group or {@code null} if no parent group is
-     *         available.
+     * @return PeerGroup the parent group or {@code null} if no parent group is
+     * available.
      * @since JXTA 2.3
      */
     public PeerGroup getParentGroup();

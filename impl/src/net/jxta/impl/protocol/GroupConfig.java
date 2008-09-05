@@ -124,7 +124,7 @@ public class GroupConfig extends ConfigParams implements Cloneable {
     /**
      * Use the Instantiator through the factory
      *
-     * @param doc the element
+     * @param root the element
      */
     GroupConfig(XMLElement doc) {
         String doctype = doc.getName();

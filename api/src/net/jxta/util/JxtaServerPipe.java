@@ -401,17 +401,17 @@ public class JxtaServerPipe implements PipeMsgListener {
                     LOG.fine("Connection request [directSupported] :" + directSupported);
                 }
             }
-            
+
             el = msg.getMessageElement(nameSpace, connectionPropertiesTag);
-            byte[] connectionPropertiesBytes = null;
+            String connectionPropertiesString = null;
             if (el != null) {
-                connectionPropertiesBytes = el.getBytes(false);
+                connectionPropertiesString = el.toString();
                 if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                    LOG.fine("Connection request [connectionPropertiesBytes] :" + connectionPropertiesBytes);
+                    LOG.fine("Connection request [connectionPropertiesString] :" + connectionPropertiesString);
                 }
-                if (connectionPropertiesBytes != null) {
+                if (connectionPropertiesString != null) {
                     connectionProperties
-                            = bytesToProperties(connectionPropertiesBytes);
+                            = stringToProperties(connectionPropertiesString);
                 }
             }
 
@@ -454,15 +454,15 @@ public class JxtaServerPipe implements PipeMsgListener {
         return null;
     }
 
-    private Properties bytesToProperties(byte[] propsBytes) {
+    private Properties stringToProperties(String propsString) {
         Properties properties = new Properties();
-        ByteArrayInputStream bis = new ByteArrayInputStream(propsBytes);
+        ByteArrayInputStream bis = new ByteArrayInputStream(propsString.getBytes());
         try {
             properties.load(bis);
         } catch (IOException e) {
         }
-        return properties;
-    } 
+        return (Properties) properties;
+    }
 
     /**
      * Method sendResponseMessage get the createResponseMessage and sends it.

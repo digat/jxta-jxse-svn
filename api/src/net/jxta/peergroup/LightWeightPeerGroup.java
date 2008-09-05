@@ -86,7 +86,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.jxta.content.ContentService;
 
 
 /**
@@ -453,17 +452,6 @@ public class LightWeightPeerGroup implements PeerGroup {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public ContentService getContentService() {
-        if (group != null) {
-            return group.getContentService();
-        } else {
-            return null;
-        }
-    }
-
     /*
      * A few convenience methods. This information is available from
      * the peer and peergroup advertisement.
@@ -542,8 +530,7 @@ public class LightWeightPeerGroup implements PeerGroup {
     /**
      * {@inheritDoc}
      */
-    public boolean unref() {
-        return true;
+    public void unref() {
     }
 
     /**
