@@ -70,6 +70,7 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.ConnectionPoolDataSource;
 import net.jxta.document.Advertisement;
@@ -161,7 +162,7 @@ public abstract class JdbcAdvertisementCache extends AbstractAdvertisementCache 
                 return false;
 		
             }
-
+            
 	}
 	
 	private MiniConnectionPoolManager connPool;
@@ -581,7 +582,7 @@ public abstract class JdbcAdvertisementCache extends AbstractAdvertisementCache 
 				deleteIndexables(conn, dn, fn);
 			}
 			
-                        StructuredDocument<?> doc = (StructuredDocument<?>)adv.getSignedDocument();
+			StructuredDocument<?> doc = (StructuredDocument<?>)adv.getDocument(MimeMediaType.XMLUTF8);
 			Map<String, String> indexFields = CacheUtils.getIndexfields(adv.getIndexFields(), doc);
 			for(String indexField : indexFields.keySet()) {
 				if(!putIndexable(conn, dn, fn, indexField, indexFields.get(indexField))) {
@@ -639,7 +640,7 @@ public abstract class JdbcAdvertisementCache extends AbstractAdvertisementCache 
 	}
 
 	private byte[] getBytesForAdvert(Advertisement adv) throws IOException {
-		Document doc = adv.getSignedDocument();
+		Document doc = adv.getDocument(MimeMediaType.XMLUTF8);
 		ByteArrayOutputStream byteStream = new ByteArrayOutputStream(2048);
 		doc.sendToStream(byteStream);
 		return byteStream.toByteArray();
@@ -823,11 +824,11 @@ public abstract class JdbcAdvertisementCache extends AbstractAdvertisementCache 
 	public void setTrackDeltas(boolean trackDeltas) {
 
 	    deltaTracker.setTrackingDeltas(trackDeltas);
-
+            
 	}
 
 	public void stop() throws IOException {
-
+            
             try {
 
                 connPool.dispose();

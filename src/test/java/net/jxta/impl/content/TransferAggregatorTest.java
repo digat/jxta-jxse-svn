@@ -79,11 +79,14 @@ import net.jxta.protocol.ContentShareAdvertisement;
 import net.jxta.test.util.JUnitRuleMockery;
 import net.jxta.test.util.TempDir;
 import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.Sequence;
+import org.jmock.integration.junit4.JMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 /**
@@ -114,7 +117,7 @@ public class TransferAggregatorTest {
     private ContentTransfer standby;
 
     private Content content;
-
+    
     @Rule
     public JUnitRuleMockery context = new JUnitRuleMockery();
 
@@ -123,7 +126,7 @@ public class TransferAggregatorTest {
      */
     public TransferAggregatorTest() {
     }
-
+    
     static {
         try {
             TEMP_DIR = new TempDir();
@@ -338,7 +341,7 @@ public class TransferAggregatorTest {
         }});
 
         aggregator.startSourceLocation();
-
+        
         LOG.info("selected = " + selected);
         LOG.info("standby  = " + standby);
 
@@ -464,7 +467,7 @@ public class TransferAggregatorTest {
             will(returnValue(content));
             one(aggListener).selectedContentTransfer(
                     with(any(ContentTransferAggregatorEvent.class)));
-
+            
             // all transfers should be cancelled for cleanup purposes
             one(standby).removeContentTransferListener(aggregator);
             one(standby).cancel();
@@ -499,7 +502,7 @@ public class TransferAggregatorTest {
     @Test
     public void testDontReturnToPending() throws Exception {
         testStartSourceLocation();
-
+        
         final ContentTransferEvent failedEvent =
                 new ContentTransferEvent.Builder(selected)
                 .locationCount(100)
@@ -522,37 +525,37 @@ public class TransferAggregatorTest {
                     will(returnValue(ContentSourceLocationState.NOT_LOCATING_HAS_MANY));
                 }
             }
-
+            
             ignoring(aggListener);
-
+            
             one(selected).startTransfer(with(any(File.class)));
             one(listener).contentTransferStateUpdated(
                     with(any(ContentTransferEvent.class)));
-
+            
             // On failure, the getContent is called to extract the exception
             one(selected).getContent();
             will(throwException(new TransferException("Ignored")));
             one(selected).cancel();
-
+            
             // Next batter up...
             one(standby).getTransferState();
             will(returnValue(ContentTransferState.PENDING));
             one(standby).startTransfer(with(any(File.class)));
-
+            
             allowing(standby).getSourceLocationState();
             will(returnValue(ContentSourceLocationState.LOCATING_HAS_ENOUGH));
-
+            
         }});
 
         File dest = new File(TEMP_DIR, "content");
         aggregator.startTransfer(dest);
         assertEquals(ContentTransferState.PENDING,
                 aggregator.getTransferState());
-
+        
         aggregator.contentTransferStateUpdated(stalledEvent);
         assertEquals(ContentTransferState.STALLED,
                 aggregator.getTransferState());
-
+        
         // The FAILED event should have been absorbed
         aggregator.contentTransferStateUpdated(failedEvent);
         assertEquals(ContentTransferState.STALLED,
@@ -564,31 +567,31 @@ public class TransferAggregatorTest {
     @Test
     public void testAllTransfersFail() throws Exception {
         testStartSourceLocation();
-
+        
         context.checking(new Expectations() {{
             // Ignore everything except selected and standby
             for (ContentTransfer transfer : transfers) {
                 // Each transfer is started once
                 one(transfer).startTransfer(with(any(File.class)));
-
+                
                 // Each transfer fails once
                 one(transfer).getContent();
                 will(throwException(new TransferException("Ignored")));
                 one(transfer).cancel();
-
+                
                 if (transfer != selected) {
                     one(transfer).getTransferState();
                     will(returnValue(ContentTransferState.PENDING));
                 }
-
+                
                 allowing(transfer).getSourceLocationState();
                 will(returnValue(ContentSourceLocationState.LOCATING_HAS_ENOUGH));
 
                 allowing(transfer).stopSourceLocation();
             }
-
+            
             ignoring(aggListener);
-
+            
             one(listener).contentTransferStateUpdated(
                     with(any(ContentTransferEvent.class)));
         }});
@@ -597,7 +600,7 @@ public class TransferAggregatorTest {
         aggregator.startTransfer(dest);
         assertEquals(ContentTransferState.PENDING,
                 aggregator.getTransferState());
-
+        
         // The FAILED event should have been absorbed
         aggregator.contentTransferStateUpdated(
             new ContentTransferEvent.Builder(

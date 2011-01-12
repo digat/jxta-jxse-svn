@@ -53,7 +53,6 @@
  *
  *  This license is based on the BSD license adopted by the Apache Foundation.
  */
-
 package net.jxta.impl.endpoint.mcast;
 
 import net.jxta.document.Advertisement;
@@ -80,6 +79,8 @@ import net.jxta.impl.endpoint.transportMeter.TransportMeter;
 import net.jxta.impl.endpoint.transportMeter.TransportMeterBuildSettings;
 import net.jxta.impl.endpoint.transportMeter.TransportServiceMonitor;
 import net.jxta.impl.meter.MonitorManager;
+import net.jxta.impl.peergroup.StdPeerGroup;
+import net.jxta.impl.protocol.TCPAdv;
 import net.jxta.impl.util.TimeUtils;
 import net.jxta.logging.Logging;
 import net.jxta.meter.MonitorResources;
@@ -90,6 +91,7 @@ import net.jxta.platform.ModuleSpecID;
 import net.jxta.protocol.ConfigParams;
 import net.jxta.protocol.ModuleImplAdvertisement;
 import net.jxta.protocol.TransportAdvertisement;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -347,7 +349,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
         // Determine the local interface to use. If the user specifies one, use
         // that. Otherwise, use the all the available interfaces.
         if (interfaceAddressStr != null) {
-
+            
             try {
 
                 usingInterface = InetAddress.getByName(interfaceAddressStr);
@@ -428,13 +430,13 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
 
             StringBuilder configInfo = new StringBuilder("Configuring IP Multicast Message Transport : " + assignedID);
 
-//            if (implAdvertisement != null) {
+            if (implAdvertisement != null) {
                 configInfo.append("\n\tImplementation :");
                 configInfo.append("\n\t\tModule Spec ID: ").append(implAdvertisement.getModuleSpecID());
                 configInfo.append("\n\t\tImpl Description : ").append(implAdvertisement.getDescription());
                 configInfo.append("\n\t\tImpl URI : ").append(implAdvertisement.getUri());
                 configInfo.append("\n\t\tImpl Code : ").append(implAdvertisement.getCode());
-//            }
+            }
 
             configInfo.append("\n\tGroup Params:");
             configInfo.append("\n\t\tGroup : ").append(group);
@@ -470,7 +472,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
      * {@inheritDoc}
      */
     public synchronized int startApp(String[] arg) {
-
+        
         if (disabled) {
 
             Logging.logCheckedInfo(LOG, "IP Multicast Message Transport disabled.");
@@ -505,7 +507,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
 
         // We're fully ready to function.
         MessengerEventListener messengerEventListener = endpoint.addMessageTransport(this);
-
+        
         if (messengerEventListener == null) {
 
             Logging.logCheckedSevere(LOG, "Transport registration refused");
@@ -515,7 +517,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
 
         // Cannot start before registration
         multicastProcessor = new DatagramProcessor(group.getTaskManager().getExecutorService(), poolSize);
-        multicastThread = new Thread(this, "IP Multicast Listener for " + publicAddress);
+        multicastThread = new Thread(group.getHomeThreadGroup(), this, "IP Multicast Listener for " + publicAddress);
         multicastThread.setDaemon(true);
         multicastThread.start();
 
@@ -531,7 +533,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
         }
 
         Logging.logCheckedInfo(LOG, "IP Multicast Message Transport started.");
-
+        
         return Module.START_OK;
 
     }
@@ -606,7 +608,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
                     if (isClosed) return;
 
                     Logging.logCheckedFine(LOG, "multicast message received from :", packet.getAddress().getHostAddress());
-
+                    
                     // This operation is blocking and may take a long time to
                     // return. As a result we may lose datagram packets because
                     // we are not calling
@@ -630,9 +632,9 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
         } catch (Throwable all) {
 
             if (isClosed) return;
-
+            
             Logging.logCheckedSevere(LOG, "Uncaught Throwable in thread :" + Thread.currentThread().getName(), all);
-
+            
         } finally {
 
             multicastThread = null;
@@ -656,8 +658,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
 
             message.replaceMessageElement(EndpointServiceImpl.MESSAGE_DESTINATION_NS, dstAddressElement);
 
-            WireFormatMessage serialed = WireFormatMessageFactory.toWireExternal(message, WireFormatMessageFactory.DEFAULT_WIRE_MIME, null, this.group);
-            
+            WireFormatMessage serialed = WireFormatMessageFactory.toWire(message, WireFormatMessageFactory.DEFAULT_WIRE_MIME, null);
             MessagePackageHeader header = new MessagePackageHeader();
 
             header.setContentTypeHeader(serialed.getMimeType());
@@ -677,11 +678,11 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
 
             if ((buffer.size() > multicastPacketSize) ) 
                 Logging.logCheckedWarning(LOG, "Multicast datagram exceeds multicast size.");
-
+            
             DatagramPacket packet = new DatagramPacket(buffer.toByteArray(), numBytesInPacket, multicastInetAddress, multicastPort);
 
             if (isClosed || multicastSocket == null) return false;
-
+            
             multicastSocket.send(packet);
             Logging.logCheckedFine(LOG, "Sent Multicast message to :", pName, "/", pParams);
 
@@ -739,7 +740,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
             // TODO 20020730 bondolo@jxta.org Do something with content-coding here.
 
             // read the message!
-            Message msg = WireFormatMessageFactory.fromBufferExternal(bbuffer, msgMime, null, group);
+            Message msg = WireFormatMessageFactory.fromBuffer(bbuffer, msgMime, null);
 
             // Extract the source and destination
             MessageElement srcAddrElem = msg.getMessageElement(EndpointServiceImpl.MESSAGE_SOURCE_NS, EndpointServiceImpl.MESSAGE_SOURCE_NAME);
@@ -758,7 +759,7 @@ public class McastTransport implements Runnable, Module, MessagePropagater {
 
             MessageElement dstAddrElem = msg.getMessageElement(EndpointServiceImpl.MESSAGE_DESTINATION_NS, EndpointServiceImpl.MESSAGE_DESTINATION_NAME);
             if (null == dstAddrElem) throw new IOException("No Destination Address in " + msg);
-
+            
             msg.removeMessageElement(dstAddrElem);
 
             EndpointAddress dstAddr = new EndpointAddress(dstAddrElem.toString());

@@ -89,6 +89,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 /**
  * This class implements the TLS connection between two peers.
  *
@@ -130,8 +131,8 @@ class TlsConn {
      * Time that something "good" last happened on the connection
      */
     long lastAccessed;
-    final String lastAccessedLock = "lastAccessedLock";
-    final String closeLock = "closeLock";
+    final String lastAccessedLock = new String("lastAccessedLock");
+    final String closeLock = new String("closeLock");
     /**
      * Number of retransmissions we have received.
      */
@@ -157,7 +158,7 @@ class TlsConn {
      * A string which we can lock on while acquiring new messengers. We don't
      * want to lock the whole connection object.
      */
-    private final String acquireMessengerLock = "Messenger Acquire Lock";
+    private final String acquireMessengerLock = new String("Messenger Acquire Lock");
     /**
      * Cached messenger for sending to {@link #destAddr}
      */
@@ -195,7 +196,7 @@ class TlsConn {
     /**
      * Create a new connection
      */
-    TlsConn(TlsTransport tp, EndpointAddress destAddr, boolean client, java.security.PrivateKey privateKey) throws Exception {
+    TlsConn(TlsTransport tp, EndpointAddress destAddr, boolean client) throws Exception {
 
         this.transport = tp;
         this.destAddr = destAddr;
@@ -204,7 +205,7 @@ class TlsConn {
         this.lastAccessed = TimeUtils.timeNow();
 
         Logging.logCheckedInfo(LOG, (client ? "Initiating" : "Accepting"), " new connection for : ", destAddr.getProtocolAddress());
-
+        
         boolean choseTMF = false;
         javax.net.ssl.TrustManagerFactory tmf = null;
         String overrideTMF = System.getProperty("net.jxta.impl.endpoint.tls.TMFAlgorithm");
@@ -244,7 +245,7 @@ class TlsConn {
 
         javax.net.ssl.TrustManager[] tms = tmf.getTrustManagers();
 
-        javax.net.ssl.KeyManager[] kms = new javax.net.ssl.KeyManager[]{new PSECredentialKeyManager(transport.credential, trusted, privateKey)};
+        javax.net.ssl.KeyManager[] kms = new javax.net.ssl.KeyManager[]{new PSECredentialKeyManager(transport.credential, trusted)};
 
         context = SSLContext.getInstance("TLS");
         context.init(kms, tms, null);
@@ -310,7 +311,7 @@ class TlsConn {
         long startTime = TimeUtils.timeNow();
 
         Logging.logCheckedInfo(LOG, (client ? "Client:" : "Server:"), " Handshake START");
-
+        
         setHandshakeState(HandshakeState.HANDSHAKESTARTED);
 
         // this starts a handshake
@@ -352,7 +353,7 @@ class TlsConn {
             closing = true;
 
             Logging.logCheckedInfo(LOG, "Shutting down ", this);
-
+            
             setHandshakeState(HandshakeState.CONNECTIONCLOSING);
 
             try {
@@ -448,7 +449,7 @@ class TlsConn {
 
         try {
 
-            WireFormatMessage serialed = WireFormatMessageFactory.toWireExternalWithTls(msg, JTlsDefs.MTYPE, null, transport.getPeerGroup());
+            WireFormatMessage serialed = WireFormatMessageFactory.toWire(msg, JTlsDefs.MTYPE, null);
             serialed.sendToStream(new IgnoreFlushFilterOutputStream(plaintext_out));
             plaintext_out.flush();
 
@@ -479,7 +480,7 @@ class TlsConn {
             workerThread.start();
 
             Logging.logCheckedInfo(LOG, "Started ReadPlaintextMessage thread for ", TlsConn.this.destAddr);
-
+            
         }
 
         /**
@@ -489,7 +490,7 @@ class TlsConn {
             try {
                 while (true) {
                     try {
-                        Message msg = WireFormatMessageFactory.fromWireExternalWithTls(ptin, JTlsDefs.MTYPE, null, transport.getPeerGroup());
+                        Message msg = WireFormatMessageFactory.fromWire(ptin, JTlsDefs.MTYPE, null);
 
                         if (null == msg) {
                             break;
@@ -512,9 +513,9 @@ class TlsConn {
                 }
 
             } catch (Throwable all) {
-
+                
                 Logging.logCheckedSevere(LOG, "Uncaught Throwable in thread :", Thread.currentThread().getName(), "\n", all);
-
+                
             } finally {
 
                 workerThread = null;
@@ -522,7 +523,7 @@ class TlsConn {
             }
 
             Logging.logCheckedInfo(LOG, "Finishing ReadPlaintextMessage thread");
-
+            
         }
     }
 
@@ -536,14 +537,12 @@ class TlsConn {
      */
     private static class PSECredentialKeyManager implements javax.net.ssl.X509KeyManager {
 
-        java.security.PrivateKey privateKey;
         PSECredential cred;
         KeyStore trusted;
 
-        public PSECredentialKeyManager(PSECredential useCred, KeyStore trusted, java.security.PrivateKey privateKey) {
+        public PSECredentialKeyManager(PSECredential useCred, KeyStore trusted) {
             this.cred = useCred;
             this.trusted = trusted;
-            this.privateKey = privateKey;
         }
 
         /**
@@ -672,7 +671,7 @@ class TlsConn {
          */
         public java.security.PrivateKey getPrivateKey(String alias) {
             if (alias.equals("theone")) {
-                return privateKey;
+                return cred.getPrivateKey();
             } else {
                 return null;
             }
@@ -692,7 +691,7 @@ class TlsConn {
                     Collection<Principal> allIssuers = Arrays.asList(issuers);
 
                     if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-
+                        
                         Logging.logCheckedFine(LOG, "Looking for : ", cred.getCertificate().getIssuerX500Principal());
                         Logging.logCheckedFine(LOG, "Issuers : ", allIssuers);
 

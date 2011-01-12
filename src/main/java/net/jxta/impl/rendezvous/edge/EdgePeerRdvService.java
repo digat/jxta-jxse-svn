@@ -96,6 +96,7 @@ import net.jxta.impl.util.SeedingManager;
 import net.jxta.impl.util.TimeUtils;
 import net.jxta.impl.util.URISeedingManager;
 import net.jxta.impl.util.threads.SelfCancellingTask;
+import net.jxta.impl.util.threads.TaskManager;
 import net.jxta.logging.Logging;
 import net.jxta.peer.PeerID;
 import net.jxta.peergroup.PeerGroup;

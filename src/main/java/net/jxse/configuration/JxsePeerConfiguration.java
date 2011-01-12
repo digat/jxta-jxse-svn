@@ -117,9 +117,8 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
         JxsePeerConfiguration Result = new  JxsePeerConfiguration();
 
         Result.HttpConfig = JxseHttpTransportConfiguration.getDefaultHttpTransportConfiguration();
-        Result.Http2Config = JxseHttp2TransportConfiguration.getDefaultHttp2TransportConfiguration();
-        Result.TcpConfig = JxseTcpTransportConfiguration.getDefaultTcpTransportConfiguration();
-        Result.MulticastConfig = JxseMulticastTransportConfiguration.getDefaultMulticastTransportConfiguration();
+        Result.TcpConfig =  JxseTcpTransportConfiguration.getDefaultTcpTransportConfiguration();
+        Result.MulticastConfig =  JxseMulticastTransportConfiguration.getDefaultMulticastTransportConfiguration();
 
         // Enabling TCP and Multicasting
         Result.setDefaultPropertyValue(JXSE_TCP_ENABLED, Boolean.toString(true));
@@ -146,7 +145,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
         // Initializing transports
         this.HttpConfig = new JxseHttpTransportConfiguration(toCopy.getHttpTransportConfiguration());
-        this.Http2Config = new JxseHttp2TransportConfiguration(toCopy.getHttp2TransportConfiguration());
         this.MulticastConfig = new JxseMulticastTransportConfiguration(toCopy.getMulticastTransportConfiguration());
         this.TcpConfig = new JxseTcpTransportConfiguration(toCopy.getTcpTransportConfiguration());
 
@@ -162,7 +160,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
         // Initializing transports
         this.HttpConfig = new JxseHttpTransportConfiguration();
-        this.Http2Config = new JxseHttp2TransportConfiguration();
         this.MulticastConfig = new JxseMulticastTransportConfiguration();
         this.TcpConfig = new JxseTcpTransportConfiguration();
 
@@ -173,11 +170,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
      */
     private JxseHttpTransportConfiguration HttpConfig = null;
     
-    /**
-     * Reference to the HTTP 2 configuration
-     */
-    private JxseHttp2TransportConfiguration Http2Config = null;
-
     /**
      * Sets the HTTP transport configuration by copying the parameter. If the parameter  
      * is {@code null}, an empty HTTP transport configuration is set.
@@ -195,22 +187,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
     }
 
     /**
-     * Sets the HTTP 2 transport configuration by copying the parameter. If the parameter
-     * is {@code null}, an empty HTTP 2 transport configuration is set.
-     *
-     * @param inConfig The HTTP 2 transport configuration
-     */
-    public void setHttp2TransportConfiguration(JxseHttp2TransportConfiguration inConfig) {
-
-        if (inConfig!=null) {
-            Http2Config = new JxseHttp2TransportConfiguration(inConfig);
-        } else {
-            Http2Config = new JxseHttp2TransportConfiguration();
-        }
-
-    }
-
-    /**
      * Returns a copy of the HTTP transport configuration.
      *
      * @return a copy of the HTTP transport configuration
@@ -218,17 +194,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
     public JxseHttpTransportConfiguration getHttpTransportConfiguration() {
 
         return new JxseHttpTransportConfiguration(HttpConfig);
-
-    }
-
-    /**
-     * Returns a copy of the HTTP transport configuration.
-     *
-     * @return a copy of the HTTP transport configuration
-     */
-    public JxseHttp2TransportConfiguration getHttp2TransportConfiguration() {
-
-        return new JxseHttp2TransportConfiguration(Http2Config);
 
     }
 
@@ -1063,7 +1028,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
     // Preparing prefixes
     private static final String HttpPrefix = JxseHttpTransportConfiguration.TRANSPORT_NAME + "_";
-    private static final String Http2Prefix = JxseHttp2TransportConfiguration.TRANSPORT_NAME + "_";
     private static final String MulticastPrefix = JxseMulticastTransportConfiguration.TRANSPORT_NAME + "_";
     private static final String TcpPrefix = JxseTcpTransportConfiguration.TRANSPORT_NAME + "_";
 
@@ -1074,7 +1038,7 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
         // Removing any existing sub-entries
         for (String Item : PropertiesUtil.stringPropertyNames(this)) {
-            if ( Item.startsWith(HttpPrefix) || Item.startsWith(Http2Prefix) || Item.startsWith(TcpPrefix) || Item.startsWith(MulticastPrefix) ) {
+            if ( Item.startsWith(HttpPrefix) || Item.startsWith(TcpPrefix) || Item.startsWith(MulticastPrefix) ) {
                 this.remove(Item);
             }
         }
@@ -1096,18 +1060,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
                 String TempSub = HttpPrefix + Item;
                 this.setProperty(TempSub, HttpConfig.getProperty(Item));
-
-            }
-
-        }
-
-        // Processing HTTP 2 config
-        if ( this.Http2Config != null ) {
-
-            for (String Item : PropertiesUtil.stringPropertyNames(Http2Config)) {
-
-                String TempSub = Http2Prefix + Item;
-                this.setProperty(TempSub, Http2Config.getProperty(Item));
 
             }
 
@@ -1146,7 +1098,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
         // Recreating transports
         this.HttpConfig = JxseHttpTransportConfiguration.getDefaultHttpTransportConfiguration();
-        this.Http2Config = JxseHttp2TransportConfiguration.getDefaultHttp2TransportConfiguration();
         this.MulticastConfig = JxseMulticastTransportConfiguration.getDefaultMulticastTransportConfiguration();
         this.TcpConfig = JxseTcpTransportConfiguration.getDefaultTcpTransportConfiguration();
 
@@ -1157,12 +1108,6 @@ public class JxsePeerConfiguration extends JxtaPeerConfiguration {
 
                 // Registering entry in the transport
                 HttpConfig.setProperty(Item.substring(HttpPrefix.length()), this.getProperty(Item));
-                this.remove(Item);
-
-            } else if (Item.startsWith(Http2Prefix)) {
-
-                // Registering entry in the transport
-                Http2Config.setProperty(Item.substring(Http2Prefix.length()), this.getProperty(Item));
                 this.remove(Item);
 
             } else if (Item.startsWith(MulticastPrefix)) {

@@ -258,15 +258,15 @@ public class JxseTcpTransportConfigurationTest {
 
         Temp.setTcpPublicAddress("12.whatever.com.255", true);
         assertTrue(Temp.getTcpPublicAddress().compareTo("12.whatever.com.255")==0);
-        assertTrue(Temp.isTcpPublicAddressExclusive()==true);
+        assertTrue(Temp.getTcpPublicAddressExclusivity()==true);
 
         Temp.setTcpPublicAddress(null, false);
         assertTrue(Temp.getTcpPublicAddress()==null);
-        assertTrue(Temp.isTcpPublicAddressExclusive()==false);
+        assertTrue(Temp.getTcpPublicAddressExclusivity()==false);
 
         Temp.setTcpPublicAddress("22.whatover.com.245", false);
         assertTrue(Temp.getTcpPublicAddress().compareTo("22.whatover.com.245")==0);
-        assertTrue(Temp.isTcpPublicAddressExclusive()==false);
+        assertTrue(Temp.getTcpPublicAddressExclusivity()==false);
 
     }
 
@@ -328,7 +328,7 @@ public class JxseTcpTransportConfigurationTest {
 
         assertTrue(Restore.getTcpInterfaceAddress().compareTo("12.whatever.com.255")==0);
         assertTrue(Restore.getTcpPublicAddress().compareTo("12.whatever.com.255")==0);
-        assertTrue(Restore.isTcpPublicAddressExclusive()==true);
+        assertTrue(Restore.getTcpPublicAddressExclusivity()==true);
 
         Properties Defaults = Restore.getDefaultsCopy();
 

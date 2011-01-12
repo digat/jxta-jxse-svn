@@ -1,5 +1,6 @@
 package net.jxta.impl.xindice.util;
 
+
 /*
  * The Apache Software License, Version 1.1
  *

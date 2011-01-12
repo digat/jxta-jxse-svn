@@ -301,7 +301,7 @@ public class JxseHttpTransportConfiguration extends JxtaTransportConfiguration {
      *
      * @return HTTP public address exclusive use
      */
-    public boolean isHttpPublicAddressExclusive() {
+    public boolean getHttpPublicAddressExclusive() {
 
         String Temp = this.getProperty(JXSE_HTTP_PUBLIC_ADDRESS_EXCLUSIVE);
 

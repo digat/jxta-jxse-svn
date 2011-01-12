@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -93,69 +93,69 @@ public interface RendezVousService extends Service {
      */
     public final static int DEFAULT_TTL = Integer.MAX_VALUE;
 
-//    /**
-//     * Attempt connection to the specified RendezVous peer.
-//     *
-//     * @param  adv           the advertisement of the RendezVousService peer
-//     * @throws  IOException  When the specified peer is unreachable
-//     * @since 2.5
-//     * @deprecated Directly connecting to rendezvous peers is not recommended.
-//     * Seed rendezvous should be specified using the RdvConfigAdv mechanisms.
-//     * This method will be removed in a future release.
-//     */
-//    @Deprecated
-//    public void connectToRendezVous(PeerAdvertisement adv) throws IOException;
-//
-//    /**
-//     * Attempt connection to the specified RendezVous peer.
-//     *
-//     * @param  addr          EndpointAddress of the rendezvous peer
-//     * @throws  IOException  When the specified peer is unreachable
-//     * @since 2.5
-//     * @deprecated Directly connecting to rendezvous peers is not recommended.
-//     * Seed rendezvous should be specified using the RdvConfigAdv mechanisms.
-//     * This method will be removed in a future release.
-//     */
-//    @Deprecated
-//    public void connectToRendezVous(EndpointAddress addr) throws IOException;
-//
-//    /**
-//     * Disconnect from the specified rendezvous.
-//     *
-//     * @param  peerID  the PeerId of the RendezVous to disconnect from.
-//     * @since 2.6
-//     * @deprecated This method will be removed in a future release.
-//     */
-//    @Deprecated
-//    public void disconnectFromRendezVous(ID peerID);
-//
-//    /**
-//     * Returns an Enumeration of the PeerID all the RendezVous on which this
-//     * Peer is currently connected. This returns the same result as
-//     * {@link #getConnectedPeers()}.
-//     *
-//     * @return    Enumeration enumeration of RendezVous.
-//     *
-//     * @deprecated This method does not work properly. It relies on the
-//     * {@code getConnectedPeerIDs()} method which returns the list of EDGE
-//     * peers connected to this peer if this peer acts as a RENDEZVOUS.
-//     * </p>Use {@code getLocalRendezVousView()} instead.
-//     */
-//    @Deprecated
-//    public Enumeration<ID> getConnectedRendezVous();
-//
-//    /**
-//     * Returns an Enumeration of the PeerID all the RendezVous on which this
-//     * Peer failed to connect to.
-//     *
-//     * @return    Enumeration of the PeerID all the RendezVous on which this
-//     * Peer failed to connect to.
-//     *
-//     * @deprecated Due to design changes this no longer returns accurate nor
-//     * complete results. It will eventually be removed.
-//     */
-//    @Deprecated
-//    public Enumeration<ID> getDisconnectedRendezVous();
+    /**
+     * Attempt connection to the specified RendezVous peer.
+     *
+     * @param  adv           the advertisement of the RendezVousService peer
+     * @throws  IOException  When the specified peer is unreachable
+     * @since 2.5
+     * @deprecated Directly connecting to rendezvous peers is not recommended.
+     * Seed rendezvous should be specified using the RdvConfigAdv mechanisms.
+     * This method will be removed in a future release.
+     */
+    @Deprecated
+    public void connectToRendezVous(PeerAdvertisement adv) throws IOException;
+
+    /**
+     * Attempt connection to the specified RendezVous peer.
+     *
+     * @param  addr          EndpointAddress of the rendezvous peer
+     * @throws  IOException  When the specified peer is unreachable
+     * @since 2.5
+     * @deprecated Directly connecting to rendezvous peers is not recommended.
+     * Seed rendezvous should be specified using the RdvConfigAdv mechanisms.
+     * This method will be removed in a future release.
+     */
+    @Deprecated
+    public void connectToRendezVous(EndpointAddress addr) throws IOException;
+
+    /**
+     * Disconnect from the specified rendezvous.
+     *
+     * @param  peerID  the PeerId of the RendezVous to disconnect from.
+     * @since 2.6
+     * @deprecated This method will be removed in a future release.
+     */
+    @Deprecated
+    public void disconnectFromRendezVous(ID peerID);
+
+    /**
+     * Returns an Enumeration of the PeerID all the RendezVous on which this
+     * Peer is currently connected. This returns the same result as 
+     * {@link #getConnectedPeers()}.
+     *
+     * @return    Enumeration enumeration of RendezVous.
+     *
+     * @deprecated This method does not work properly. It relies on the
+     * {@code getConnectedPeerIDs()} method which returns the list of EDGE
+     * peers connected to this peer if this peer acts as a RENDEZVOUS.
+     * </p>Use {@code getLocalRendezVousView()} instead.
+     */
+    @Deprecated
+    public Enumeration<ID> getConnectedRendezVous();
+
+    /**
+     * Returns an Enumeration of the PeerID all the RendezVous on which this
+     * Peer failed to connect to.
+     *
+     * @return    Enumeration of the PeerID all the RendezVous on which this
+     * Peer failed to connect to.
+     *
+     * @deprecated Due to design changes this no longer returns accurate nor
+     * complete results. It will eventually be removed.
+     */
+    @Deprecated
+    public Enumeration<ID> getDisconnectedRendezVous();
 
     /**
      * Start the local peer as a RendezVous peer.
@@ -168,75 +168,75 @@ public interface RendezVousService extends Service {
      */
     public void stopRendezVous();
 
-//    /**
-//     * Returns an Enumeration of the PeerID of the peers that are currently
-//     * connected to this peer. Depending upon the role of of this peer the
-//     * result may be an enumeration of clients or an enumeration of rendezvous
-//     * peers.
-//     *
-//     * @return Enumeration of {@link net.jxta.peer.PeerID} connected to this peer.
-//     *
-//     * @deprecated This method is not helpful at all functionally sepaking, since
-//     * it does not help providing the list of EDGE peers connected to this peer if
-//     * this peer is a RENDEZVOUS.
-//     * </p>It will be removed after 2.6. Use {@code getLocalRendezVousView()} and
-//     * {@code getLocalEdgeView()} instead.
-//     */
-//    @Deprecated
-//    public Enumeration<ID> getConnectedPeers();
-//
-//    /**
-//     * Returns a Vector of the PeerID of the peers that are currently
-//     * connected to this peer. Depending upon the role of of this peer the
-//     * result may be an enumeration of clients or an enumeration of rendezvous
-//     * peers.
-//     *
-//     * @return Vector of {@link net.jxta.peer.PeerID} connected to this peer.
-//     *
-//     * @deprecated This method is not helpful at all functionally sepaking, since
-//     * it does not help providing the list of EDGE peers connected to this peer if
-//     * this peer is a RENDEZVOUS.
-//     * </p>It will be removed after 2.6. Use {@code getLocalRendezVousView()} and
-//     * {@code getLocalEdgeView()} instead.
-//     */
-//    @Deprecated
-//    public Vector<ID> getConnectedPeerIDs();
-//
-//    /**
-//     * Registers the provided listener under the given serviceName and
-//     * serviceParam to receive messages propagated by the Rendezvous service.
-//     * The listener will be added only if no other listener is already
-//     * registered with these names.
-//     *
-//     * @deprecated This method just calls
-//     * {@link net.jxta.endpoint.EndpointService#addIncomingMessageListener}. It's better to just
-//     * register your listener with the Endpoint. This call <b>may</b> be
-//     * eventually removed.
-//     *
-//     * @param  serviceName   The serviceName of the listener.
-//     * @param  serviceParam  The serviceParam of the listener.
-//     * @param  listener      An EndpointListener to process the message.
-//     * @return               true if listener was registered, otherwise false.
-//     */
-//    @Deprecated
-//    public boolean addPropagateListener(String serviceName, String serviceParam, EndpointListener listener);
-//
-//    /**
-//     * Removes a Listener previously added with addPropagateListener.
-//     * If the given listener is not the one currently registered, nothing is removed.
-//     *
-//     * @deprecated This method just calls
-//     * {@link net.jxta.endpoint.EndpointService#removeIncomingMessageListener}.
-//     * It's better to just deregister your listener with the Endpoint. This call
-//     * <b>may</b> be eventually removed.
-//     *
-//     * @param  serviceName   The serviceName of the listener.
-//     * @param  serviceParam  The serviceParam of the listener.
-//     * @param  listener      An EndpointListener to process the message.
-//     * @return               the listener removed, <tt>null</tt> if the listener was not registered.
-//     */
-//    @Deprecated
-//    public EndpointListener removePropagateListener(String serviceName, String serviceParam, EndpointListener listener);
+    /**
+     * Returns an Enumeration of the PeerID of the peers that are currently 
+     * connected to this peer. Depending upon the role of of this peer the
+     * result may be an enumeration of clients or an enumeration of rendezvous
+     * peers.
+     *
+     * @return Enumeration of {@link net.jxta.peer.PeerID} connected to this peer.
+     *
+     * @deprecated This method is not helpful at all functionally sepaking, since
+     * it does not help providing the list of EDGE peers connected to this peer if
+     * this peer is a RENDEZVOUS.
+     * </p>It will be removed after 2.6. Use {@code getLocalRendezVousView()} and
+     * {@code getLocalEdgeView()} instead.
+     */
+    @Deprecated
+    public Enumeration<ID> getConnectedPeers();
+
+    /**
+     * Returns a Vector of the PeerID of the peers that are currently 
+     * connected to this peer. Depending upon the role of of this peer the
+     * result may be an enumeration of clients or an enumeration of rendezvous
+     * peers.
+     *
+     * @return Vector of {@link net.jxta.peer.PeerID} connected to this peer.
+     *
+     * @deprecated This method is not helpful at all functionally sepaking, since
+     * it does not help providing the list of EDGE peers connected to this peer if
+     * this peer is a RENDEZVOUS.
+     * </p>It will be removed after 2.6. Use {@code getLocalRendezVousView()} and
+     * {@code getLocalEdgeView()} instead.
+     */
+    @Deprecated
+    public Vector<ID> getConnectedPeerIDs();
+
+    /**
+     * Registers the provided listener under the given serviceName and
+     * serviceParam to receive messages propagated by the Rendezvous service.
+     * The listener will be added only if no other listener is already
+     * registered with these names.
+     *
+     * @deprecated This method just calls 
+     * {@link net.jxta.endpoint.EndpointService#addIncomingMessageListener}. It's better to just 
+     * register your listener with the Endpoint. This call <b>may</b> be
+     * eventually removed.
+     *
+     * @param  serviceName   The serviceName of the listener.
+     * @param  serviceParam  The serviceParam of the listener.
+     * @param  listener      An EndpointListener to process the message.
+     * @return               true if listener was registered, otherwise false.
+     */
+    @Deprecated
+    public boolean addPropagateListener(String serviceName, String serviceParam, EndpointListener listener);
+
+    /**
+     * Removes a Listener previously added with addPropagateListener.
+     * If the given listener is not the one currently registered, nothing is removed.
+     *
+     * @deprecated This method just calls 
+     * {@link net.jxta.endpoint.EndpointService#removeIncomingMessageListener}. 
+     * It's better to just deregister your listener with the Endpoint. This call 
+     * <b>may</b> be eventually removed.
+     *
+     * @param  serviceName   The serviceName of the listener.
+     * @param  serviceParam  The serviceParam of the listener.
+     * @param  listener      An EndpointListener to process the message.
+     * @return               the listener removed, <tt>null</tt> if the listener was not registered.
+     */
+    @Deprecated
+    public EndpointListener removePropagateListener(String serviceName, String serviceParam, EndpointListener listener);
 
     /**
      * Add a listener for RendezVousEvents.
@@ -465,17 +465,17 @@ public interface RendezVousService extends Service {
      */
     public void walk(Vector<? extends ID> destPeerIDs, Message msg, String serviceName, String serviceParam, int ttl) throws IOException;
 
-//    /**
-//     * Returns a vector of RdvAdvertisement of the local view of rendezvous peers.
-//     *
-//     * @return The local view of RDV peers.
-//     *
-//     * @deprecated Due to design changes, the list of peers may be empty in
-//     * configurations which previously returned a non-empty result. This method will
-//     * be removed after release 2.6.
-//     */
-//    @Deprecated
-//    public Vector<RdvAdvertisement> getLocalWalkView();
+    /**
+     * Returns a vector of RdvAdvertisement of the local view of rendezvous peers.
+     *
+     * @return The local view of RDV peers.
+     *
+     * @deprecated Due to design changes, the list of peers may be empty in
+     * configurations which previously returned a non-empty result. This method will
+     * be removed after release 2.6.
+     */
+    @Deprecated
+    public Vector<RdvAdvertisement> getLocalWalkView();
 
     /**
      * Provides a list of locally visible RendezVous peer IDs.
@@ -497,23 +497,23 @@ public interface RendezVousService extends Service {
      */
     public List<PeerID> getLocalEdgeView();
 
-//    /**
-//     * Set a new deadline for the rendezvous to be proven alive.
-//     * As a result a lease response must be sought and obtained within the
-//     * specified delay or the rdv is considered disconnected.
-//     *
-//     * <p/>A timeout of 0 or less triggers immediate disconnection.
-//     *
-//     * <p/>This method does nothing if this peer is a RDV or an ADHOC.
-//     *
-//     * @param  peer     The peer to be challenged
-//     * @param  timeout  The delay
-//     *
-//     * @deprecated Since 2.6, this method is deprecated, since connection to
-//     * RDVs is handled by core code itself. This method will be removed in
-//     * a future release.
-//     */
-//    @Deprecated
-//    public void challengeRendezVous(ID peer, long timeout);
+    /**
+     * Set a new deadline for the rendezvous to be proven alive.
+     * As a result a lease response must be sought and obtained within the
+     * specified delay or the rdv is considered disconnected.
+     *
+     * <p/>A timeout of 0 or less triggers immediate disconnection.
+     * 
+     * <p/>This method does nothing if this peer is a RDV or an ADHOC.
+     *
+     * @param  peer     The peer to be challenged
+     * @param  timeout  The delay
+     * 
+     * @deprecated Since 2.6, this method is deprecated, since connection to
+     * RDVs is handled by core code itself. This method will be removed in
+     * a future release.
+     */
+    @Deprecated
+    public void challengeRendezVous(ID peer, long timeout);
 
 }
