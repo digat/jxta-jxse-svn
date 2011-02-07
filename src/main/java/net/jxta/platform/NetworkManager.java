@@ -67,6 +67,7 @@ import net.jxta.exception.PeerGroupException;
 import net.jxta.exception.ProtocolNotSupportedException;
 import net.jxta.id.IDFactory;
 import net.jxta.impl.membership.pse.StringAuthenticator;
+import net.jxta.impl.util.threads.TaskManager;
 import net.jxta.logging.Logging;
 import net.jxta.membership.InteractiveAuthenticator;
 import net.jxta.membership.MembershipService;
@@ -100,13 +101,13 @@ public class NetworkManager implements RendezvousListener {
      */
     private final static transient Logger LOG = Logger.getLogger(NetworkManager.class.getName());
 
-//    protected final transient URI publicSeedingRdvURI = URI.create("http://rdv.jxtahosts.net/cgi-bin/rendezvous.cgi?3");
-//    protected final transient URI publicSeedingRelayURI = URI.create("http://rdv.jxtahosts.net/cgi-bin/relays.cgi?3");
+    protected final transient URI publicSeedingRdvURI = URI.create("http://rdv.jxtahosts.net/cgi-bin/rendezvous.cgi?3");
+    protected final transient URI publicSeedingRelayURI = URI.create("http://rdv.jxtahosts.net/cgi-bin/relays.cgi?3");
 
     /**
      * Define node standard node operating modes
      */
-    public enum ConfigMode {
+    public enum ConfigMode { 
 
         /**
          * A AD-HOC node
@@ -141,7 +142,7 @@ public class NetworkManager implements RendezvousListener {
         SUPER
     }
 
-    private final Object networkConnectLock = "rendezvous connection lock";
+    private final Object networkConnectLock = new String("rendezvous connection lock");
     private PeerGroup netPeerGroup = null;
     private volatile boolean started = false;
     private volatile boolean connected = false;
@@ -152,10 +153,10 @@ public class NetworkManager implements RendezvousListener {
     private ConfigMode mode;
     private URI instanceHome;
     private PeerGroupID infrastructureID = PeerGroupID.defaultNetPeerGroupID;
-    private PeerID peerID = null;
+    private PeerID peerID = IDFactory.newPeerID(PeerGroupID.defaultNetPeerGroupID);
     private NetworkConfigurator config;
     private boolean configPersistent = true;
-//    private boolean useDefaultSeeds;
+    private boolean useDefaultSeeds;
 
     /**
      * Creates NetworkManger instance with default instance home set to "$CWD"/.jxta"
@@ -337,12 +338,12 @@ public class NetworkManager implements RendezvousListener {
                 config = NetworkConfigurator.newRdvRelayConfiguration(instanceHome);
                 break;
 
-//            case PROXY:
-//                config = NetworkConfigurator.newProxyConfiguration(instanceHome);
-//                break;
+            case PROXY:
+                config = NetworkConfigurator.newProxyConfiguration(instanceHome);
+                break;
 
             case SUPER:
-                config = NetworkConfigurator.newRdvRelayConfiguration(instanceHome);
+                config = NetworkConfigurator.newRdvRelayProxyConfiguration(instanceHome);
                 break;
 
             default:
@@ -358,10 +359,10 @@ public class NetworkManager implements RendezvousListener {
             config.setInfrastructureID(infrastructureID);
             config.setName(instanceName);
 
-//            if (useDefaultSeeds) {
-//                config.addRdvSeedingURI(publicSeedingRdvURI);
-//                config.addRelaySeedingURI(publicSeedingRelayURI);
-//            }
+            if (useDefaultSeeds) {
+                config.addRdvSeedingURI(publicSeedingRdvURI);
+                config.addRelaySeedingURI(publicSeedingRelayURI);
+            }
 
         } else {
 
@@ -401,13 +402,14 @@ public class NetworkManager implements RendezvousListener {
         if (config == null) {
             configure(mode);
         }
-
+        
         Logging.logCheckedInfo(LOG, "Starting JXTA Network! MODE = ", mode, ",  HOME = ", instanceHome);
+        
 
         // create, and Start the default jxta NetPeerGroup
         NetPeerGroupFactory factory = new NetPeerGroupFactory(config.getPlatformConfig(), instanceHome);
 
-        netPeerGroup = factory.getNetPeerGroup();
+        netPeerGroup = factory.getInterface();
 
         // Saving if config is persistent
         if (configPersistent) {
@@ -488,9 +490,9 @@ public class NetworkManager implements RendezvousListener {
 
         rendezvous.removeListener(this);
         netPeerGroup.stopApp();
-//        netPeerGroup.unref();
+        netPeerGroup.unref();
         netPeerGroup = null;
-
+        
         // permit restart.
         started = false;
 
@@ -566,23 +568,23 @@ public class NetworkManager implements RendezvousListener {
         }
     }
 
-//    /**
-//     * if true uses the public rendezvous seeding service
-//     *
-//     * @param useDefaultSeeds if true uses the default development seeding service
-//     */
-//    public void setUseDefaultSeeds(boolean useDefaultSeeds) {
-//        this.useDefaultSeeds = useDefaultSeeds;
-//    }
-//
-//    /**
-//     * Returns true if useDefaultSeeds is set to true
-//     *
-//     * @return true if useDefaultSeeds is set to true
-//     */
-//    public boolean getUseDefaultSeeds() {
-//        return useDefaultSeeds;
-//    }
+    /**
+     * if true uses the public rendezvous seeding service
+     *
+     * @param useDefaultSeeds if true uses the default development seeding service
+     */
+    public void setUseDefaultSeeds(boolean useDefaultSeeds) {
+        this.useDefaultSeeds = useDefaultSeeds;
+    }
+
+    /**
+     * Returns true if useDefaultSeeds is set to true
+     *
+     * @return true if useDefaultSeeds is set to true
+     */
+    public boolean getUseDefaultSeeds() {
+        return useDefaultSeeds;
+    }
 
     /**
      * Registers a Runtime shutdown hook to cleanly shutdown the JXTA platform

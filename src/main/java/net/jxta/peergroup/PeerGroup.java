@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -244,8 +244,7 @@ public interface PeerGroup extends Service {
             // unregister when being torn down. Unregistration will also be
             // automatic if the grp object is GC'ed (the references are weak
             // references).
-//            return pg.getInterface();
-            return pg;
+            return pg.getInterface();
         }
 
         /**
@@ -413,12 +412,12 @@ public interface PeerGroup extends Service {
     public final static ModuleClassID tlsProtoClassID =
             ModuleClassID.create(URI.create(WK_ID_PREFIX + "0000000D05"));
 
-//    /**
-//     * Well known module class identifier: ProxyService
-//     */
-//    @Deprecated
-//    public final static ModuleClassID proxyClassID =
-//            ModuleClassID.create(URI.create(WK_ID_PREFIX + "0000000E05"));
+    /**
+     * Well known module class identifier: ProxyService
+     */
+    @Deprecated
+    public final static ModuleClassID proxyClassID =
+            ModuleClassID.create(URI.create(WK_ID_PREFIX + "0000000E05"));
 
     /**
      * Well known module class identifier: RelayProtocol
@@ -506,7 +505,7 @@ public interface PeerGroup extends Service {
      */
     public final static ModuleSpecID refHttpProtoSpecID =
             ModuleSpecID.create(URI.create(WK_ID_PREFIX + "0000000A0106"));
-
+    
     /**
      * Well known endpoint protocol specification identifier: the new (2.6+)
      * http2 endpoint protocol (netty http tunnel based)
@@ -537,17 +536,17 @@ public interface PeerGroup extends Service {
     public final static ModuleSpecID allPurposePeerGroupSpecID =
             ModuleSpecID.create(URI.create(WK_ID_PREFIX + "000000010306"));
 
-//    /**
-//     * Well known application: the shell
-//     */
-//    public final static ModuleSpecID refShellSpecID =
-//            ModuleSpecID.create(URI.create(WK_ID_PREFIX + "0000000C0206"));
+    /**
+     * Well known application: the shell
+     */
+    public final static ModuleSpecID refShellSpecID =
+            ModuleSpecID.create(URI.create(WK_ID_PREFIX + "0000000C0206"));
 
-//    /**
-//     * Well known application: the Proxy
-//     */
-//    public final static ModuleSpecID refProxySpecID =
-//            ModuleSpecID.create(URI.create(WK_ID_PREFIX + "0000000E0106"));
+    /**
+     * Well known application: the Proxy
+     */
+    public final static ModuleSpecID refProxySpecID =
+            ModuleSpecID.create(URI.create(WK_ID_PREFIX + "0000000E0106"));
 
     /**
      * Well known endpoint protocol specification identifier: the standard
@@ -568,19 +567,19 @@ public interface PeerGroup extends Service {
      * instantiation or orderly shutdown of Peer Groups should synchronize upon
      * this object.
      */
-
+    
     GlobalRegistry getGlobalRegistry();
-
-//    /**
-//     * Returns the Thread Group in which threads for this peer group will live.
-//     * This is currently used only for debugging purposes so that the source of
-//     * a thread can be determined.
-//     *
-//     * @return ThreadGroup
-//     * @deprecated since 2.7.
-//     */
-//    @Deprecated
-//    public ThreadGroup getHomeThreadGroup();
+    
+    /**
+     * Returns the Thread Group in which threads for this peer group will live.
+     * This is currently used only for debugging purposes so that the source of
+     * a thread can be determined.
+     *
+     * @return ThreadGroup
+     * @deprecated since 2.7.
+     */
+    @Deprecated
+    public ThreadGroup getHomeThreadGroup();
 
     /**
      * Returns the class loader for this group.
@@ -689,7 +688,7 @@ public interface PeerGroup extends Service {
      * Compatibility is checked and load is attempted. If compatible and loaded
      * successfully, the resulting Module is initialized and returned.
      * In most cases {@link #loadModule(net.jxta.id.ID, net.jxta.platform.ModuleSpecID, int)} 
-     * should be preferred, since unlike this method, it will try all
+     * should be preferred, since unlike this method, it will try all  
      * compatible implementation advertisements until one works. The home group 
      * of the new module (its' parent group if the new Module is a group) will 
      * be this group.
@@ -813,11 +812,7 @@ public interface PeerGroup extends Service {
      * @param description A description of this group.
      * @return PeerGroup the initialized (but not started) peergroup.
      * @throws PeerGroupException Thrown if the group could not be instantiated.
-     *
-     * @deprecated Since 2.7, use {@link #newGroup(net.jxta.peergroup.PeerGroupID, net.jxta.document.Advertisement, java.lang.String, java.lang.String, boolean)
-     * instead}. Code will be removed in a future release.
      */
-    @Deprecated
     public PeerGroup newGroup(PeerGroupID gid, Advertisement impl, String name, String description) throws PeerGroupException;
 
     /**
@@ -854,49 +849,6 @@ public interface PeerGroup extends Service {
      * @throws PeerGroupException Thrown if the group could not be instantiated.
      */
     public PeerGroup newGroup(PeerGroupID gid) throws PeerGroupException;
-
-    /**
-     * Instantiates a peer group from its elementary pieces
-     * and eventually publishes the corresponding PeerGroupAdvertisement.
-     * The pieces are: the groups implementation adv, the group id,
-     * the name and description.
-     * <p/>
-     * The typical use of this routine is creating a whole new group based
-     * on a newly created and possibly unpublished implementation adv.
-     * <p/>
-     * This is a convenience method equivalent to either:
-     * <p/>
-     * <pre>
-     * newGrp = thisGroup.loadModule(gid, impl);
-     * newGrp.publishGroup(name, description); // if publication is requested
-     * </pre>
-     * or, but only if the implementation advertisement has been published:
-     * <p/>
-     * <pre>
-     * newPGAdv = AdvertisementFactory.newAdvertisement(
-     *                 PeerGroupAdvertisement.getAdvertisementType());
-     * newPGAdv.setPeerGroupID(gid);
-     * newPGAdv.setModuleSpecID(impl.getModuleSpecID());
-     * newPGAdv.setName(name);
-     * newPGAdv.setDescription(description);
-     * newGrp = thisGroup.newGroup(newPGAdv);
-     * </pre>
-     *
-     * @since 2.6 If the peergroup has not been instantiated yet (i.e., does
-     * not belong to {@code GlobalRegistry}), the {@code ConfigParams} of the newly
-     * instanced object are copied from this peer group.
-     *
-     * @param gid         The ID of that group. If <code>null</code> then a new group ID
-     *                    will be chosen.
-     * @param impl        The advertisement of the implementation to be used.
-     * @param name        The name of the group.
-     * @param description A description of this group.
-     * @param publish publishes new group if {@code true}
-     * @return PeerGroup the initialized (but not started) peergroup.
-     * @throws PeerGroupException Thrown if the group could not be instantiated.
-     */
-    public PeerGroup newGroup(PeerGroupID gid, Advertisement impl, String name, String description,
-        boolean publish) throws PeerGroupException;
 
     /*
      * Shortcuts to the well-known services, in order to avoid calls to
@@ -1028,7 +980,8 @@ public interface PeerGroup extends Service {
      * peergroup implementations.
      * <p/>
      * This definition is always the same and has a well known ModuleSpecID.
-     * It includes the basic service and no protocols.
+     * It includes the basic service, no protocols and the shell for main
+     * application.
      * <p/>
      * The user must remember to change the specID if the set of services
      * protocols or applications is altered before use.
@@ -1038,67 +991,67 @@ public interface PeerGroup extends Service {
      */
     public ModuleImplAdvertisement getAllPurposePeerGroupImplAdvertisement() throws Exception;
 
-//    /**
-//     * Explicitly notifies a group interface that it will no-longer be used
-//     * (similar to dispose). Does nothing to a real group object, only has an
-//     * effect on a group interface.
-//     *
-//     * @return If {@code true} then interface was unreferenced. If {@code false}
-//     * then the interface had previously been unreferenced.
-//     *
-//     * @deprecated Since 2.6. The interface mechanisms is being removed from core
-//     * code. Users are ultimately responsible for using service methods appropriately.
-//     * The corresponding issue should be solved via OSGi (for example).
-//     */
-//    @Deprecated
-//    public boolean unref();
+    /**
+     * Explicitly notifies a group interface that it will no-longer be used
+     * (similar to dispose). Does nothing to a real group object, only has an
+     * effect on a group interface.
+     * 
+     * @return If {@code true} then interface was unreferenced. If {@code false}
+     * then the interface had previously been unreferenced.
+     *
+     * @deprecated Since 2.6. The interface mechanisms is being removed from core 
+     * code. Users are ultimately responsible for using service methods appropriately.
+     * The corresponding issue should be solved via OSGi (for example).
+     */
+    @Deprecated
+    public boolean unref();
 
-//    /**
-//    *   {@inheritDoc}
-//     *
-//     * @deprecated Since 2.6. The interface mechanisms is being removed from core
-//     * code. Users are ultimately responsible for using service methods appropriately.
-//     * The corresponding issue should be solved via OSGi (for example).
-//    */
-//    @Deprecated
-//    public PeerGroup getInterface();
+    /**
+    *   {@inheritDoc}
+     *
+     * @deprecated Since 2.6. The interface mechanisms is being removed from core
+     * code. Users are ultimately responsible for using service methods appropriately.
+     * The corresponding issue should be solved via OSGi (for example).
+    */
+    @Deprecated
+    public PeerGroup getInterface();
 
-//    /**
-//     * Returns a weak interface object that represents this group.
-//     * <p/>
-//     * A weak interface object has no life-cycle privileges over the group that
-//     * it represents and therefore its users have no accountability. A weak
-//     * interface object is safe to give away but holds no promise of sustained
-//     * validity.
-//     * <p/>
-//     * Whatever code gave away a weak interface object retains the power of
-//     * terminating the group object from which it was obtained, thereby making
-//     * the weak interface object invalid.
-//     * <p/>
-//     * A weak interface object is immutable; its {@link #unref()} and
-//     * {@link Service#stopApp()} methods do nothing. Its validity is exactly
-//     * that of the group or interface object from which it was obtained.
-//     * <p/>
-//     * A weak interface object can be obtained from an interface object, or from
-//     * a real group object, or from a weak interface object. In the later case,
-//     * the object returned may be the original weak interface object since such
-//     * objects are immutable.
-//     * <p/>
-//     * Whatever code obtains a weak interface object from a group object or
-//     * regular interface object, remains entirely liable for invoking
-//     * {@link #unref()} on the initial object before discarding it. Giving away a
-//     * weak interface object is not equivalent to transferring ownership of the
-//     * original.
-//     *
-//     * @return A weak interface object that represents this PeerGroup object.
-//     * @since JXTA 2.2
-//     *
-//     * @deprecated Since 2.6. The interface mechanisms is being removed from core
-//     * code. Users are ultimately responsible for using service methods appropriately.
-//     * The corresponding issue should be solved via OSGi (for example).
-//     */
-//    @Deprecated
-//    public PeerGroup getWeakInterface();
+    /**
+     * Returns a weak interface object that represents this group.
+     * <p/>
+     * A weak interface object has no life-cycle privileges over the group that
+     * it represents and therefore its users have no accountability. A weak
+     * interface object is safe to give away but holds no promise of sustained
+     * validity.
+     * <p/>
+     * Whatever code gave away a weak interface object retains the power of
+     * terminating the group object from which it was obtained, thereby making 
+     * the weak interface object invalid.
+     * <p/>
+     * A weak interface object is immutable; its {@link #unref()} and 
+     * {@link Service#stopApp()} methods do nothing. Its validity is exactly 
+     * that of the group or interface object from which it was obtained.
+     * <p/>
+     * A weak interface object can be obtained from an interface object, or from
+     * a real group object, or from a weak interface object. In the later case, 
+     * the object returned may be the original weak interface object since such 
+     * objects are immutable.
+     * <p/>
+     * Whatever code obtains a weak interface object from a group object or
+     * regular interface object, remains entirely liable for invoking 
+     * {@link #unref()} on the initial object before discarding it. Giving away a
+     * weak interface object is not equivalent to transferring ownership of the 
+     * original.
+     *
+     * @return A weak interface object that represents this PeerGroup object.
+     * @since JXTA 2.2
+     *
+     * @deprecated Since 2.6. The interface mechanisms is being removed from core
+     * code. Users are ultimately responsible for using service methods appropriately.
+     * The corresponding issue should be solved via OSGi (for example).
+     */
+    @Deprecated
+    public PeerGroup getWeakInterface();
 
     /**
      * Returns the parent group of this peer group. Not all peer groups have a
@@ -1121,7 +1074,8 @@ public interface PeerGroup extends Service {
      * @since JXTA 2.3.7
      */
     public URI getStoreHome();
-
+    
+    
     /**
      * FOR JXTA MODULE IMPLEMENTATIONS ONLY. If you are simply using existing
      * services on a peer group (pipe service, etc) then you should not use

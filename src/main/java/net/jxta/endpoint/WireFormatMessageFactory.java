@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,28 +37,28 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.endpoint;
 
+
 import net.jxta.document.MimeMediaType;
 import net.jxta.logging.Logging;
-import net.jxta.peergroup.PeerGroup;
 import net.jxta.util.ClassFactory;
 
 import java.io.IOException;
@@ -67,7 +67,9 @@ import java.nio.ByteBuffer;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  * This class is a class factory for Wire Format Messages. This class abstracts
@@ -95,9 +97,6 @@ public final class WireFormatMessageFactory extends ClassFactory<MimeMediaType, 
      * The mime media type of preferred/default wire format.
      */
     public static final MimeMediaType DEFAULT_WIRE_MIME = new MimeMediaType("application/x-jxta-msg").intern();
-
-    public static final boolean CBJX_DISABLE=Boolean.getBoolean(WireFormatMessageFactory.class.getName()+".CBJX_DISABLE");
-    public static final String  CBJX_SIG_ALG=System.getProperty(WireFormatMessageFactory.class.getName()+".CBJX_SIG_ALG","SHA256withRSA");
 
     /**
      * Interface for instantiators of wire format messages.
@@ -166,12 +165,6 @@ public final class WireFormatMessageFactory extends ClassFactory<MimeMediaType, 
          * @throws java.io.IOException if an io error occurs
          */
         public Message fromBuffer(ByteBuffer buffer, MimeMediaType type, MimeMediaType contentEncoding) throws IOException;
-
-        public WireFormatMessage toWireExternal(Message msg, MimeMediaType type, MimeMediaType[] preferedContentEncoding, boolean paramDisableCbjx, PeerGroup paramGroup);
-        public WireFormatMessage toWireExternalWithTls(Message msg, MimeMediaType type, MimeMediaType[] preferedContentEncoding, boolean paramDisableCbjx, PeerGroup paramGroup);
-        public Message fromWireExternal(InputStream is, MimeMediaType type, MimeMediaType contentEncoding, boolean paramDisableCbjx, PeerGroup paramGroup, boolean isTls) throws IOException;
-        public Message fromBufferExternal(ByteBuffer buffer, MimeMediaType type, MimeMediaType contentEncoding, boolean paramDisableCbjx, PeerGroup paramGroup) throws IOException;
-
     }
 
     /**
@@ -209,10 +202,10 @@ public final class WireFormatMessageFactory extends ClassFactory<MimeMediaType, 
         if (!factory.loadedProperty) {
             factory.loadedProperty = registerProviders(WireFormatMessage.class.getName());
         }
-
+        
         return factory.loadedProperty;
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -262,7 +255,7 @@ public final class WireFormatMessageFactory extends ClassFactory<MimeMediaType, 
                 registeredSomething |= registerInstantiator(mimeType, instantiator);
 
             }
-
+            
         } catch (Exception all) {
 
             Logging.logCheckedWarning(LOG, "Failed to register \'", className, "\'\n", all);
@@ -305,72 +298,10 @@ public final class WireFormatMessageFactory extends ClassFactory<MimeMediaType, 
      */
     public static WireFormatMessage toWire(Message msg, MimeMediaType type, MimeMediaType[] preferedEncodings) {
         factory.loadProviders();
-        
+
         Instantiator instantiator = factory.getInstantiator(type.getBaseMimeMediaType());
 
         return instantiator.toWire(msg, type, preferedEncodings);
-    }
-
-    public static Message fromBufferExternal(ByteBuffer buffer, MimeMediaType type, MimeMediaType contentEncoding, PeerGroup paramGroup) throws IOException {
-        factory.loadProviders();
-
-        Instantiator instantiator;
-
-        try {
-            instantiator = factory.getInstantiator(type.getBaseMimeMediaType());
-        } catch (NoSuchElementException badType) {
-            throw new IOException("Unable to deserialize message of type: " + type);
-        }
-
-        return instantiator.fromBufferExternal(buffer, type, contentEncoding, CBJX_DISABLE, paramGroup);
-    }
-
-
-    public static Message fromWireExternalWithTls(InputStream is, MimeMediaType type, MimeMediaType contentEncoding, PeerGroup paramGroup) throws IOException {
-        factory.loadProviders();
-
-        Instantiator instantiator;
-
-        try {
-            instantiator = factory.getInstantiator(type.getBaseMimeMediaType());
-        } catch (NoSuchElementException badType) {
-            throw new IOException("Unable to deserialize message of type: " + type);
-        }
-
-        return instantiator.fromWireExternal(is, type, contentEncoding, CBJX_DISABLE, paramGroup, true);
-    }
-
-
-    public static Message fromWireExternal(InputStream is, MimeMediaType type, MimeMediaType contentEncoding, PeerGroup paramGroup) throws IOException {
-        factory.loadProviders();
-
-        Instantiator instantiator;
-
-        try {
-            instantiator = factory.getInstantiator(type.getBaseMimeMediaType());
-        } catch (NoSuchElementException badType) {
-            throw new IOException("Unable to deserialize message of type: " + type);
-        }
-
-        return instantiator.fromWireExternal(is, type, contentEncoding, CBJX_DISABLE, paramGroup, false);
-    }
-
-
-    public static WireFormatMessage toWireExternalWithTls(Message msg, MimeMediaType type, MimeMediaType[] preferedEncodings, PeerGroup paramGroup) {
-        factory.loadProviders();
-
-        Instantiator instantiator = factory.getInstantiator(type.getBaseMimeMediaType());
-
-        return instantiator.toWireExternalWithTls(msg, type, preferedEncodings, CBJX_DISABLE, paramGroup);
-    }
-
-
-    public static WireFormatMessage toWireExternal(Message msg, MimeMediaType type, MimeMediaType[] preferedEncodings, PeerGroup paramGroup) {
-        factory.loadProviders();
-
-        Instantiator instantiator = factory.getInstantiator(type.getBaseMimeMediaType());
-
-        return instantiator.toWireExternal(msg, type, preferedEncodings, CBJX_DISABLE, paramGroup);
     }
 
     /**

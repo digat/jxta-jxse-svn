@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -78,33 +79,33 @@ import java.util.logging.Logger;
  */
 
 public abstract class AbstractSimpleSelectable implements SimpleSelectable {
-
+    
     /**
      *  Logger
      */
     private final static transient Logger LOG = Logger.getLogger(AbstractSimpleSelectable.class.getName());
-
+    
     /**
      * The identity reference for this selectable.
      *
      * @see SimpleSelectable.IdentityReference
      */
     public final IdentityReference identityReference = new IdentityReference(this);
-
+    
     /**
      * The object that is to reported to listeners as having changed.  When this
      * class is composed rather than extended, "this" is probably not the right
      * choice.
      */
     private final SimpleSelectable srcObject;
-
+    
     /**
      * Registered Change Listeners.
      * <p/>
      * We use a weakHashMap as a Set. The values are never used.
      */
     private final Map<SimpleSelectable, Object> myListeners = new WeakHashMap<SimpleSelectable, Object>(2);
-
+    
     /**
      * Standard constructor for cases where the selectable object is this
      * object.
@@ -112,7 +113,7 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
     public AbstractSimpleSelectable() {
         this.srcObject = this;
     }
-
+    
     /**
      * Standard constructor for cases where the selectable object is some other
      * object.
@@ -122,14 +123,14 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
     public AbstractSimpleSelectable(SimpleSelectable srcObject) {
         this.srcObject = srcObject;
     }
-
+    
     /**
      * {@inheritDoc}
      */
     public IdentityReference getIdentityReference() {
         return identityReference;
     }
-
+    
     /**
      * Tells whether there are registered selectors right now, or not.  A
      * SimpleSelectable that also registers with something else may want to
@@ -143,7 +144,7 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
             return !myListeners.isEmpty();
         }
     }
-
+    
     /**
      * This method takes any listener, not just a SimpleSelector.
      *
@@ -154,7 +155,7 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
             myListeners.put(selectable, null);
         }
     }
-
+    
     /**
      * This method takes any listener, not just a SimpleSelector.
      *
@@ -165,7 +166,7 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
             myListeners.remove(selectable);
         }
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -173,14 +174,14 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
         registerListener(simpleSelector);
         simpleSelector.itemChanged(this);
     }
-
+    
     /**
      * {@inheritDoc}
      */
     public void unregister(SimpleSelector simpleSelector) {
         unregisterListener(simpleSelector);
     }
-
+    
     /**
      * This method tells us that something changed and so we need to notify our
      * selectors by invoking their {@code itemChanged()} method. This is
@@ -197,11 +198,11 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
      */
     protected final boolean notifyChange() {
         Collection<SimpleSelectable> listeners;
-
+        
         synchronized(myListeners) {
             listeners = new ArrayList<SimpleSelectable>(myListeners.keySet());
         }
-
+        
         for (SimpleSelectable listener : listeners) {
             try {
                 listener.itemChanged(srcObject);
@@ -209,7 +210,7 @@ public abstract class AbstractSimpleSelectable implements SimpleSelectable {
                 Logging.logCheckedSevere(LOG, "Uncaught Throwable in listener ", listener, "\n", all);
             }
         }
-
+        
         return !listeners.isEmpty();
     }
 }

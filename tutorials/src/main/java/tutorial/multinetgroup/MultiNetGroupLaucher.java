@@ -15,6 +15,7 @@ import net.jxta.document.MimeMediaType;
 import net.jxta.document.XMLDocument;
 import net.jxta.exception.PeerGroupException;
 import net.jxta.peer.PeerID;
+import net.jxta.peergroup.NetPeerGroupFactory;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.peergroup.PeerGroupID;
 import net.jxta.peergroup.WorldPeerGroupFactory;
@@ -130,12 +131,12 @@ public class MultiNetGroupLaucher {
         wpg.stopApp();
 
         System.out.println(wpg + " stopped!");
-
+        
         // Run GC and finalization to see what's still running.
         System.gc();
         System.runFinalization();
         System.gc();
-
-        System.out.println("Quitting");
+        
+        System.out.println("Quitting");        
     }
 }

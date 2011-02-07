@@ -59,17 +59,16 @@
 package net.jxse.impl.OSGi;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.jxse.JxseInstantiator;
 import net.jxse.OSGi.JxseOSGiFrameworkLauncher;
 import net.jxta.configuration.JxtaConfiguration;
 import net.jxta.configuration.PropertiesUtil;
+
 import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.util.FelixConstants;
 import org.osgi.framework.launch.Framework;
@@ -79,10 +78,7 @@ import org.osgi.framework.launch.Framework;
  *
  * <p>Properties are read from the {@code Felix.properties} file.
  *
- * @deprecated Since 2.7 - This implementation creates a dependency to the Felix
- * framework. A better implementation of OSGi is under preparation.
  */
-@Deprecated
 public class JxseOSGiFelixFrameworkLauncher implements JxseOSGiFrameworkLauncher {
 
     /**
@@ -97,20 +93,10 @@ public class JxseOSGiFelixFrameworkLauncher implements JxseOSGiFrameworkLauncher
 
     // Loading OSGi configuration
     static {
-        InputStream Tmp = null;
         try {
-            Tmp = JxseOSGiFelixFrameworkLauncher.class.getResourceAsStream("Felix.properties");
-            Configuration.load(Tmp);
+            Configuration.load(JxseOSGiFelixFrameworkLauncher.class.getResourceAsStream("Felix.properties"));
         } catch (IOException ex) {
-            LOG.log(Level.SEVERE, "Cannot load Felix.properties :\n{0}", ex.toString());
-        } finally {
-            if ( Tmp != null ) {
-                try {
-                    Tmp.close();
-                } catch (IOException ex) {
-                    LOG.log(Level.WARNING, "Can't close Felix.properties input stream :\n{0}", ex.toString());
-                }
-            }
+            LOG.severe("Cannot load Felix.properties :\n" + ex.toString());
         }
     }
 
@@ -123,7 +109,7 @@ public class JxseOSGiFelixFrameworkLauncher implements JxseOSGiFrameworkLauncher
     static {
 
         // Creating configuration elements
-        Map configMap = new HashMap(0);
+        Map configMap = new HashMap();
 
         // For bundles/services to automatically activate
         List list = new ArrayList();
