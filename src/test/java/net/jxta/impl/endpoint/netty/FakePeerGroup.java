@@ -175,10 +175,6 @@ public class FakePeerGroup implements PeerGroup {
         throw new RuntimeException("not implemented");
     }
 
-    public PeerGroup newGroup(PeerGroupID gid, Advertisement impl, String name, String description, boolean publish) throws PeerGroupException {
-        throw new RuntimeException("not implemented");
-    }
-
     public PeerGroup newGroup(PeerGroupID gid) throws PeerGroupException {
         throw new RuntimeException("not implemented");
     }
@@ -187,17 +183,17 @@ public class FakePeerGroup implements PeerGroup {
         throw new RuntimeException("not implemented");
     }
 
-//    public boolean unref() {
-//        throw new RuntimeException("not implemented");
-//    }
+    public boolean unref() {
+        throw new RuntimeException("not implemented");
+    }
 
     public Advertisement getImplAdvertisement() {
         throw new RuntimeException("not implemented");
     }
 
-//    public PeerGroup getInterface() {
-//        throw new RuntimeException("not implemented");
-//    }
+    public PeerGroup getInterface() {
+        throw new RuntimeException("not implemented");
+    }
 
     public void init(PeerGroup group, ID assignedID, Advertisement implAdv) throws PeerGroupException {
         throw new RuntimeException("not implemented");

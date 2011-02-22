@@ -328,7 +328,7 @@ public class JxtaProtocolHandlerTest {
 
     private ChannelBuffer serializeMessage(Message testMessage) {
         WireFormatMessage serializedMessage = WireFormatMessageFactory.toWire(testMessage, WireFormatMessageFactory.DEFAULT_WIRE_MIME, null);
-        ByteBuffer[] messageBody = serializedMessage.getUnsignedByteBuffers();
+        ByteBuffer[] messageBody = serializedMessage.getByteBuffers();
         
         return ChannelBuffers.wrappedBuffer(messageBody);
     }

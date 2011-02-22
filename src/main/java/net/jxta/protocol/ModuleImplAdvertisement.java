@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,24 +37,25 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.protocol;
+
 
 import net.jxta.document.Element;
 import net.jxta.document.ExtendableAdvertisement;
@@ -64,6 +65,7 @@ import net.jxta.document.StructuredDocumentFactory;
 import net.jxta.document.StructuredDocumentUtils;
 import net.jxta.id.ID;
 import net.jxta.platform.ModuleSpecID;
+
 
 /**
  * A ModuleImplAdvertisement describes one of any number of published
@@ -88,7 +90,7 @@ import net.jxta.platform.ModuleSpecID;
  * @see net.jxta.peergroup.PeerGroup
  */
 public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement implements Cloneable {
-
+    
     private ModuleSpecID msid = null;
     private StructuredDocument description = null;
     private StructuredDocument compat = null;
@@ -96,7 +98,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     private String uri = null;
     private String provider = null;
     private StructuredDocument param = null;
-
+    
     /**
      *  Returns the identifying type of this Advertisement.
      *
@@ -105,7 +107,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public static String getAdvertisementType() {
         return "jxta:MIA";
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -113,16 +115,16 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public final String getBaseAdvType() {
         return getAdvertisementType();
     }
-
+    
     /**
      * Clone this ModuleImplAdvertisement
      */
     @Override
     public ModuleImplAdvertisement clone() {
-
+        
         try {
             ModuleImplAdvertisement clone = (ModuleImplAdvertisement) super.clone();
-
+            
             clone.setModuleSpecID(getModuleSpecID());
             clone.setDesc(getDescPriv());
             clone.setCompat(getCompatPriv());
@@ -130,13 +132,13 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
             clone.setUri(getUri());
             clone.setProvider(getProvider());
             clone.setParam(getParamPriv());
-
+            
             return clone;
         } catch (CloneNotSupportedException impossible) {
             throw new Error("Object.clone() threw CloneNotSupportedException", impossible);
         }
     }
-
+    
     /**
      * Returns the unique ID of that advertisement for indexing purposes.
      * In that case we do not have any particular one to offer. Let the indexer
@@ -148,7 +150,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public ID getID() {
         return null;
     }
-
+    
     /**
      * Returns the id of the spec that this implements.
      * @return ID the spec id
@@ -157,7 +159,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public ModuleSpecID getModuleSpecID() {
         return msid;
     }
-
+    
     /**
      * Sets the id of the spec that is implemented
      * 
@@ -166,7 +168,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public void setModuleSpecID(ModuleSpecID msid) {
         this.msid = msid;
     }
-
+    
     /**
      * returns the description
      *
@@ -179,23 +181,23 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
             return null;
         }
     }
-
+    
     /**
      * sets the description
      *
      * @param description the description
      */
     public void setDescription(String description) {
-
+        
         if (null != description) {
             StructuredDocument newdoc = StructuredDocumentFactory.newStructuredDocument(MimeMediaType.XMLUTF8, "Desc", description);
-
+            
             setDesc(newdoc);
         } else {
             this.description = null;
         }
     }
-
+    
     /**
      * returns the description
      *
@@ -204,13 +206,13 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public StructuredDocument getDesc() {
         if (null != description) {
             StructuredDocument newDoc = StructuredDocumentUtils.copyAsDocument(description);
-
+            
             return newDoc;
         } else {
             return null;
         }
     }
-
+    
     /**
      * Privileged version of {@link #getDesc()} that does not clone the elements.
      *
@@ -219,26 +221,26 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public StructuredDocument getDescPriv() {
         return description;
     }
-
+    
     /**
      * sets the description
      *
      * @param desc the description
      */
     public void setDesc(Element desc) {
-
+        
         if (null != desc) {
             this.description = StructuredDocumentUtils.copyAsDocument(desc);
         } else {
             this.description = null;
         }
     }
-
+ 
     /**
      * Returns the opaque compatibility statement for this advertisement. Each
      * JXTA implementation has the ability to recognize and evaluate it's own
      * compatibility statements (even though it may not be able to evaluate the
-     * compatibility statements of other implementations).
+     * compatibility statements of other implementations).  
      *
      * @return The compatibility statement as a StructuredDocument of 
      * unspecified content.
@@ -246,7 +248,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public StructuredDocument getCompat() {
         return (compat == null ? null : StructuredDocumentUtils.copyAsDocument(compat));
     }
-
+    
     /**
      * Privileged version of {@link #getCompat()} that does not clone the elements.
      *
@@ -256,7 +258,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     protected StructuredDocument getCompatPriv() {
         return compat;
     }
-
+    
     /**
      * Sets the module impl. compatibility statement.
      *
@@ -265,13 +267,13 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public void setCompat(Element compat) {
         this.compat = (compat == null ? null : StructuredDocumentUtils.copyAsDocument(compat));
     }
-
+    
     /**
      * returns the code; a reference to or representation of the executable code
      * advertised by this advertisement.
      * <p/>
      * The appropriate interpretation of the code value is dependant upon the 
-     * compatibility statement. Any compatible consumer of this advertisement
+     * compatibility statement. Any compatible consumer of this advertisement   
      * will be able to correctly interpret code value. The standard group 
      * implementations of the JXSE reference implementation expect it to be a 
      * reference to a jar file.
@@ -282,7 +284,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public String getCode() {
         return code;
     }
-
+    
     /**
      * Sets the reference for the executable code described by this 
      * advertisement.
@@ -293,14 +295,14 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public void setCode(String code) {
         this.code = code;
     }
-
+    
     /**
      * returns the uri; that is a reference to or representation of a package 
      * from which the executable code referenced by the getCode method may be 
      * loaded.
      * <p/>
      * The appropriate interpretation of the URI value is dependant upon the 
-     * compatibility statement. Any compatible consumer of this advertisement
+     * compatibility statement. Any compatible consumer of this advertisement   
      * will be able to correctly interpret the URI value. The standard group 
      * implementations of the JXSE reference implementation expect it to be a 
      * reference to a jar file.
@@ -310,7 +312,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public String getUri() {
         return uri;
     }
-
+    
     /**
      * Sets the uri
      *
@@ -319,7 +321,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public void setUri(String uri) {
         this.uri = uri;
     }
-
+    
     /**
      * returns the provider
      *
@@ -328,7 +330,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public String getProvider() {
         return provider;
     }
-
+    
     /**
      * sets the provider
      *
@@ -337,7 +339,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public void setProvider(String provider) {
         this.provider = provider;
     }
-
+    
     /**
      * returns the param element.
      *
@@ -351,7 +353,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     public StructuredDocument getParam() {
         return (param == null ? null : StructuredDocumentUtils.copyAsDocument(param));
     }
-
+    
     /**
      * Privileged version of {@link #getParam()} that does not clone the elements.
      *
@@ -360,7 +362,7 @@ public abstract class ModuleImplAdvertisement extends ExtendableAdvertisement im
     protected StructuredDocument getParamPriv() {
         return param;
     }
-
+    
     /**
      * Sets the module param
      *

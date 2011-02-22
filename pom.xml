@@ -3,19 +3,12 @@
 
     <artifactId>jxse</artifactId>
     <groupId>com.kenai.jxse</groupId>
-    <version>2.7-RC1</version>
+    <version>2.6.0.1-SNAPSHOT</version>
     <packaging>bundle</packaging>
-
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>3</version>
-    </parent>
-
     <scm>
-        <connection>scm:svn:https://jxta-jxse.dev.java.net/svn/jxta-jxse/trunk</connection>
-        <developerConnection>scm:svn:https://jxta-jxse.dev.java.net/svn/jxta-jxse/trunk</developerConnection>
-        <url>http://jxta-jxse.dev.java.net/svn/jxta-jxse/trunk</url>
+        <connection>scm:svn:https://svn.java.net/svn/jxta-jxse~svn/tags/jxse-2.6.0.1</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/jxta-jxse~svn/tags/jxse-2.6.0.1</developerConnection>
+        <url>https://svn.java.net/svn/jxta-jxse~svn/tags/jxse-2.6.0.1</url>
     </scm>
 
     <name>JXSE</name>
@@ -34,7 +27,7 @@
 
     <issueManagement>
         <system>Project Issues</system>
-        <url>https://jxta-jxse.dev.java.net/issues/query.cgi</url>
+        <url>http://kenai.com/jira/browse/JXSE</url>
     </issueManagement>
 
     <licenses>
@@ -157,12 +150,31 @@
                 <configuration>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <forkMode>pertest</forkMode>
-
-                    <!-- Don't remove skip, it is sometimes necessary to
-                      disactivate tests for the Sonatype OSS release. -->
-                    <skip>false</skip>
-
                 </configuration>
+            </plugin>
+
+            <!-- We use assembly to package the source code as a project ready for Maven. -->
+
+            <plugin>
+
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-5</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/distribution-descriptor.xml</descriptor>
+                    </descriptors>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
             </plugin>
 
             <plugin>
@@ -171,7 +183,15 @@
                 <configuration>
                     <passphrase />
                 </configuration>
-                <version>1.1</version>
+            </plugin>
+	<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0</version>
+                <configuration>
+                    <preparationGoals>clean install</preparationGoals>
+                    <tagBase>https://svn.java.net/svn/jxta-jxse~svn/tags</tagBase>
+                </configuration>
             </plugin>
 
         </plugins>
@@ -367,7 +387,6 @@
             </build>
         </profile>
 
-        <!-- This Kenai profile is to be deleted when we move to ASF -->
         <profile>
             <id>create-kenai-packaging</id>
             <build>
@@ -396,7 +415,7 @@
 
                     </plugin>
 
-                    <!-- Kenai packages -->
+                    <!-- Kenai packaging -->
 
                     <plugin>
                         <artifactId>maven-antrun-plugin</artifactId>
@@ -404,9 +423,11 @@
                             <execution>
                                 <id>packaging</id>
                                 <phase>package</phase>
+
                                 <goals>
                                     <goal>run</goal>
                                 </goals>
+
                                 <configuration>
                                     <tasks>
 
@@ -422,17 +443,23 @@
                                           </copy>   -->
 
                                         <!-- Tar-gz & zip dependencies -->
-                                        <tar destfile="${project.build.directory}/kenai/lib-dependencies-${project.version}.tar" basedir="${basedir}/lib" />
+                                        <tar destfile="${project.build.directory}/kenai/lib-dependencies-${project.version}.tar" basedir="${project.basedir}/../lib" />
+
                                         <gzip destfile="${project.build.directory}/kenai/lib-dependencies-${project.version}.tar.gz" src="${project.build.directory}/kenai/lib-dependencies-${project.version}.tar" />
+
                                         <delete file="${project.build.directory}/kenai/lib-dependencies-${project.version}.tar" />
-                                        <zip destfile="${project.build.directory}/kenai/lib-dependencies-${project.version}.zip" basedir="${basedir}/lib" />
+
+                                        <zip destfile="${project.build.directory}/kenai/lib-dependencies-${project.version}.zip" basedir="${project.basedir}/../lib" />
 
 
-                                        <!-- Tar-gz & zip Javadoc -->
-                                        <tar destfile="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar" basedir="${project.build.directory}/apidocs" />
-                                        <gzip destfile="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar.gz" src="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar" />
-                                        <delete file="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar" />
-                                        <zip destfile="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.zip" basedir="${project.build.directory}/apidocs" /> 
+                                        <!-- Tar-gz & zip Javadoc
+                                          <tar destfile="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar" basedir="${project.build.directory}/kenai/site/apidocs" />
+
+                                          <gzip destfile="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar.gz" src="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar" />
+
+                                          <delete file="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.tar" />
+
+                                          <zip destfile="${project.build.directory}/kenai/${project.artifactId}-${project.version}-javadoc.zip" basedir="${project.build.directory}/kenai/site/apidocs" /> -->
 
                                         <!-- Moving the src code packaging -->
                                         <copy file="${project.build.directory}/${project.artifactId}-${project.version}-project.tar.gz" todir="${project.build.directory}/kenai" />
@@ -440,73 +467,6 @@
 
                                         <!-- Moving the .jar -->
                                         <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar" todir="${project.build.directory}/kenai" />
-
-                                        <!-- Copying the pom.xml -->
-                                        <copy file="${basedir}/pom.xml" todir="${project.build.directory}/kenai" />
-
-                                    </tasks>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>sonatype-packaging</id>
-            <build>
-                <plugins>
-                    <!-- We add Javadoc creation to the build process  -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <phase>prepare-package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-
-                        <!-- We exclude Impl Javadoc
-                        <configuration>
-                          <excludePackageNames>net.jxta.impl</excludePackageNames>
-                        </configuration>  -->
-
-                    </plugin>
-
-                    <!-- Sonatype packages -->
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>packaging</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <tasks>
-
-                                        <!-- Deleting Sonatype dir content -->
-                                        <delete dir="${project.build.directory}/Sonatype" />
-
-                                        <!-- Making dir -->
-                                        <mkdir dir="${project.build.directory}/Sonatype" />
-
-                                        <!-- Copying the .jar -->
-                                        <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar" todir="${project.build.directory}/Sonatype" />
-
-                                        <!-- Copying the Javadoc -->
-                                        <copy file="${project.build.directory}/${project.artifactId}-${project.version}-javadoc.jar" todir="${project.build.directory}/Sonatype" />
-
-                                        <!-- Copying the sources -->
-                                        <copy file="${project.build.directory}/${project.artifactId}-${project.version}-sources.jar" todir="${project.build.directory}/Sonatype" />
-
-                                        <!-- Copying the pom.xml -->
-                                        <copy file="${basedir}/pom.xml" todir="${project.build.directory}/Sonatype" />
 
                                     </tasks>
                                 </configuration>

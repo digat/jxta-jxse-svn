@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,25 +37,42 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.membership.pse;
 
+
+import net.jxta.impl.util.BASE64InputStream;
+import net.jxta.impl.util.BASE64OutputStream;
+import net.jxta.logging.Logging;
+import org.bouncycastle.asn1.DERObjectIdentifier;
+import org.bouncycastle.asn1.x509.X509NameTokenizer;
+import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.x509.X509V3CertificateGenerator;
+
+import javax.crypto.Cipher;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
+import javax.security.auth.x500.X500Principal;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -65,52 +82,17 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.security.AlgorithmParameters;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Provider;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.Signature;
-import java.security.SignatureException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.crypto.Cipher;
-import javax.crypto.EncryptedPrivateKeyInfo;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.DESedeKeySpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
-import javax.security.auth.x500.X500Principal;
-
-import net.jxta.document.Attribute;
-import net.jxta.document.XMLElement;
-import net.jxta.impl.util.BASE64InputStream;
-import net.jxta.impl.util.BASE64OutputStream;
-import net.jxta.logging.Logging;
-
-import org.bouncycastle.asn1.DERObjectIdentifier;
-import org.bouncycastle.asn1.x509.X509NameTokenizer;
-import org.bouncycastle.jce.X509Principal;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 /**
  * Singleton class of static utility methods.
@@ -133,40 +115,31 @@ public final class PSEUtils {
     final transient SecureRandom srng = new SecureRandom();
 
     /**
-    * The name of the symmetric cipher to use.
-    */
-    public final static String symmetricAlgorithm = "DESede";
-
-    /**
      * Singleton utility class
      */
     private PSEUtils() {
 
         try {
-            //<DC desc="JNLP does not work on this>
-//            ClassLoader sysloader = ClassLoader.getSystemClassLoader();
-//
-//            Class<?> loaded = sysloader.loadClass(BouncyCastleProvider.class.getName());
-//
-//            Provider provider = (Provider) loaded.newInstance();
-            //</DC>
-            //<DC desc="Instantiate it directly so that the JNLP classloader will load it.">
-            Provider provider = new BouncyCastleProvider();
+            ClassLoader sysloader = ClassLoader.getSystemClassLoader();
+
+            Class<?> loaded = sysloader.loadClass(BouncyCastleProvider.class.getName());
+
+            Provider provider = (Provider) loaded.newInstance();
 
             Security.addProvider(provider);
 
             Logging.logCheckedInfo(LOG, "Loaded Security Providers into system class loader");
-
+            
         } catch (Exception disallowed) {
 
             Logging.logCheckedWarning(LOG, "Failed loading Security Providers into System Class Loader. Will try local class loader (which may not work)\n",
                 disallowed);
-
+  
             // Add the providers we use.
             Security.addProvider(new BouncyCastleProvider());
 
             Logging.logCheckedInfo(LOG, "Loaded Security Providers into local class loader");
-
+            
         }
 
         // Provider [] providers = Security.getProviders();
@@ -207,7 +180,7 @@ public final class PSEUtils {
      * @throws SecurityException if the cert could not be generated.
      */
     public static IssuerInfo genCert(String cn, IssuerInfo issuerinfo) throws SecurityException {
-
+        
         try {
 
             String useCN;
@@ -257,7 +230,7 @@ public final class PSEUtils {
         } catch (NoSuchAlgorithmException e) {
 
             Logging.logCheckedSevere(LOG, "Could not generate certificate\n\n", e);
-
+            
             SecurityException failure = new SecurityException("Could not generate certificate");
             failure.initCause(e);
             throw failure;
@@ -816,7 +789,7 @@ public final class PSEUtils {
         String encoded = base64.toString();
 
         Logging.logCheckedFiner(LOG, "Encoded ", in.length, " bytes -> ", encoded.length(), " characters.");
-
+        
         return encoded;
     }
 
@@ -864,7 +837,7 @@ public final class PSEUtils {
         return result.toString();
     }
 
-    public static String toHexDigits(byte[] bytes) {
+    private static String toHexDigits(byte[] bytes) {
         StringBuilder encoded = new StringBuilder(bytes.length * 2);
 
         // build the string.
@@ -872,252 +845,5 @@ public final class PSEUtils {
             encoded.append(toHexDigits(aByte).toUpperCase());
         }
         return encoded.toString();
-    }
-    
-    /**
-     * Traverses a XmlElement and applies it to a MessageDigest
-     *
-     * @param xmlElement   The xmlElement to be traversed.
-     * @param ignoreXmlElementName   Ignore the top level child with this name.
-     * @param messageDigest   The messageDigest to which .
-     * @return An encrypted private key info or null if the key could not be
-     */
-    public static void xmlElementDigest(XMLElement xmlElement, List ignoreXmlElementNames, MessageDigest messageDigest) {
-        PSEUtils.writeStringToDigest(xmlElement.getName(), messageDigest);
-        Enumeration attributes = xmlElement.getAttributes();
-        while(attributes.hasMoreElements()) {
-            Attribute attribute = (Attribute)attributes.nextElement();
-            PSEUtils.writeStringToDigest(attribute.getName(), messageDigest);
-            PSEUtils.writeStringToDigest(attribute.getValue(), messageDigest);
-        }
-        PSEUtils.writeStringToDigest(xmlElement.getValue(), messageDigest);
-        Enumeration children = xmlElement.getChildren();
-        while(children.hasMoreElements()) {
-            XMLElement xmlElementChild = (XMLElement)children.nextElement();
-            if (ignoreXmlElementNames.contains(xmlElementChild.getName()))
-                continue;
-            PSEUtils.xmlElementDigest(xmlElementChild, messageDigest);
-        }
-    }
-    /**
-     * Traverses a XmlElement and applies it to a MessageDigest
-     *
-     * @param xmlElement   The xmlElement to be traversed.
-     * @param messageDigest   The messageDigest to which .
-     * @return An encrypted private key info or null if the key could not be
-     */
-    public static void xmlElementDigest(XMLElement xmlElement, MessageDigest messageDigest) {
-        PSEUtils.writeStringToDigest(xmlElement.getName(), messageDigest);
-        Enumeration attributes = xmlElement.getAttributes();
-        while(attributes.hasMoreElements()) {
-            Attribute attribute = (Attribute)attributes.nextElement();
-            PSEUtils.writeStringToDigest(attribute.getName(), messageDigest);
-            PSEUtils.writeStringToDigest(attribute.getValue(), messageDigest);
-        }
-        PSEUtils.writeStringToDigest(xmlElement.getValue(), messageDigest);
-        Enumeration children = xmlElement.getChildren();
-        while(children.hasMoreElements()) {
-            XMLElement xmlElementChild = (XMLElement)children.nextElement();
-            PSEUtils.xmlElementDigest(xmlElementChild, messageDigest);
-        }
-    }
-/*
- * Copyright  2009 The Apache Software Foundation.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
- * UtfHelpper
- *
- */
-    final public static void writeStringToDigest(final String str,final MessageDigest messageDigest) {
-            final int length=str.length();
-            int i=0;
-        char c;
-            while (i<length) {
-                    c=str.charAt(i++);
-            if (c < 0x80)  {
-                messageDigest.update((byte)c);
-                continue;
-            }
-            if ((c >= 0xD800 && c <= 0xDBFF) || (c >= 0xDC00 && c <= 0xDFFF) ){
-                    //No Surrogates in sun java
-                    messageDigest.update((byte)0x3f);
-                    continue;
-            }
-            char ch;
-            int bias;
-            int write;
-            if (c > 0x07FF) {
-                ch=(char)(c>>>12);
-                write=0xE0;
-                if (ch>0) {
-                    write |= ( ch & 0x0F);
-                }
-                messageDigest.update((byte)write);
-                write=0x80;
-                bias=0x3F;
-            } else {
-                    write=0xC0;
-                    bias=0x1F;
-            }
-            ch=(char)(c>>>6);
-            if (ch>0) {
-                 write|= (ch & bias);
-            }
-            messageDigest.update((byte)write);
-            messageDigest.update((byte)(0x80 | ((c) & 0x3F)));
-
-            }
-
-       }
-
-    /**
-     * Compares two byte arrays
-     * @param a1
-     * @param a2
-     * @return
-     */
-    public static boolean arrayCompare(byte[] a1, byte[] a2) {
-        if (a1.length != a2.length)
-            return false;
-        for (int i=0;i<a1.length;i++)
-            if (a1[i]!=a2[i])
-                return false;
-        return true;
-    }
-
-    /**
-     * Encrypts byte array
-     *
-     * @param data decrypted data array
-     * @param data inputOffset data array offset
-     * @param data inputLen data array length
-     * @param cipher cipher
-     * @param key public key
-     * @return encrypted data
-     * @throws IOException
-     */
-    public static final byte[] encryptAsymmetric(byte[] data, int inputOffset, int inputLen, Cipher cipher, PublicKey key) throws IOException {
-        synchronized (cipher) {
-            try {
-                cipher.init(Cipher.ENCRYPT_MODE, key);
-                return cipher.doFinal(data, inputOffset, inputLen);
-            } catch (Exception ex) {
-                throw new IOException("Failed encrypting stream:", ex);
-            }
-        }
-    }
-
-    /**
-     * Decrypts byte array
-     *
-     * @param data encrypted data
-     * @param cipher cipher
-     * @param key private key
-     * @return decrypted data
-     * @throws IOException
-     */
-    public static byte[] decryptAsymmetric(byte[] data, Cipher cipher, PrivateKey key) throws IOException {
-        synchronized (cipher) {
-            try {
-                cipher.init(Cipher.DECRYPT_MODE, key);
-                return cipher.doFinal(data);
-            } catch (Exception ex) {
-                throw new IOException("Failed decrypting stream:", ex);
-            }
-        }
-    }
-
-    /**
-     * Encrypts byte array
-     *
-     * @param data decrypted data array
-     * @param data inputOffset data array offset
-     * @param data inputLen data array length
-     * @param cipher cipher
-     * @param key public key
-     * @return encrypted data
-     * @throws IOException
-     */
-    public static final byte[] encryptSymmetric(byte[] data, int inputOffset, int inputLen, Cipher cipher, SecretKey key) throws IOException {
-        synchronized (cipher) {
-            try {
-                cipher.init(Cipher.ENCRYPT_MODE, key);
-                return cipher.doFinal(data, inputOffset, inputLen);
-            } catch (Exception ex) {
-                throw new IOException("Failed encrypting stream:", ex);
-            }
-        }
-    }
-
-    /**
-     * Decrypts byte array
-     *
-     * @param data encrypted data
-     * @param cipher cipher
-     * @param key private key
-     * @return decrypted data
-     * @throws IOException
-     */
-    public static byte[] decryptSymmetric(byte[] data, Cipher cipher, SecretKey key) throws IOException {
-        synchronized (cipher) {
-            try {
-                cipher.init(Cipher.DECRYPT_MODE, key);
-                return cipher.doFinal(data);
-            } catch (Exception ex) {
-                throw new IOException("Failed decrypting stream:", ex);
-            }
-        }
-    }
-
-    /**
-    * Generate a symmetric DES3 key.
-    *
-    * @return A DES3 key
-    */
-    public static SecretKey generateSymmetricKey() throws NoSuchAlgorithmException {
-        KeyGenerator symmetricKeyGenerator = KeyGenerator.getInstance(symmetricAlgorithm);
-        return symmetricKeyGenerator.generateKey();
-    }
-
-    /**
-     * Creates an encoded DESedeKeySpec from a SecretKey
-     * 
-     * @param key
-     * @return
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     */
-    public static byte[] createDESedeKeySpec(SecretKey key) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        SecretKeyFactory keyfactory = SecretKeyFactory.getInstance("DESede");
-        DESedeKeySpec keyspec = (DESedeKeySpec) keyfactory.getKeySpec(key,
-        DESedeKeySpec.class);
-        return keyspec.getKey();
-    }
-
-    /**
-     *
-     * Creates a SecretKey from an encoded DESedeKeySpec
-     * 
-     * @param rawkey
-     * @return
-     * @throws InvalidKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws InvalidKeySpecException
-     */
-    public static SecretKey createSecretKey(byte[] rawkey) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException {
-        DESedeKeySpec keyspec = new DESedeKeySpec(rawkey);
-        SecretKeyFactory keyfactory = SecretKeyFactory.getInstance("DESede");
-        return keyfactory.generateSecret(keyspec);
     }
 }

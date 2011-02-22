@@ -39,7 +39,7 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
     private PeerID localPeerId;
 
     private EndpointAddress localAddress;
-
+    
     public AsynchronousNettyMessenger(Channel channel, PeerGroupID homeGroupID, PeerID localPeerID, EndpointAddress localAddress, EndpointAddress logicalDestinationAddress, EndpointService endpointService) {
         super(homeGroupID, localAddress, QUEUE_SIZE);
         this.channel = channel;
@@ -47,7 +47,7 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
         this.localAddress = new EndpointAddress(localPeerId, null, null);
         this.endpointService = endpointService;
         this.logicalDestinationAddr = logicalDestinationAddress;
-
+        
         attachMessageListener();
     }
 
@@ -56,6 +56,7 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
         handler.setMessageArrivalListener(this);
     }
 
+
     @Override
     protected void requestClose() {
         LOG.log(Level.FINE, "Closing netty channel for messenger to {0}", logicalDestinationAddr);
@@ -63,7 +64,7 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
             channel.close();
         }
     }
-
+    
     @Override
     public boolean isClosed() {
         return super.isClosed() || !channel.isOpen();
@@ -79,7 +80,7 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
             }
             return false;
         }
-
+        
         if(channel.isWritable()) {
             writeMessage(message);
             return true;
@@ -115,17 +116,17 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
                                      EndpointServiceImpl.MESSAGE_SOURCE_NS, 
                                      EndpointServiceImpl.MESSAGE_SOURCE_NAME,
                                      "source");
-
+        
         final EndpointAddress dstAddr 
             = extractEndpointAddress(msg,
                                      EndpointServiceImpl.MESSAGE_DESTINATION_NS, 
                                      EndpointServiceImpl.MESSAGE_DESTINATION_NAME,
                                      "destination");
-
+        
         if(srcAddr == null || isLoopback(srcAddr) || dstAddr == null) {
             return;
         }
-
+        
         ExecutorService executorService = endpointService.getGroup().getTaskManager().getExecutorService();
         executorService.execute(new Runnable() {
             public void run() {
@@ -133,32 +134,32 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
             }
         });
     }
-
+    
     public void connectionDied() {
         LOG.log(Level.INFO, "Underlying channel for messenger to {0} has died", logicalDestinationAddr);
         connectionFailed();
     }
-
+    
     public final void connectionDisposed() {
         connectionCloseComplete();
     }
-
+    
     public void channelSaturated(boolean saturated) {
         if(saturated == false) {
             pullMessages();
         }
     }
-
+    
     @Override
     protected EndpointAddress getLocalAddress() {
         return localAddress;
     }
-
+    
     @Override
     public EndpointAddress getLogicalDestinationAddress() {
         return logicalDestinationAddr;
     }
-
+    
     private boolean isLoopback(EndpointAddress srcAddr) {
         if (localAddress.equals(srcAddr)) {
             if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
@@ -175,11 +176,10 @@ public class AsynchronousNettyMessenger extends AsynchronousMessenger implements
             if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
                 LOG.log(Level.FINE, "Message with no " + addrType + " address detected: " + msg);
             }
-            return null;
         } else {
             msg.removeMessageElement(element);
-            return new EndpointAddress(element.toString());
         }
-
+        
+        return new EndpointAddress(element.toString());
     }
 }
