@@ -1,32 +1,32 @@
 /*
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Copyright (c) 2001-2007 Sun Microsystems, Inc. All rights reserved.
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
 
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -228,7 +228,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
     private final List<Node> outstanding = new CopyOnWriteArrayList<Node>();
     private final BlockingQueue<PipeMsgEvent> msgQueue =
             new ArrayBlockingQueue<PipeMsgEvent>(MAX_QUEUE_SIZE);
-
+    
     // Managed over the course of the transfer
     private List<DefaultContentShareAdvertisementImpl> sourcesRemaining =
             new ArrayList<DefaultContentShareAdvertisementImpl>();
@@ -356,7 +356,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             List<ContentShareAdvertisement> sources,
             List<ContentShareAdvertisement> newSources)
             throws TransferException {
-
+        
         // Add new sources to our tracked list
         for (ContentShareAdvertisement candidate : newSources) {
             if (candidate instanceof DefaultContentShareAdvertisementImpl) {
@@ -365,12 +365,10 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             }
         }
 
-        Logging.logCheckedFine(LOG, "Sources remaining: ", sourcesRemaining.size());
-        Logging.logCheckedFine(LOG, "Sources tried    : ", sourcesTried.size());
 
         if (sourcesRemaining.size() == 0) {
 
-            Logging.logCheckedFine(LOG, "No sources remaining to try");
+
             return ContentTransferState.STALLED;
 
             /* Another option:
@@ -379,7 +377,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             sourcesTried.clear();
              */
         }
-
+        
         // Find a share adv we can use:
         DefaultContentShareAdvertisementImpl adv = null;
         sourcePipe = null;
@@ -389,7 +387,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             }
             adv = sourcesRemaining.remove(0);
             sourcesTried.add(adv);
-
+            
             try {
 
                 PipeService pipeService = peerGroup.getPipeService();
@@ -400,16 +398,15 @@ public class DefaultContentTransfer extends AbstractContentTransfer
 
                 Logging.logCheckedWarning(LOG, "Could not resolve source pipe for Source: ",
                     adv.getPipeAdvertisement(), iox);
-
+                
                 adv = null;
 
             }
-
+            
         } while (adv == null);
-
+        
         if (adv == null) throw(new TransferException("Could not find usable source"));
 
-        Logging.logCheckedFine(LOG, "Source selected: ", adv);
 
         try {
             transferInit(dest);
@@ -478,6 +475,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         }
     }
 
+
     //////////////////////////////////////////////////////////////////////////
     // Private methods:
 
@@ -504,18 +502,18 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                 // Start up periodic health check
                 if (periodicTask == null || periodicTask.isDone()) {
 
-                    Logging.logCheckedFine(LOG, "Setting up periodicTask");
 
                     periodicTask = executor.scheduleWithFixedDelay(
 
                         new Runnable() {
-
+                        
                             public void run() {
                                 try {
                                     criticalEntry();
                                     periodicCheck();
                                 } catch (InterruptedException intx) {
-                                    Logging.logCheckedFinest(LOG, "Periodic check interrupted\n", intx);
+
+
                                 } finally {
                                     criticalExit();
                                 }
@@ -652,7 +650,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         long fireWritten = -1;
         long lastWritten = 0;
 
-        Logging.logCheckedFine(LOG, "Worker thread starting");
 
         while (running) {
             workQueue.clear();
@@ -668,7 +665,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             try {
                 doPeriodic = false;
                 for (PipeMsgEvent pme : workQueue) {
-
+                    
                     msg = pme.getMessage();
 
                     try {
@@ -695,7 +692,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             }
         }
 
-        Logging.logCheckedFine(LOG, "Worker thread closing up shop");
 
     }
 
@@ -711,8 +707,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         StructuredDocument doc;
         DataResponse resp;
         byte data[] = null;
-
-        Logging.logCheckedFiner(LOG, "Incoming message: ", msg);
 
         it = msg.getMessageElementsOfNamespace(DefaultContentProvider.MSG_NAMESPACE);
 
@@ -756,7 +750,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             } catch (ClassCastException ccx) {
 
                 Logging.logCheckedWarning(LOG, "Second message element not byte array\n", ccx);
-
+                
             }
         }
 
@@ -785,16 +779,11 @@ public class DefaultContentTransfer extends AbstractContentTransfer
 
         long millis = System.currentTimeMillis();
 
-        Logging.logCheckedFiner(LOG, "Peridiodic check starting");
-
         int attempt=0;
         int maxAttempts = outstanding.size();
         boolean progress = true;
 
         while (progress && attempt++ < maxAttempts) {
-
-            Logging.logCheckedFiner(LOG, "Periodic check attempt #", attempt,
-                        " (", maxAttempts, " max)");
 
             progress = false;
             int i=0;
@@ -802,16 +791,11 @@ public class DefaultContentTransfer extends AbstractContentTransfer
 
             for (Node node : outstanding) {
 
-                Logging.logCheckedFiner(LOG, "Evaluating status of Node #", i, ": ", node);
-
                 if (0 == node.timeStamp) {
 
                     // Node not in use
-                    Logging.logCheckedFiner(LOG, "  Node not in use.");
 
                     if (prepareRequest(node)) {
-
-                        Logging.logCheckedFiner(LOG, "  Node repurposed for request: ", node);
 
                         progress = true;
                         inUse++;
@@ -822,15 +806,10 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                 } else if (node.data != null) {
 
                     // Node has data, but data hasnt been written out yet.
-                    Logging.logCheckedFiner(LOG, "  Node awaiting data write-out.");
 
                     if (checkWrite(node)) {
 
-                        Logging.logCheckedFiner(LOG, "  Data written.");
-
                         if (prepareRequest(node)) {
-
-                            Logging.logCheckedFiner(LOG, "  Node repurposed for request: ", node);
 
                             progress = true;
                             inUse++;
@@ -841,7 +820,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                     } else {
 
                         // Cant write yet.
-                        Logging.logCheckedFiner(LOG, "  Can't write yet.");
                         inUse++;
 
                     }
@@ -849,19 +827,16 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                 } else if (millis - node.timeStamp > RESPONSE_TIMEOUT) {
 
                     // Request timed out
-                    Logging.logCheckedFiner(LOG, "  Timeout detected.");
 
                     boolean beyondEOF = (eofOffset >= 0) && (eofOffset <= node.offset);
 
                     if (beyondEOF) {
 
-                        Logging.logCheckedFiner(LOG, "  Request is beyond known EOF. Resetting.");
                         progress = true;
                         node.timeStamp = 0;
 
                     } else {
 
-                        Logging.logCheckedFiner(LOG, "  Resending request.");
                         inUse++;
                         sendRequest(node, i);
 
@@ -872,13 +847,11 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                     // Request outstanding.
                     if (eofOffset >= 0 && eofOffset <= node.offset) {
 
-                        Logging.logCheckedFiner(LOG, "  Request is beyond known EOF. Resetting.");
                         progress = true;
                         node.timeStamp = 0;
 
                     } else {
 
-                        Logging.logCheckedFiner(LOG, "  Request outstanding.");
                         inUse++;
 
                     }
@@ -890,7 +863,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
             if (inUse == 0 && eofOffset >= 0) {
 
                 // We're done.
-                Logging.logCheckedFine(LOG, "Transfer complete");
+
 
                 synchronized(this) {
                     running = false;
@@ -911,8 +884,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                 notifyAll();
             }
         }
-
-        Logging.logCheckedFiner(LOG, "Peridiodic check completed");
 
     }
 
@@ -963,7 +934,8 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         Message msg;
 
         if (null == sourcePipe) {
-            Logging.logCheckedFine(LOG, "No source pipe available.  Deferring node: ", node);
+
+
             node.timeStamp = 1;
             return;
         }
@@ -983,11 +955,8 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         msg.addMessageElement(DefaultContentProvider.MSG_NAMESPACE, msge);
 
         if (Logging.SHOW_FINEST && LOG.isLoggable(Level.FINEST)) {
-            Logging.logCheckedFinest(LOG, "Sending DataRequest (idx=", idx, ", node=", node, "):");
-            Logging.logCheckedFinest(LOG, "   ContentID: ", req.getContentID());
-            Logging.logCheckedFinest(LOG, "   Offset : ", req.getOffset());
-            Logging.logCheckedFinest(LOG, "   Length : ", req.getLength());
-            Logging.logCheckedFinest(LOG, "   QID    : ", req.getQueryID());
+
+
         }
 
         try {
@@ -997,10 +966,9 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         } catch (IOException iox) {
 
             Logging.logCheckedWarning(LOG, "IOException during message send\n", iox);
-
+            
         }
 
-        Logging.logCheckedFiner(LOG, "Did not send message");
         node.timeStamp = 1;
 
     }
@@ -1014,27 +982,24 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         long offs;
 
         if (Logging.SHOW_FINEST && LOG.isLoggable(Level.FINEST)) {
-            Logging.logCheckedFinest(LOG, "DataResponse:");
-            Logging.logCheckedFinest(LOG, "   ContentID: ", resp.getContentID());
-            Logging.logCheckedFinest(LOG, "   Offset : ", resp.getOffset());
-            Logging.logCheckedFinest(LOG, "   Length : ", resp.getLength());
-            Logging.logCheckedFinest(LOG, "   QID    : ", resp.getQueryID());
-            Logging.logCheckedFinest(LOG, "   EOF    : ", resp.getEOF());
-            Logging.logCheckedFinest(LOG, "   Bytes  : ", ((data == null) ? 0 : data.length));
+
+
         }
 
         if (!resp.getContentID().equals(getTransferContentID())) {
 
             Logging.logCheckedWarning(LOG, "Invalid ContentID.  Discarding.");
-            Logging.logCheckedFinest(LOG, "Expected ContentID: ", getTransferContentID());
-            return;
 
+
+            return;
+            
         }
 
         if (resp.getLength() != ((data == null) ? 0 : data.length)) {
 
             Logging.logCheckedWarning(LOG, "Data length doesnt match length in header.  Discarding.");
-            Logging.logCheckedFinest(LOG, "Expected length: ", ((data == null) ? 0 : data.length));
+
+
             return;
 
         }
@@ -1044,7 +1009,8 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         if (idx >= outstanding.size()) {
 
             Logging.logCheckedWarning(LOG, "Invalid query ID.  Discarding.");
-            Logging.logCheckedFinest(LOG, "Expected max: ", outstanding.size());
+
+
             return;
 
         }
@@ -1063,16 +1029,18 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         if (resp.getOffset() != node.offset) {
 
             Logging.logCheckedWarning(LOG, "Invalid offset. Discarding.");
-            Logging.logCheckedFinest(LOG, "Expected offset: ", node.offset);
-            return;
 
+
+            return;
+            
         }
 
         // We have what appears to be a good packet.
         if (SIMULATE_PACKET_LOSS) {
             if (RANDOM.nextInt(100) < PACKET_LOSS_PERCENT) {
                 if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
-                    Logging.logCheckedFine(LOG, "Simulating lost packet");
+
+
                     return;
                 }
             }
@@ -1096,12 +1064,8 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         if (couldWrite) {
 
             if (Logging.SHOW_FINEST && LOG.isLoggable(Level.FINEST)) {
-                Logging.logCheckedFinest(LOG, "Wrote the following to disk:");
-                Logging.logCheckedFinest(LOG, "   Offset : ", resp.getOffset());
-                Logging.logCheckedFinest(LOG, "   Length : ", resp.getLength());
-                Logging.logCheckedFinest(LOG, "   QID    : ", resp.getQueryID());
-                Logging.logCheckedFinest(LOG, "   EOF    : ", resp.getEOF());
-                Logging.logCheckedFinest(LOG, "   Bytes  : ", ((data == null) ? 0 : data.length));
+
+
             }
 
             if (prepareRequest(node)) {
@@ -1112,7 +1076,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
 
             // Signal an evaluation all Nodes
             doPeriodic = true;
-
+            
         }
 
         if (eofOffset >= 0) {
@@ -1144,7 +1108,8 @@ public class DefaultContentTransfer extends AbstractContentTransfer
         } catch (IOException iox) {
 
             // We'll implicitly try again later
-            Logging.logCheckedFinest(LOG, "Could not write data\n", iox);
+
+
             return false;
 
         }
@@ -1162,13 +1127,14 @@ public class DefaultContentTransfer extends AbstractContentTransfer
      * thread has become the critical section owner.
      */
     private void criticalEntry() throws InterruptedException {
-
+        
         Thread me = Thread.currentThread();
 
         synchronized(this) {
 
             while (ownerThread != null && ownerThread != me) {
-                Logging.logCheckedFinest(LOG, "Waiting for access to critical section");
+
+
                 wait();
             }
 
@@ -1176,7 +1142,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
 
         }
 
-        Logging.logCheckedFinest(LOG, "Access to critical section granted");
 
     }
 
@@ -1188,7 +1153,6 @@ public class DefaultContentTransfer extends AbstractContentTransfer
      */
     private void criticalExit() {
 
-        Logging.logCheckedFinest(LOG, "Releasing access to critical section");
 
         Thread me = Thread.currentThread();
 
@@ -1198,7 +1162,7 @@ public class DefaultContentTransfer extends AbstractContentTransfer
                 notifyAll();
             }
         }
-
+        
     }
 
 }

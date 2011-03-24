@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -178,7 +178,8 @@ public class RdvPeerRdvService extends StdRendezVousService {
         RdvConfigAdv rdvConfigAdv;
 
         if (!(adv instanceof RdvConfigAdv)) {
-            Logging.logCheckedFine(LOG, "Creating new RdvConfigAdv for defaults.");
+
+
             rdvConfigAdv = (RdvConfigAdv) AdvertisementFactory.newAdvertisement(RdvConfigAdv.getAdvertisementType());
         } else {
             rdvConfigAdv = (RdvConfigAdv) adv;
@@ -216,7 +217,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
 
             // don't worry about it for now. It'll still work.
             Logging.logCheckedWarning(LOG, "Failed adding service params\n", ohwell);
-
+            
         }
 
         PeerGroup advGroup = group.getParentGroup();
@@ -231,7 +232,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
                 rdvService.getAssignedID().toString() + group.getPeerGroupID().getUniqueValue().toString());
 
         Logging.logCheckedInfo(LOG, "RendezVous Service is initialized for ", group.getPeerGroupID(), " as a Rendezvous peer.");
-
+        
     }
 
     /**
@@ -246,7 +247,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
          */
         public void processIncomingMessage(Message msg, EndpointAddress srcAddr, EndpointAddress dstAddr) {
 
-            Logging.logCheckedFine(LOG, "[", group.getPeerGroupID(), "] processing ", msg);
 
             if (msg.getMessageElement("jxta", ConnectRequest) != null)
                 processLeaseRequest(msg);
@@ -318,7 +318,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
         clients.clear();
 
         gcTaskHandle.cancel(false);
-
+        
         super.stopApp();
 
         if (RendezvousMeterBuildSettings.RENDEZVOUS_METERING && (rendezvousMeter != null)) {
@@ -355,7 +355,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
     public void disconnectFromRendezVous(ID peerId) {
 
         Logging.logCheckedWarning(LOG, "Invalid call to disconnectFromRendezVous() on RDV peer");
-
+        
     }
 
     /**
@@ -400,8 +400,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
         msg = msg.clone();
         int useTTL = Math.min(initialTTL, MAX_TTL);
 
-        Logging.logCheckedFine(LOG, "Propagating ", msg, "(TTL=", useTTL, ") to :",
-                    "\n\tsvc name:", serviceName, "\tsvc params:", serviceParam);
 
         RendezVousPropagateMessage propHdr = updatePropHeader(msg, getPropHeader(msg), serviceName, serviceParam, useTTL);
 
@@ -429,8 +427,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
         msg = msg.clone();
         int useTTL = Math.min(initialTTL, MAX_TTL);
 
-        Logging.logCheckedFine(LOG, "Propagating ", msg, "(TTL=", useTTL, ") in group to :",
-                    "\n\tsvc name:", serviceName, "\tsvc params:", serviceParam);
 
         RendezVousPropagateMessage propHdr = updatePropHeader(msg, getPropHeader(msg), serviceName, serviceParam, useTTL);
 
@@ -518,7 +514,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
      */
     private ClientConnection removeClient(PeerConnection pConn, boolean requested) {
 
-        Logging.logCheckedFine(LOG, "Disconnecting client ", pConn);
 
         if (pConn.isConnected()) {
             pConn.setConnected(false);
@@ -625,7 +620,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
 
         if (null != pConn) {
 
-            Logging.logCheckedFine(LOG, "Renewing client lease to ", pConn);
+
             lease = LEASE_DURATION;
 
         } else {
@@ -633,7 +628,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
             if (clients.size() < MAX_CLIENTS) {
 
                 lease = LEASE_DURATION;
-                Logging.logCheckedFine(LOG, "Offering new client lease to ", padv.getName(), " [", padv.getPeerID(), "]");
+
 
             } else {
 
@@ -641,7 +636,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
 
                 Logging.logCheckedWarning(LOG, "Max clients exceeded, declining lease request from: ",
                     padv.getName(), " [", padv.getPeerID(), "]");
-
+                
             }
 
         }
@@ -663,7 +658,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
      */
     private boolean sendLease(ClientConnection pConn, long lease) {
 
-        Logging.logCheckedFine(LOG, "Sending lease (", lease, ") to ", pConn.getPeerName());
 
         Message msg = new Message();
 
@@ -688,9 +682,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
         msg = msg.clone();
         int useTTL = Math.min(initialTTL, MAX_TTL);
 
-        Logging.logCheckedFine(LOG,
-            "Undirected walk of ", msg, "(TTL=", useTTL, ") to :", "\n\tsvc name:",
-            serviceName, "\tsvc params:", serviceParam);
 
         msg.replaceMessageElement("jxta", new StringMessageElement(RDV_WALK_SVC_NAME, serviceName, null));
         msg.replaceMessageElement("jxta", new StringMessageElement(RDV_WALK_SVC_PARAM, serviceParam, null));
@@ -725,8 +716,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
         msg = msg.clone();
         int useTTL = Math.min(initialTTL, MAX_TTL);
 
-        Logging.logCheckedFine(LOG, "Directed walk of ", msg, "(TTL=", useTTL, ") to :\n\tsvc name:",
-            serviceName, "\tsvc params:", serviceParam);
 
         msg.replaceMessageElement("jxta", new StringMessageElement(RDV_WALK_SVC_NAME, serviceName, null));
         msg.replaceMessageElement("jxta", new StringMessageElement(RDV_WALK_SVC_PARAM, serviceParam, null));
@@ -778,7 +767,7 @@ public class RdvPeerRdvService extends StdRendezVousService {
 
                             // This client has dropped out or the lease is over.
                             // remove it.
-                            Logging.logCheckedFine(LOG, "GC CLIENT: dropping ", pConn);
+
 
                             pConn.setConnected(false);
                             removeClient(pConn, false);
@@ -789,21 +778,19 @@ public class RdvPeerRdvService extends StdRendezVousService {
                     } catch (Exception e) {
 
                         Logging.logCheckedWarning(LOG, "GCTask failed for ", pConn, "\n", e);
-
+                        
                     }
                 }
 
-                Logging.logCheckedFine(LOG, "Client GC ", gcedClients, " of ", allClients.size(),
-                    " clients completed in ", TimeUtils.toRelativeTimeMillis(TimeUtils.timeNow(), gcStart),
-                    "ms.");
 
             } catch (Throwable all) {
 
                 Logging.logCheckedSevere(LOG, "Uncaught Throwable in thread :", Thread.currentThread().getName(), "\n", all);
-
+                
             }
         }
     }
+
 
     /**
      * @inheritDoc
@@ -818,7 +805,8 @@ public class RdvPeerRdvService extends StdRendezVousService {
             MessageElement serviceME = msg.getMessageElement("jxta", RDV_WALK_SVC_NAME);
 
             if (null == serviceME) {
-                Logging.logCheckedFine(LOG, "Discarding ", msg, " because its missing service name element");
+
+
                 return;
             }
 
@@ -838,8 +826,6 @@ public class RdvPeerRdvService extends StdRendezVousService {
 
             EndpointAddress realDest = new EndpointAddress(dstAddr, sName, sParam);
 
-            Logging.logCheckedFine(LOG, "Calling local listener for [", realDest.getServiceName(),
-                " / ", realDest.getServiceParameter(), "] with ", msg);
 
             rdvService.endpoint.processIncomingMessage(msg, srcAddr, realDest);
 

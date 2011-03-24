@@ -167,7 +167,8 @@ public class NettyMessenger extends BlockingMessenger implements MessageArrivalL
 
 	private boolean isLoopback(EndpointAddress srcAddr) {
             if (localAddress.equals(srcAddr)) {
-                Logging.logCheckedFine(LOG, "Loopback message detected");
+
+
                 return true;
             }
 
@@ -180,7 +181,8 @@ public class NettyMessenger extends BlockingMessenger implements MessageArrivalL
             MessageElement element = msg.getMessageElement(elementNamespace, elementName);
 	
             if(element == null) {
-		Logging.logCheckedFine(LOG, "Message with no ", addrType, " address detected: ", msg);
+
+
             } else {
 	        msg.removeMessageElement(element);
             }

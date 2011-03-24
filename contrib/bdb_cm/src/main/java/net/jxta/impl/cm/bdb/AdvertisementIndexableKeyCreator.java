@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.jxta.document.Advertisement;
@@ -49,7 +50,7 @@ public class AdvertisementIndexableKeyCreator implements SecondaryMultiKeyCreato
 			XMLDocument<?> asDoc = (XMLDocument<?>) StructuredDocumentFactory.newStructuredDocument(MimeMediaType.XMLUTF8, new ByteArrayInputStream(record.getData()));
 	        Advertisement adv = AdvertisementFactory.newAdvertisement(asDoc);
 	        Map<String, String> indexfields = CacheUtils.getIndexfields(adv.getIndexFields(), asDoc);
-	
+	        
 	        for(String indexField : indexfields.keySet()) {
                 AttributeSearchKey newSearchKey = new AttributeSearchKey(areaName, directoryName, indexField, indexfields.get(indexField));
                 results.add(newSearchKey.toDatabaseEntry());
