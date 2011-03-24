@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,24 +37,25 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.membership.pse;
+
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -87,6 +88,7 @@ import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.jxta.credential.Credential;
@@ -104,10 +106,12 @@ import net.jxta.exception.PeerGroupException;
 import net.jxta.id.ID;
 import net.jxta.id.IDFactory;
 import net.jxta.impl.util.TimeUtils;
+import net.jxta.impl.util.threads.TaskManager;
 import net.jxta.logging.Logging;
 import net.jxta.peer.PeerID;
 import net.jxta.peergroup.PeerGroupID;
 import net.jxta.service.Service;
+
 
 /**
  * This class provides the sub-class of Credential which is associated with the
@@ -223,8 +227,8 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
      */
     protected PSECredential(PSEMembershipService source, ID keyID, CertPath certChain, PrivateKey privateKey) throws IOException {
         this.source = source;
-        this.peerID = source.getPeerGroup().getPeerID();
-        this.peerGroupID = source.getPeerGroup().getPeerGroupID();
+        this.peerID = source.group.getPeerID();
+        this.peerGroupID = source.group.getPeerGroupID();
         setKeyID(keyID);
         setCertificateChain(certChain);
         setPrivateKey(privateKey);
@@ -249,9 +253,9 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
         this.source = source;
         initialize(root);
 
-        if (!peerGroupID.equals(source.getPeerGroup().getPeerGroupID())) {
+        if (!peerGroupID.equals(source.group.getPeerGroupID())) {
             throw new IllegalArgumentException(
-                    "Credential is from a different group. " + peerGroupID + " != " + source.getPeerGroup().getPeerGroupID());
+                    "Credential is from a different group. " + peerGroupID + " != " + source.group.getPeerGroupID());
         }
     }
 
@@ -269,7 +273,7 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
             PSECredential asCred = (PSECredential) target;
 
             boolean result = peerID.equals(asCred.peerID)
-                    && source.getPeerGroup().getPeerGroupID().equals(asCred.source.getPeerGroup().getPeerGroupID());
+                    && source.group.getPeerGroupID().equals(asCred.source.group.getPeerGroupID());
 
             result &= certs.equals(asCred.certs);
 
@@ -300,7 +304,7 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
      */
     @Override
     public int hashCode() {
-        int result = peerID.hashCode() * source.getPeerGroup().getPeerGroupID().hashCode() * certs.hashCode();
+        int result = peerID.hashCode() * source.group.getPeerGroupID().hashCode() * certs.hashCode();
 
         if (0 == result) {
             result = 1;
@@ -504,8 +508,7 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
 
             InputStream signStream = new SequenceInputStream(Collections.enumeration(someStreams));
 
-            PSECredentialSignatureBridge pseCredentialSignatureBridge = new PSECredentialSignatureBridge(source.getPeerSecurityEngineSignatureAlgorithm(), this, signStream);
-            byte[] sig = source.signPSECredentialDocument(pseCredentialSignatureBridge);
+            byte[] sig = source.peerSecurityEngine.sign(source.peerSecurityEngine.getSignatureAlgorithm(), this, signStream);
 
             e = doc.createElement("Signature", PSEUtils.base64Encode(sig));
             doc.appendChild(e);
@@ -513,29 +516,10 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
         }
 
         if (doc instanceof Attributable) {
-            ((Attributable) doc).addAttribute("algorithm", source.getPeerSecurityEngineSignatureAlgorithm());
+            ((Attributable) doc).addAttribute("algorithm", source.peerSecurityEngine.getSignatureAlgorithm());
         }
 
         return doc;
-    }
-    final static class PSECredentialSignatureBridge {
-        private String signatureAlgorithm = null;
-        private PSECredential credential = null;
-        private InputStream signStream = null;
-        private PSECredentialSignatureBridge(String signatureAlgorithm, PSECredential credential, InputStream signStream) {
-            this.signatureAlgorithm = signatureAlgorithm;
-            this.credential = credential;
-            this.signStream = signStream;
-        }
-        public String getSignatureAlgorithm() {
-            return signatureAlgorithm;
-        }
-        public PSECredential getPSECredential() {
-            return credential;
-        }
-        public InputStream getInputStream() {
-            return signStream;
-        }
     }
 
     /**
@@ -618,37 +602,24 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
     }
 
     /**
-     * Support for TlsTransport key requirement
-     * @param pseCredentialKeyRetriever
+     * Returns the private key associated with this credential. Only valid for
+     * locally generated credentials.
+     *
+     * @return the private key associated with this credential.
+     * @deprecated Use <@link #getSigner(String)> or <@link #getSignatureVerifier(String)> instead.
      */
-    public void tlsKeyBridge(net.jxta.impl.endpoint.tls.TlsTransport.PSECredentialBridge pseCredentialKeyRetriever) throws SecurityException {
-        if (!this.getClass().getClassLoader().equals(pseCredentialKeyRetriever.getClass().getClassLoader()))
-            throw new SecurityException("Illegal attempt to tlsKeyBridge - wrong classloader");
-        if (!local)
-            return;
-        pseCredentialKeyRetriever.setPrivateKey(privateKey);
-    }
-    /**
-     * Support for JxtaSocketInputStream key requirement
-     * @param pseCredentialKeyRetriever
-     */
-    public void socketKeyBridge(net.jxta.socket.JxtaSocket.SocketPSEBridge pseCredentialKeyRetriever) throws SecurityException {
-        if (!this.getClass().getClassLoader().equals(pseCredentialKeyRetriever.getClass().getClassLoader()))
-            throw new SecurityException("Illegal attempt to socketKeyBridge - wrong classloader");
-        if (!local)
-            return;
-        pseCredentialKeyRetriever.setPrivateKey(privateKey);
-    }
-    /**
-     * Support for PSEMembershipService key requirement
-     * @param pseCredentialKeyRetriever
-     */
-    void pseKeyBridge(PSEMembershipService.PSECredentialBridge pseCredentialKeyRetriever) throws SecurityException {
-        if (!this.getClass().getClassLoader().equals(pseCredentialKeyRetriever.getClass().getClassLoader()))
-            throw new SecurityException("Illegal attempt to pseKeyBridge - wrong classloader");
-        if (!local)
-            return;
-        pseCredentialKeyRetriever.setPrivateKey(privateKey);
+    @Deprecated
+    public PrivateKey getPrivateKey() {
+
+        if (!local) {
+            throw new IllegalStateException("This credential is not a local credential and cannot be used for signing.");
+        }
+
+        if (null == privateKey) {
+            throw new IllegalStateException("This local credential is engine based and cannot provide the private key.");
+        }
+
+        return privateKey;
     }
 
     /**
@@ -807,7 +778,7 @@ public final class PSECredential implements Credential, CredentialPCLSupport {
 
                 if (!PSEUtils.verifySignature("SHA1WITHRSA", getCertificate(), signatureToCompare, signStream)) 
                     throw new IllegalArgumentException("Certificated did not match");
-
+                
             } catch (Throwable failed) {
 
                 Logging.logCheckedWarning(LOG, "Failed to validate signature \n", failed);

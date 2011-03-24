@@ -56,30 +56,46 @@
 
 package net.jxta.configuration;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.StringBufferInputStream;
+import java.security.InvalidParameterException;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Properties;
-
-import org.junit.Rule;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.junit.Assert.*;
 
 /**
  * Test of the JxtaConfiguration class.
  */
 public class JxtaConfigurationTest {
 
-	@Rule
-	public TemporaryFolder tempStorage = new TemporaryFolder();
+    public JxtaConfigurationTest() {
+    }
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+    }
+
+    @Before
+    public void setUp() {
+    }
+
+    @After
+    public void tearDown() {
+    }
 
     @Test
     public void testConstructor_0Param() {
@@ -220,10 +236,10 @@ public class JxtaConfigurationTest {
         Source.setProperty("XXX", "YYY");
         Source.setDefaultPropertyValue("DDD", "FFF");
 
-        File TempFile = tempStorage.newFile("testStoreLoadFromXML");
+        File TempFile = new File("testStoreLoadFromXML");
         TempFile.delete();
 
-        FileOutputStream FOS = new FileOutputStream(TempFile);
+        FileOutputStream FOS = new FileOutputStream("testStoreLoadFromXML");
 
         try {
             Source.storeToXML(FOS, "Test");
@@ -232,7 +248,7 @@ public class JxtaConfigurationTest {
             fail(ex.toString());
         }
 
-        FileInputStream FIS = new FileInputStream(TempFile);
+        FileInputStream FIS = new FileInputStream("testStoreLoadFromXML");
 
         JxtaConfiguration Restore = new JxtaConfiguration();
 
@@ -269,8 +285,8 @@ public class JxtaConfigurationTest {
 
         assertTrue(Source!=null);
 
-        Source.setProperty("ï¿½ï¿½ï¿½", "ï¿½");
-        Source.setDefaultPropertyValue("DDD", "ï¿½ï¿½ï¿½");
+        Source.setProperty("ééé", "ô");
+        Source.setDefaultPropertyValue("DDD", "ùùù");
 
         ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
 
@@ -295,15 +311,15 @@ public class JxtaConfigurationTest {
         // Checking content
         assertTrue(Restore.size()==1);
 
-        assertTrue(Restore.containsKey("ï¿½ï¿½ï¿½"));
-        assertTrue(Restore.containsValue("ï¿½"));
+        assertTrue(Restore.containsKey("ééé"));
+        assertTrue(Restore.containsValue("ô"));
 
         Properties TempP = Restore.getDefaultsCopy();
 
         assertTrue(TempP.size()==1);
 
         assertTrue(TempP.containsKey("DDD"));
-        assertTrue(TempP.containsValue("ï¿½ï¿½ï¿½"));
+        assertTrue(TempP.containsValue("ùùù"));
 
     }
 

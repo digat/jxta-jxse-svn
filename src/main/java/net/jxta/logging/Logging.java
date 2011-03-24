@@ -1,32 +1,32 @@
 /*
  *  Copyright (c) 2001-2004 Sun Microsystems, Inc. All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,26 +37,27 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.logging;
 
 import java.io.PrintStream;
+import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -128,7 +129,7 @@ public final class Logging {
 
     /**
      * The default logging level.
-     */ 
+     */    
     private final static Level DEFAULT_LOGGING_LEVEL = Level.FINEST;
 
     /**
@@ -189,7 +190,7 @@ public final class Logging {
         // Set the default level for the JXTA packages so that everything below
         // inherits our default.
         MIN_SHOW_LEVEL = setLevel;
-
+               
         SHOW_FINEST = MIN_SHOW_LEVEL.intValue() <= Level.FINEST.intValue();
         SHOW_FINER = MIN_SHOW_LEVEL.intValue() <= Level.FINER.intValue();
         SHOW_FINE = MIN_SHOW_LEVEL.intValue() <= Level.FINE.intValue();
@@ -242,6 +243,21 @@ public final class Logging {
         }
 
     }
+    /**
+     * This method checks whether {@code SHOW_FINE} is set to {@code true),
+     * and whether the provided logger allows fine messages. If yes, the
+     * message is logged.
+     *
+     * @param inLog a logger
+     * @param inMsg the messages to concatenate
+     */
+    public static void logCheckedFine(Logger inLog, String format, Object... inMsg) {
+
+        if (Logging.SHOW_FINE && inLog.isLoggable(Level.FINE)) {
+            inLog.fine(MessageFormat.format(format, inMsg));
+        }
+
+    }
 
     /**
      * This method checks whether {@code SHOW_FINER} is set to {@code true),
@@ -257,6 +273,22 @@ public final class Logging {
             StringBuffer Msg = new StringBuffer(getCaller(new Exception().getStackTrace())).append('\n');
             for (int i=0;i<inMsg.length;i++) Msg.append(checkForThrowables(inMsg[i]));
             inLog.finer(Msg.toString());
+        }
+
+    }
+
+    /**
+     * This method checks whether {@code SHOW_FINER} is set to {@code true),
+     * and whether the provided logger allows finer messages. If yes, the
+     * message is logged.
+     *
+     * @param inLog a logger
+     * @param inMsg the messages to concatenate
+     */
+    public static void logCheckedFiner(Logger inLog, String format, Object... inMsg) {
+
+        if (Logging.SHOW_FINER && inLog.isLoggable(Level.FINER)) {
+            inLog.finer(MessageFormat.format(format, inMsg));
         }
 
     }
@@ -297,6 +329,16 @@ public final class Logging {
 
     }
 
+    public static void logCheckedInfo(Logger inLog, String format, Object... inMsg) {
+
+        if (Logging.SHOW_INFO && inLog.isLoggable(Level.INFO))
+        {
+            inLog.info(MessageFormat.format(format, inMsg));
+        }
+
+    }
+
+
     /**
      * This method checks whether {@code SHOW_SEVERE} is set to {@code true),
      * and whether the provided logger allows severe messages. If yes, the
@@ -329,6 +371,22 @@ public final class Logging {
             StringBuffer Msg = new StringBuffer(getCaller(new Exception().getStackTrace())).append('\n');
             for (int i=0;i<inMsg.length;i++) Msg.append(checkForThrowables(inMsg[i]));
             inLog.warning(Msg.toString());
+        }
+
+    }
+
+    /**
+     * This method checks whether {@code SHOW_WARNING} is set to {@code true),
+     * and whether the provided logger allows warnings messages. If yes, the
+     * message is logged.
+     *
+     * @param inLog a logger
+     * @param inMsg the messages to concatenate
+     */
+    public static void logCheckedWarning(Logger inLog, String format,Object... inMsg) {
+
+        if (Logging.SHOW_WARNING && inLog.isLoggable(Level.WARNING)) {
+            inLog.warning(MessageFormat.format(format, inMsg));
         }
 
     }
