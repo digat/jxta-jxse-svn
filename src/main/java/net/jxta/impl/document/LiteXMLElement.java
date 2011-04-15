@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,28 +37,28 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.document;
 
+
 import net.jxta.document.Attribute;
 import net.jxta.document.XMLElement;
-import net.jxta.logging.Logging;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -68,6 +68,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+
 
 /**
  * An element of a <CODE>StructuredDocument</CODE>. <CODE>StructuredDocument</CODE>s
@@ -219,6 +220,7 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             return (end - start + 1);
         }
     }
+
 
     /**
      * A tagRange is a collection of char ranges useful for describing XML
@@ -472,14 +474,12 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
         String name = getName();
 
         if (name == null) {
-            //It is better just to return "". null is not supposed to happen.
-            name = "";
+            name = "<<null name>>";
         }
         String value = getTextValue();
 
         if (value == null) {
-            //It is better just to return "". null is not supposed to happen.
-            value = "";
+            value = "<<null value>>";
         }
 
         if ((value.length() + name.length()) >= 60) {
@@ -788,7 +788,7 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
 
             // did we find no non-whitespace?
             if (firstNonWhiteSpace >= building.length()) {
-                return "";
+                return null;
             }
 
             while (lastNonWhiteSpace >= firstNonWhiteSpace) {
@@ -966,8 +966,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             tag = "";
         }
 
-        Logging.logCheckedFiner(LOG, "Searching for \"", tag, "\" in range [", start, ",", end, "]");
-
         current = start;
 
         // Begin Phase 0 : Search for any tag.
@@ -979,7 +977,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             // was it not found? if not then quit
             if (-1 == foundTagText) {
 
-                Logging.logCheckedFiner(LOG, "No Tags Found");
                 return result;
 
             }
@@ -1006,14 +1003,11 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             // it better not be still empty
             if (emptyTag) {
 
-                Logging.logCheckedFiner(LOG, "No tag found");
                 return result;
 
             }
 
         }
-
-        Logging.logCheckedFiner(LOG, "Search for \"", tag, "\" [", start, ",", end, "]");
 
         // Begin Phase 1: Search for the Start Tag
 
@@ -1026,9 +1020,8 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             // was it not found
             if ((-1 == foundTagText) || (afterTagText > end)) {
 
-                Logging.logCheckedFiner(LOG, "Tag \"", tag, "\" Not Found(1)");
                 return result;
-
+                
             }
 
             char checkChar = source.charAt(afterTagText);
@@ -1058,7 +1051,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
 
         if (!foundStartTag) {
 
-            Logging.logCheckedFiner(LOG, "Tag \"", tag, "\" Not Found(2)");
             return result;
 
         }
@@ -1070,7 +1062,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             result.body = new charRange(result.startTag.start, result.startTag.end);
             result.endTag = new charRange(result.startTag.start, result.startTag.end);
 
-            Logging.logCheckedFiner(LOG, "Empty Element \"", tag, "\" Start : ", result.startTag);
             return result;
 
         }
@@ -1080,7 +1071,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
         // if current is past the end then our end tag is not found.
         if (current >= end) {
 
-            Logging.logCheckedFiner(LOG, "End not found \"", tag, "\" Start : ", result.startTag);
             return result;
 
         }
@@ -1092,8 +1082,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
 
         while (!foundEndTag && (current < end) && (searchFrom < end)) {
 
-            Logging.logCheckedFiner(LOG, "Searching for \"", endTag, "\" in range [", current, ",", end, "]");
-
             int foundTagText = source.indexOf(endTag, current);
 
             // was it not found or not in bounds?
@@ -1101,26 +1089,15 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
                 break;
             } // it was not found
 
-            Logging.logCheckedFiner(LOG, "Prospective tag pair for \"", tag, "\" ", result.startTag, ":[", foundTagText, ",",
-                        (foundTagText + endTag.length() - 1), "]");
-
             // We recurse here in order to exclude the end tags of any sub elements with the same name
             charRange subRange = new charRange(searchFrom, foundTagText - 1);
 
-            Logging.logCheckedFiner(LOG, "Recursing to search for \"", tag, "\" in ", subRange);
-
             tagRange subElement = getTagRanges(source, tag, subRange);
-
-            Logging.logCheckedFiner(LOG, "Recursion result \"", tag, "\" ", subElement);
 
             // if there was an incomplete sub-tag with the same name, skip past it
             if (subElement.startTag.isValid()) {
 
-                Logging.logCheckedFiner(LOG, "Found sub-tag \"", tag, "\" at ", subElement, " within ", subRange);
-
                 if (subElement.endTag.isValid()) {
-
-                    Logging.logCheckedFiner(LOG, "Complete sub-tag \"", tag, "\" at ", subElement, " within ", subRange);
 
                     current = subElement.endTag.end + 1;
                     searchFrom = subElement.endTag.end + 1;
@@ -1138,7 +1115,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             result.endTag.start = foundTagText;
             result.endTag.end = foundTagText + endTag.length() - 1;
 
-            Logging.logCheckedFiner(LOG, "Prospective tag \"", tag, "\" ", result.endTag, " is confirmed.");
         }
 
         // Begin Phase 3 :  Calculate the location of the body.
@@ -1150,8 +1126,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
         } else {
             result.body.end = end;
         }
-
-        Logging.logCheckedFiner(LOG, "Found element : \"", tag, "\" ", result);
 
         return result;
     }
@@ -1170,8 +1144,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
 
         int current = scanRange.start;
 
-        Logging.logCheckedFiner(LOG, "Scanning for children in range ", scanRange);
-
         do {
             // scan for any tag.
             tagRange aSubtag = getTagRanges(getDocument().docContent, null, new charRange(current, scanRange.end));
@@ -1179,10 +1151,6 @@ public class LiteXMLElement implements XMLElement<LiteXMLElement> {
             // did we find one?
             if (aSubtag.isValid()) {
                 LiteXMLElement newChild = getDocument().createElement(aSubtag);
-
-                Logging.logCheckedFiner(LOG, "Adding child tag \"",
-                                    getDocument().docContent.substring(aSubtag.endTag.start + 2, aSubtag.endTag.end), "\" ",
-                                    aSubtag);
 
                 addTo.appendChild(newChild);
 

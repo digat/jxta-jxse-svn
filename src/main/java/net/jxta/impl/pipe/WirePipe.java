@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.impl.pipe;
@@ -67,6 +67,7 @@ import net.jxta.id.ID;
 import net.jxta.impl.cm.Srdi;
 import net.jxta.impl.id.UUID.UUID;
 import net.jxta.impl.id.UUID.UUIDFactory;
+import net.jxta.impl.util.LimitedSizeMap;
 import net.jxta.logging.Logging;
 import net.jxta.peer.PeerID;
 import net.jxta.peergroup.PeerGroup;
@@ -100,7 +101,7 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
     /**
      * The number of message ID we track to eliminate duplicate messages.
      */
-    private static final int MAX_RECORDED_MSGIDS = 250;
+    private static final int MAX_RECORDED_MSGIDS = 10000;
 
     private volatile boolean closed = false;
 
@@ -112,7 +113,6 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
     private final RendezVousService rendezvous;
     private final PeerID localPeerId;
     private NonBlockingWireOutputPipe repropagater;
-    int messagesReceived = 0;
 
     /**
      * Table of local input pipes listening on this pipe. Weak map (used as a
@@ -125,24 +125,10 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
      * The list of message ids we have already seen. The most recently seen
      * messages are at the end of the list.
      * <p/>
-     * XXX 20031102 bondolo@jxta.org: We might want to consider three
-     * performance enhancements:
-     * <p/>
-     * <ul>
-     * <li>Reverse the order of elements in the list. This would result
-     * in faster searching since the default strategy for ArrayList to
-     * search in index order. We are most likely to see duplicate messages
-     * amongst the messages we have seen recently. This would make
-     * additions more costly.</li>
-     * <p/>
-     * <li>When we do find a duplicate in the list, exchange it's location
-     * with the newest message in the list. This will keep annoying dupes
-     * close to the start of the list.</li>
-     * <p/>
-     * <li>When the array reaches MaxNbOfStoredIds treat it as a ring.</li>
-     * </ul>
+     * Change to a map which is shared across multiple wire pipes to reduce memory impact.
      */
-    private final List<UUID> msgIds = new ArrayList<UUID>(MAX_RECORDED_MSGIDS);
+
+    private final Map<UUID, UUID> msgIdMap;
 
     /**
      * Constructor
@@ -154,6 +140,7 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
      */
     public WirePipe(PeerGroup group, PipeResolver pipeResolver, WirePipeImpl wireService, PipeAdvertisement adv) {
         this.peerGroup = group;
+        msgIdMap = this.peerGroup.getWirePipeIDCache().msgIdMap;
         this.pipeResolver = pipeResolver;
         this.wireService = wireService;
         this.pipeAdv = adv;
@@ -182,7 +169,6 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
 
         if (closed) return false;
 
-        Logging.logCheckedFine(LOG, "Registering input pipe for ", pipeAdv.getPipeID());
 
         wireinputpipes.put(wireinputpipe, null);
         boolean registered;
@@ -193,7 +179,7 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
             registered = pipeResolver.register(this);
 
         } else {
-
+            
             registered = true;
 
         }
@@ -217,7 +203,8 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
         }
 
         if (removed) {
-            Logging.logCheckedFine(LOG, "Removed input pipe for ", pipeAdv.getPipeID());
+
+
         }
 
         return removed;
@@ -232,9 +219,9 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
      */
     public Message waitForMessage() throws InterruptedException {
 
-        Logging.logCheckedFine(LOG, "This method is not really supported.");
-        return null;
 
+        return null;
+        
     }
 
     /**
@@ -242,7 +229,7 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
      */
     public Message poll(int timeout) throws InterruptedException {
 
-        Logging.logCheckedFine(LOG, "This method is not really supported.");
+
         return null;
 
     }
@@ -269,7 +256,6 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
         }
 
         wireinputpipes.clear();
-        msgIds.clear();
         wireService.forgetWirePipe(pipeAdv.getPipeID());
     }
 
@@ -317,7 +303,7 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
 
         if (null == elem) {
 
-            Logging.logCheckedFine(LOG, "No JxtaWireHeader element. Discarding ", message);
+
             return;
 
         }
@@ -350,19 +336,19 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
      * @param dstAddr destination
      */
     void processIncomingMessage(Message message, WireHeader header, EndpointAddress srcAddr, EndpointAddress dstAddr) {
-
+        
         if (recordSeenMessage(header.getMsgId())) {
 
-            Logging.logCheckedFine(LOG, "Discarding duplicate ", message);
+
             return;
 
         }
 
-        Logging.logCheckedFine(LOG, "Processing ", message, " from ", srcAddr, " on ", pipeAdv.getPipeID());
+
         callLocalListeners(message, srcAddr, dstAddr);
 
         if (peerGroup.isRendezvous()) repropagate(message, header);
-
+        
     }
 
     /**
@@ -375,10 +361,9 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
     private void callLocalListeners(Message message, EndpointAddress srcAddr, EndpointAddress dstAddr) {
 
         List<InputPipeImpl> listeners = new ArrayList(wireinputpipes.keySet());
-
+        
         if (listeners.isEmpty()) {
 
-            Logging.logCheckedFine(LOG, "No local listeners for ", pipeAdv.getPipeID());
 
         } else {
 
@@ -394,11 +379,10 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
                 } catch (Throwable ignored) {
 
                     Logging.logCheckedSevere(LOG, "Uncaught Throwable during callback (", anInputPipe, ") for ", anInputPipe.getPipeID(), ignored);
-
+                    
                 }
             }
 
-            Logging.logCheckedFine(LOG, "Called ", listenersCalled, " of ", listeners.size(), " local listeners for ", pipeAdv.getPipeID());
 
         }
     }
@@ -418,7 +402,8 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
         if ((header.getTTL() <= 1)) {
 
             // This message has run out of fuel.
-            Logging.logCheckedFine(LOG, "No TTL remaining - discarding ", message, " on ", header.getPipeID());
+
+
             return;
 
         }
@@ -430,13 +415,13 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
 
         msg.replaceMessageElement(WirePipeImpl.WIRE_HEADER_ELEMENT_NAMESPACE, elem);
 
-        Logging.logCheckedFine(LOG, "Repropagating ", msg, " on ", header.getPipeID());
 
         synchronized (this) {
             if (closed) {
                 return;
             }
             if (null == repropagater) {
+                //noinspection unchecked
                 repropagater = wireService.createOutputPipe(pipeAdv, Collections.EMPTY_SET);
             }
         }
@@ -451,13 +436,13 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
                 // of this message then we will NOT attempt to repropagate it
                 // even if we should.
                 Logging.logCheckedWarning(LOG, "Failure repropagating ", msg, " on ", header.getPipeID(), ". Could not queue message.");
-
+                
             }
 
         } catch (IOException failed) {
 
             Logging.logCheckedWarning(LOG, "Failure repropagating ", msg, " on ", header.getPipeID(), "\n", failed);
-
+            
         }
     }
 
@@ -490,16 +475,14 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
                 List<PeerID> peerids = srdiIndex.query(PipeService.PropagateType, PipeAdvertisement.IdTag, getPipeID().toString(),
                         Integer.MAX_VALUE);
 
-                peerids.retainAll(rendezvous.getLocalEdgeView());
+                peerids.retainAll(rendezvous.getConnectedPeerIDs());
 
-                Logging.logCheckedFine(LOG, "Propagating ", message, " to ", peerids.size(), " subscriber peers.");
 
                 rendezvous.propagate(Collections.enumeration(peerids), message, WirePipeImpl.WIRE_SERVICE_NAME,
                         wireService.getServiceParameter(), 1);
 
             } else {
 
-                Logging.logCheckedFine(LOG, "Propagating ", message, " to whole network.");
 
                 // propagate to local sub-net
                 rendezvous.propagateToNeighbors(message, WirePipeImpl.WIRE_SERVICE_NAME, wireService.getServiceParameter(),
@@ -507,7 +490,6 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
 
             }
 
-            Logging.logCheckedFine(LOG, "Walking ", message, " through peerview.");
 
             // walk the message through rdv network (edge, or rendezvous)
             rendezvous.walk(message, WirePipeImpl.WIRE_SERVICE_NAME, wireService.getServiceParameter(),
@@ -516,7 +498,7 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
         } else {
 
             // Send to specific peers
-            Logging.logCheckedFine(LOG, "Propagating ", message, " to ", peers.size(), " peers.");
+
 
             rendezvous.propagate(Collections.enumeration(peers), message, WirePipeImpl.WIRE_SERVICE_NAME,
                     wireService.getServiceParameter(), 1);
@@ -553,28 +535,13 @@ public class WirePipe implements EndpointListener, InputPipe, PipeRegistrar {
                 msgid = UUIDFactory.newHashUUID(id.hashCode(), 0);
             }
         }
-        synchronized (msgIds) {
+        return msgIdMap.put(msgid, msgid) != null;
+    }
 
-            if (msgIds.contains(msgid)) {
-
-                // Already there. Nothing to do
-                Logging.logCheckedFine(LOG, "duplicate ", msgid);
-                return true;
-
-            }
-
-            if (msgIds.size() < MAX_RECORDED_MSGIDS) {
-                msgIds.add(msgid);
-            } else {
-                msgIds.set((messagesReceived % MAX_RECORDED_MSGIDS), msgid);
-            }
-
-            messagesReceived++;
-
-        }
-
-        Logging.logCheckedFine(LOG, "added ", msgid);
-        return false;
-
+    public static final class IDCache
+    {
+        private final Map<UUID, UUID> msgIdMap = Collections.synchronizedMap(new LimitedSizeMap<UUID, UUID>(MAX_RECORDED_MSGIDS));
+        public IDCache()
+        {}
     }
 }

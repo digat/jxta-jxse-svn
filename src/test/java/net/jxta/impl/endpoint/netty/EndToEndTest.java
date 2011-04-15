@@ -16,6 +16,7 @@ import net.jxta.endpoint.Messenger;
 import net.jxta.endpoint.StringMessageElement;
 import net.jxta.impl.endpoint.IPUtils;
 import net.jxta.impl.endpoint.netty.FakeEndpointService.ReceivedMessage;
+import net.jxta.impl.util.threads.TaskManager;
 import net.jxta.peer.PeerID;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.peergroup.PeerGroupID;
@@ -28,6 +29,7 @@ import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -90,8 +92,7 @@ public class EndToEndTest {
         NettyTransportClient client = new NettyTransportClient(clientFactory, addrTranslator, clientGroup, clientReturnAddress);
         client.start(clientEndpoint);
         
-        Messenger messenger = client.getMessenger(server.getPublicAddresses().next());
-//        Messenger messenger = client.getMessenger(server.getPublicAddresses().next(), null);
+        Messenger messenger = client.getMessenger(server.getPublicAddresses().next(), null);
         
         messenger.sendMessage(createTestMessage("a", "b"));
         messenger.sendMessage(createTestMessage("c", "d"));

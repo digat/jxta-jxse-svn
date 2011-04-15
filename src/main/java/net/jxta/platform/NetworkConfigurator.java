@@ -68,7 +68,6 @@ import net.jxta.id.ID;
 import net.jxta.id.IDFactory;
 import net.jxta.impl.membership.pse.PSEUtils;
 import net.jxta.impl.membership.pse.PSEUtils.IssuerInfo;
-import net.jxta.impl.peergroup.StdPeerGroup;
 import net.jxta.impl.protocol.HTTPAdv;
 import net.jxta.impl.protocol.PSEConfigAdv;
 import net.jxta.impl.protocol.PeerGroupConfigAdv;
@@ -123,7 +122,7 @@ import net.jxta.impl.protocol.MulticastAdv;
  * Also by default, this class sets the default platform configurator to
  * {@link net.jxta.impl.peergroup.NullConfigurator}. <code>NullConfigurator<code>
  * is a no operation configurator intended to prevent any other configurators from
- * being invoked.
+ * being invoked, including the AWT ConfigDialog.
  * <p/>
  * NetworkConfigurator makes use of classes from the {@code net.jxta.impl.*}
  * packages. Applications are very strongly encouraged to avoid importing these
@@ -247,7 +246,7 @@ public class NetworkConfigurator {
      * HTTP2 (netty http tunnel) client
      */
     public final static int HTTP2_CLIENT = 1 << 14;
-
+    
     /**
      * HTTP2 (netty http tunnel) server
      */
@@ -273,21 +272,21 @@ public class NetworkConfigurator {
      */
     public final static int RELAY_NODE = RELAY_SERVER | TCP_CLIENT | TCP_SERVER | HTTP_SERVER | HTTP2_SERVER;
 
-//    /**
-//     * Default Proxy configuration
-//     *
-//     * @since 2.6 Will be removed in a future release
-//     */
-//    @Deprecated
-//    public final static int PROXY_NODE = PROXY_SERVER | RELAY_NODE;
+    /**
+     * Default Proxy configuration
+     *
+     * @since 2.6 Will be removed in a future release
+     */
+    @Deprecated
+    public final static int PROXY_NODE = PROXY_SERVER | RELAY_NODE;
 
-//    /**
-//     * Default Rendezvous/Relay/Proxy configuration
-//     *
-//     * @since 2.6 Will be removed in a future release
-//     */
-//    @Deprecated
-//    public final static int RDV_RELAY_PROXY_NODE = RDV_NODE | PROXY_NODE;
+    /**
+     * Default Rendezvous/Relay/Proxy configuration
+     *
+     * @since 2.6 Will be removed in a future release
+     */
+    @Deprecated
+    public final static int RDV_RELAY_PROXY_NODE = RDV_NODE | PROXY_NODE;
 
     // end configuration modes
 
@@ -313,11 +312,6 @@ public class NetworkConfigurator {
     protected transient String name = "unknown";
 
     /**
-     * AuthenticationType used by PSEMembership to specify the type of authentication.
-     */
-    protected transient String authenticationType = null;
-
-    /**
      * Password value used to generate root Certificate and to protect the
      * Certificate's PrivateKey.
      */
@@ -326,7 +320,7 @@ public class NetworkConfigurator {
     /**
      * Default PeerID
      */
-    protected transient PeerID peerid = null;
+    protected transient PeerID peerid = IDFactory.newPeerID(PeerGroupID.defaultNetPeerGroupID);
 
     /**
      * Principal value used to generate root certificate
@@ -415,12 +409,12 @@ public class NetworkConfigurator {
      * HTTP2 Config Advertisement
      */
     protected transient TCPAdv http2Config;
-
+    
     /**
      * Default HTTP2 transport state
      */
     protected transient boolean http2Enabled = true;
-
+    
     /**
      * Infrastructure Peer Group Configuration
      */
@@ -476,31 +470,31 @@ public class NetworkConfigurator {
         return new NetworkConfigurator(RDV_NODE | RELAY_SERVER, storeHome);
     }
 
-//    /**
-//     * Creates NetworkConfigurator instance with default Proxy configuration
-//     *
-//     * @param storeHome the URI to persistent store
-//     * @return NetworkConfigurator instance with defaultProxy configuration
-//     *
-//     * @since 2.6 Will be removed in a future release
-//     */
-//    @Deprecated
-//    public static NetworkConfigurator newProxyConfiguration(URI storeHome) {
-//        return new NetworkConfigurator(PROXY_NODE, storeHome);
-//    }
+    /**
+     * Creates NetworkConfigurator instance with default Proxy configuration
+     *
+     * @param storeHome the URI to persistent store
+     * @return NetworkConfigurator instance with defaultProxy configuration
+     *
+     * @since 2.6 Will be removed in a future release
+     */
+    @Deprecated
+    public static NetworkConfigurator newProxyConfiguration(URI storeHome) {
+        return new NetworkConfigurator(PROXY_NODE, storeHome);
+    }
 
-//    /**
-//     * Creates NetworkConfigurator instance with default Rendezvous, Relay, Proxy configuration
-//     *
-//     * @param storeHome the URI to persistent store
-//     * @return NetworkConfigurator instance with default Rendezvous, Relay, Proxy configuration
-//     *
-//     * @since 2.6 It will be removed in a future release
-//     */
-//    @Deprecated
-//    public static NetworkConfigurator newRdvRelayProxyConfiguration(URI storeHome) {
-//        return new NetworkConfigurator(RDV_RELAY_PROXY_NODE, storeHome);
-//    }
+    /**
+     * Creates NetworkConfigurator instance with default Rendezvous, Relay, Proxy configuration
+     *
+     * @param storeHome the URI to persistent store
+     * @return NetworkConfigurator instance with default Rendezvous, Relay, Proxy configuration
+     *
+     * @since 2.6 It will be removed in a future release
+     */
+    @Deprecated
+    public static NetworkConfigurator newRdvRelayProxyConfiguration(URI storeHome) {
+        return new NetworkConfigurator(RDV_RELAY_PROXY_NODE, storeHome);
+    }
 
     /**
      * Creates the default NetworkConfigurator. The configuration is stored  with a default configuration mode of EDGE_NODE
@@ -521,14 +515,13 @@ public class NetworkConfigurator {
      */
     public NetworkConfigurator(int mode, URI storeHome) {
 
-        Logging.logCheckedFine(LOG, "Creating a default configuration");
 
         setStoreHome(storeHome);
 
         httpConfig = createHttpAdv();
         rdvConfig = createRdvConfigAdv();
         relayConfig = createRelayConfigAdv();
-        // proxyConfig = createProxyAdv();
+        proxyConfig = createProxyAdv();
         tcpConfig = createTcpAdv();
         multicastConfig = createMulticastAdv();
         http2Config = createHttp2Adv();
@@ -595,6 +588,7 @@ public class NetworkConfigurator {
     public URI getStoreHome() {
         return storeHome;
     }
+
 
     /**
      * Sets the location which will serve as the parent for all stored items
@@ -701,7 +695,7 @@ public class NetworkConfigurator {
     public boolean isHttp2Enabled() {
     	return http2Enabled;
     }
-
+    
     public void setHttp2Enabled(boolean enabled) {
     	http2Enabled = enabled;
     	
@@ -710,63 +704,63 @@ public class NetworkConfigurator {
     		http2Config.setServerEnabled(false);
     	}
     }
-
+    
     public boolean getHttp2IncomingStatus() {
     	return http2Config.getServerEnabled();
     }
-
+    
     public void setHttp2Incoming(boolean enabled) {
     	http2Config.setServerEnabled(enabled);
     }
-
+    
     public boolean getHttp2OutgoingStatus() {
     	return http2Config.getClientEnabled();
     }
-
+    
     public void setHttp2Outgoing(boolean enabled) {
     	http2Config.setClientEnabled(enabled);
     }
-
+    
     public int getHttp2Port() {
     	return http2Config.getPort();
     }
-
+    
     public void setHttp2Port(int port) {
     	http2Config.setPort(port);
     }
-
+    
     public int getHttp2StartPort() {
     	return http2Config.getStartPort();
     }
-
+    
     public void setHttp2StartPort(int startPort) {
     	http2Config.setStartPort(startPort);
     }
-
+    
     public int getHttp2EndPort() {
     	return http2Config.getEndPort();
     }
-
+    
     public void setHttp2EndPort(int endPort) {
     	http2Config.setEndPort(endPort);
     }
-
+    
     public String getHttp2InterfaceAddress() {
     	return http2Config.getInterfaceAddress();
     }
-
+    
     public void setHttp2InterfaceAddress(String address) {
     	http2Config.setInterfaceAddress(address);
     }
-
+    
     public String getHttp2PublicAddress() {
     	return http2Config.getServer();
     }
-
+    
     public boolean isHttp2PublicAddressExclusive() {
     	return http2Config.getPublicAddressOnly();
     }
-
+    
     public void setHttp2PublicAddress(String address, boolean exclusive) {
     	http2Config.setServer(address);
         http2Config.setPublicAddressOnly(exclusive);
@@ -786,7 +780,7 @@ public class NetworkConfigurator {
      *
      * @return exclusive determines whether an address is advertised exclusively
      */
-    public boolean isHttpPublicAddressExclusive() {
+    public boolean getHttpPublicAddressExclusivity() {
         return httpConfig.getPublicAddressOnly();
     }
 
@@ -928,7 +922,7 @@ public class NetworkConfigurator {
         // HTTP2
         http2Config.setClientEnabled((mode & HTTP2_CLIENT) == HTTP2_CLIENT);
         http2Config.setServerEnabled((mode & HTTP2_SERVER) == HTTP2_SERVER);
-
+        
         // Multicast
         multicastConfig.setMulticastState((mode & IP_MULTICAST) == IP_MULTICAST);
 
@@ -1133,24 +1127,6 @@ public class NetworkConfigurator {
     }
 
     /**
-     * Gets the authenticationType
-     *
-     * @return authenticationType the authenticationType value
-     */
-    public String getAuthenticationType() {
-        return this.authenticationType;
-    }
-
-    /**
-     * Sets the authenticationType
-     *
-     * @param authenticationType the new authenticationType value
-     */
-    public void setAuthenticationType(String authenticationType) {
-        this.authenticationType = authenticationType;
-    }
-
-    /**
      * Sets the password used to sign the private key of the root certificate
      *
      * @param password the new password value
@@ -1196,6 +1172,7 @@ public class NetworkConfigurator {
 
     /**
      * Sets Rendezvous Seeding URI
+     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/rendezvous.cgi?3
      *
      * @param seedURI Rendezvous service seeding URI
      */
@@ -1203,61 +1180,61 @@ public class NetworkConfigurator {
         rdvConfig.addSeedingURI(seedURI);
     }
 
-//    /**
-//     * Sets Rendezvous Access Control URI
-//     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/rendezvousACL.cgi?3
-//     *
-//     * @param aclURI Rendezvous Access Control URI
-//     *
-//     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRendezvousSeedsStatus'.
-//     * They will be deprecated and removed in a future release.
-//     */
-//    @Deprecated
-//    public void setRdvACLURI(URI aclURI) {
-//        rdvConfig.setAclUri(aclURI);
-//    }
+    /**
+     * Sets Rendezvous Access Control URI
+     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/rendezvousACL.cgi?3
+     *
+     * @param aclURI Rendezvous Access Control URI
+     *
+     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRendezvousSeedsStatus'.
+     * They will be deprecated and removed in a future release.
+     */
+    @Deprecated
+    public void setRdvACLURI(URI aclURI) {
+        rdvConfig.setAclUri(aclURI);
+    }
 
-//    /**
-//     * Gets Rendezvous Access Control URI if set
-//     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/rendezvousACL.cgi?3
-//     *
-//     * @return aclURI Rendezvous Access Control URI
-//     *
-//     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRendezvousSeedsStatus'.
-//     * They will be deprecated and removed in a future release.
-//     */
-//    @Deprecated
-//    public URI getRdvACLURI() {
-//        return rdvConfig.getAclUri();
-//    }
+    /**
+     * Gets Rendezvous Access Control URI if set
+     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/rendezvousACL.cgi?3
+     *
+     * @return aclURI Rendezvous Access Control URI
+     *
+     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRendezvousSeedsStatus'.
+     * They will be deprecated and removed in a future release.
+     */
+    @Deprecated
+    public URI getRdvACLURI() {
+        return rdvConfig.getAclUri();
+    }
 
-//    /**
-//     * Sets Relay Access Control URI
-//     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/relayACL.cgi?3
-//     *
-//     * @param aclURI Relay Access Control URI
-//     *
-//     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRelaySeedsStatus'.
-//     * They will be deprecated and removed in a future release.
-//     */
-//    @Deprecated
-//    public void setRelayACLURI(URI aclURI) {
-//        relayConfig.setAclUri(aclURI);
-//    }
+    /**
+     * Sets Relay Access Control URI
+     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/relayACL.cgi?3
+     *
+     * @param aclURI Relay Access Control URI
+     *
+     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRelaySeedsStatus'.
+     * They will be deprecated and removed in a future release.
+     */
+    @Deprecated
+    public void setRelayACLURI(URI aclURI) {
+        relayConfig.setAclUri(aclURI);
+    }
 
-//    /**
-//     * Gets Relay Access Control URI if set
-//     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/relayACL.cgi?3
-//     *
-//     * @return aclURI Relay Access Control URI
-//     *
-//     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRelaySeedsStatus'.
-//     * They will be deprecated and removed in a future release.
-//     */
-//    @Deprecated
-//    public URI getRelayACLURI() {
-//        return relayConfig.getAclUri();
-//    }
+    /**
+     * Gets Relay Access Control URI if set
+     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/relayACL.cgi?3
+     *
+     * @return aclURI Relay Access Control URI
+     *
+     * @deprecated ACL seed lists are in functional conflict with 'UseOnlyRelaySeedsStatus'.
+     * They will be deprecated and removed in a future release.
+     */
+    @Deprecated
+    public URI getRelayACLURI() {
+        return relayConfig.getAclUri();
+    }
 
     /**
      * Sets the RelayService maximum number of simultaneous relay clients
@@ -1273,6 +1250,7 @@ public class NetworkConfigurator {
 
     /**
      * Sets the RelayService Seeding URI
+     * <p/>e.g. http://rdv.jxtahosts.net/cgi-bin/relays.cgi?3
      * <p/>A seeding URI (when read) is expected to provide a list of
      * physical endpoint addresse(s) to relay peers
      *
@@ -1386,6 +1364,15 @@ public class NetworkConfigurator {
     public void setTcpPublicAddress(String address, boolean exclusive) {
         tcpConfig.setServer(address);
         tcpConfig.setPublicAddressOnly(exclusive);
+    }
+
+    /**
+     * Indicates whether the public TCP address is advertised exclusively.
+     *
+     * @return boolean indicating whether public address is advertised exclusively
+     */
+    public boolean getTcpPublicAddressExclusivity() {
+        return tcpConfig.getPublicAddressOnly();
     }
 
     /**
@@ -1601,7 +1588,6 @@ public class NetworkConfigurator {
 
         if (uri == null) throw new IllegalArgumentException("URI can not be null");
 
-        Logging.logCheckedFine(LOG, "Loading configuration : ", uri);
 
         PlatformConfig platformConfig = read(uri);
 
@@ -1643,17 +1629,17 @@ public class NetworkConfigurator {
         http2Enabled = platformConfig.isSvcEnabled(PeerGroup.http2ProtoClassID);
         http2Config = loadTcpAdv(platformConfig, PeerGroup.http2ProtoClassID);
 
-//        // ProxyService
-//        try {
-//            param = (XMLElement) platformConfig.getServiceParam(PeerGroup.proxyClassID);
-//            if (param != null && !platformConfig.isSvcEnabled(PeerGroup.proxyClassID)) {
-//                mode = mode | PROXY_SERVER;
-//            }
-//        } catch (Exception failure) {
-//            IOException ioe = new IOException("error processing the pse config advertisement");
-//            ioe.initCause(failure);
-//            throw ioe;
-//        }
+        // ProxyService
+        try {
+            param = (XMLElement) platformConfig.getServiceParam(PeerGroup.proxyClassID);
+            if (param != null && !platformConfig.isSvcEnabled(PeerGroup.proxyClassID)) {
+                mode = mode | PROXY_SERVER;
+            }
+        } catch (Exception failure) {
+            IOException ioe = new IOException("error processing the pse config advertisement");
+            ioe.initCause(failure);
+            throw ioe;
+        }
 
         // Rendezvous
         try {
@@ -1681,8 +1667,8 @@ public class NetworkConfigurator {
                 mode = mode | RELAY_OFF;
             }
             // backwards compatibility
-                param.addAttribute("type", RelayConfigAdv.getAdvertisementType());
-                relayConfig = (RelayConfigAdv) AdvertisementFactory.newAdvertisement(param);
+            param.addAttribute("type", RelayConfigAdv.getAdvertisementType());
+            relayConfig = (RelayConfigAdv) AdvertisementFactory.newAdvertisement(param);
         } catch (Exception failure) {
             IOException ioe = new IOException("error processing the relay config advertisement");
             ioe.initCause(failure);
@@ -1747,10 +1733,10 @@ public class NetworkConfigurator {
         } else {
             throw new IllegalStateException("Missing TCP Advertisement");
         }
-
+        
         return (TCPAdv) AdvertisementFactory.newAdvertisement(param);
 	}
-
+    
     private MulticastAdv loadMulticastAdv(PlatformConfig platformConfig, ModuleClassID moduleClassID) {
         XMLElement<?> param2 = (XMLElement<?>) platformConfig.getServiceParam(moduleClassID);
         Enumeration<?> tcpChilds2 = param2.getChildren(TransportAdvertisement.getAdvertisementType());
@@ -1761,7 +1747,7 @@ public class NetworkConfigurator {
         } else {
             throw new IllegalStateException("Missing Multicast Advertisment");
         }
-
+        
         return (MulticastAdv) AdvertisementFactory.newAdvertisement(param2);
     }
 
@@ -1778,7 +1764,7 @@ public class NetworkConfigurator {
         httpEnabled = (httpConfig.isClientEnabled() || httpConfig.isServerEnabled());
         tcpEnabled = (tcpConfig.isClientEnabled() || tcpConfig.isServerEnabled());
         http2Enabled = (http2Config.isClientEnabled() || http2Config.isServerEnabled());
-
+        
         ConfigParams advertisement = getPlatformConfig();
         OutputStream out = null;
 
@@ -1994,10 +1980,10 @@ public class NetworkConfigurator {
         http2Config.setServer(null);
         http2Config.setClientEnabled((mode & HTTP2_CLIENT) == TCP_CLIENT);
         http2Config.setServerEnabled((mode & HTTP2_SERVER) == TCP_SERVER);
-
+        
         return http2Config;
     }
-
+    
     protected PeerGroupConfigAdv createInfraConfigAdv() {
         infraPeerGroupConfig = (PeerGroupConfigAdv) AdvertisementFactory.newAdvertisement(
                 PeerGroupConfigAdv.getAdvertisementType());
@@ -2025,6 +2011,9 @@ public class NetworkConfigurator {
 
         advertisement.setName(name);
         advertisement.setDescription(description);
+        if (peerid != null) {
+            advertisement.setPeerID(peerid);
+        }
 
         if (tcpConfig != null) {
             boolean enabled = tcpEnabled && (tcpConfig.isServerEnabled() || tcpConfig.isClientEnabled());
@@ -2060,19 +2049,11 @@ public class NetworkConfigurator {
             XMLDocument rdvDoc = (XMLDocument) rdvConfig.getDocument(MimeMediaType.XMLUTF8);
             advertisement.putServiceParam(PeerGroup.rendezvousClassID, rdvDoc);
         }
-        
-        if (principal == null) {
-            principal = System.getProperty("impl.membership.pse.authentication.principal", "JxtaCN");
-        }
-        if (password == null) {
-            password = System.getProperty("impl.membership.pse.authentication.password", "the!one!password");
-        }
 
         if (cert != null) {
             pseConf = createPSEAdv(cert);
         } else {
             pseConf = createPSEAdv(principal, password);
-            cert = pseConf.getCertificateChain();
         }
 
         if (pseConf != null) {
@@ -2086,20 +2067,10 @@ public class NetworkConfigurator {
             XMLDocument pseDoc = (XMLDocument) pseConf.getDocument(MimeMediaType.XMLUTF8);
             advertisement.putServiceParam(PeerGroup.membershipClassID, pseDoc);
         }
-        
-        if (authenticationType == null) {
-            authenticationType = System.getProperty("impl.membership.pse.authentication.type", "StringAuthentication");
-        }
-        StdPeerGroup.setPSEMembershipServiceKeystoreInfoFactory(new StdPeerGroup.DefaultPSEMembershipServiceKeystoreInfoFactory(authenticationType, password));
-        
-        if (peerid == null) {
-            peerid = IDFactory.newPeerID(PeerGroupID.worldPeerGroupID, cert[0].getPublicKey().getEncoded());
-        }
-        advertisement.setPeerID(peerid);
 
-//        if (proxyConfig != null && ((mode & PROXY_SERVER) == PROXY_SERVER)) {
-//            advertisement.putServiceParam(PeerGroup.proxyClassID, proxyConfig);
-//        }
+        if (proxyConfig != null && ((mode & PROXY_SERVER) == PROXY_SERVER)) {
+            advertisement.putServiceParam(PeerGroup.proxyClassID, proxyConfig);
+        }
 
         if ((null != infraPeerGroupConfig) && (null != infraPeerGroupConfig.getPeerGroupID())
                 && (ID.nullID != infraPeerGroupConfig.getPeerGroupID())
@@ -2454,7 +2425,6 @@ public class NetworkConfigurator {
 
                 if (null != defaults) {
 
-                    Logging.logCheckedFine(LOG, "NetPeerGroup tunables not defined or could not be loaded. Using defaults.\n\n", failed);
 
                     idTmp = defaults.id;
                     nameTmp = defaults.name;

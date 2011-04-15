@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jmock.Expectations;
 import org.junit.Before;
 import org.junit.Test;
 

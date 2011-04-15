@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.impl.endpoint.relay;
@@ -167,7 +167,7 @@ public final class RelayTransport implements EndpointListener, Module {
                 XMLDocument configDoc = (XMLDocument) confAdv.getServiceParam(assignedID);
 
                 if (null != configDoc) adv = AdvertisementFactory.newAdvertisement(configDoc);
-
+                
             } catch (NoSuchElementException failed) {
 
                 //ignored
@@ -181,12 +181,9 @@ public final class RelayTransport implements EndpointListener, Module {
 
             if (adv instanceof RelayConfigAdv) {
                 relayConfigAdv = (RelayConfigAdv) adv;
+            } else {
+                relayConfigAdv = (RelayConfigAdv) AdvertisementFactory.newAdvertisement(RelayConfigAdv.getAdvertisementType());
             }
-
-        }
-
-        if ( relayConfigAdv == null ) {
-            relayConfigAdv = (RelayConfigAdv) AdvertisementFactory.newAdvertisement(RelayConfigAdv.getAdvertisementType());
         }
 
         // XXX bondolo 20041030 I'd like to move these to startApp so that we 
@@ -260,7 +257,6 @@ public final class RelayTransport implements EndpointListener, Module {
 
         endpoint.addIncomingMessageListener(this, serviceName, null);
 
-        Logging.logCheckedFine(LOG, "Message Listener added ", serviceName);
 
         if (relayServer != null) {
             if (!relayServer.startServer()) {
@@ -275,7 +271,7 @@ public final class RelayTransport implements EndpointListener, Module {
         }
 
         Logging.logCheckedInfo(LOG, "Relay Message Transport started");
-
+        
         return 0;
     }
 
@@ -290,20 +286,20 @@ public final class RelayTransport implements EndpointListener, Module {
         if (endpoint == null) {
 
             Logging.logCheckedWarning(LOG, "could not get EndpointService");
-
+            
         } else {
 
             endpoint.removeIncomingMessageListener(serviceName, null);
-            Logging.logCheckedFine(LOG, "Message Listener removed ", serviceName);
+
 
         }
 
         if (relayServer != null) relayServer.stopServer();
-
+        
         if (relayClient != null) relayClient.stopClient();
-
+        
         Logging.logCheckedInfo(LOG, "Relay Message Transport stopped");
-
+        
     }
 
     /**
@@ -311,7 +307,6 @@ public final class RelayTransport implements EndpointListener, Module {
      */
     public void processIncomingMessage(Message message, EndpointAddress srcAddr, EndpointAddress dstAddr) {
 
-        Logging.logCheckedFine(LOG, "Started for ", message, "\tsrc=", srcAddr);
 
         MessageElement element;
 
@@ -449,7 +444,8 @@ public final class RelayTransport implements EndpointListener, Module {
         }
         return element.toString();
     }
-
+    
+        
     /**
      * Convert a Router EndpointAddress into a PeerID
      *
@@ -471,10 +467,10 @@ public final class RelayTransport implements EndpointListener, Module {
         } catch (ClassCastException cce) {
 
             Logging.logCheckedWarning(LOG, "Error converting a source address into a virtual address: ", addr, "\n", cce);
-
+            
         }
 
         return null;
-
+        
     }
 }

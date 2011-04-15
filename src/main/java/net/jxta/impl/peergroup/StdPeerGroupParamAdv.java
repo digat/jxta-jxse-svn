@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,24 +37,25 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.peergroup;
+
 
 import net.jxta.document.Advertisement;
 import net.jxta.document.AdvertisementFactory;
@@ -71,11 +72,14 @@ import net.jxta.peergroup.PeerGroup;
 import net.jxta.platform.ModuleClassID;
 import net.jxta.platform.ModuleSpecID;
 import net.jxta.protocol.ModuleImplAdvertisement;
+
 import java.net.URI;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  * Not actually an advertisement, but often acts as part of one.
@@ -106,7 +110,7 @@ public class StdPeerGroupParamAdv {
 
     // In the future we should be able to manipulate all modules regardless of 
     // their kind, but right now it helps to keep them categorized as follows.
-
+    
     /**
      * The services which will be loaded for this peer group.
      * <p/>
@@ -115,9 +119,9 @@ public class StdPeerGroupParamAdv {
      *     <li>Values are {@link net.jxta.platform.ModuleSpecID} or
      *     {@link net.jxta.protocol.ModuleImplAdvertisement}.</li>
      * </ul>
-     */ 
+     */    
     private final Map<ModuleClassID, Object> services = new HashMap<ModuleClassID, Object>();
-
+    
     /**
      * The protocols (message transports) which will be loaded for this peer
      * group.
@@ -127,9 +131,9 @@ public class StdPeerGroupParamAdv {
      *     <li>Values are {@link net.jxta.platform.ModuleSpecID} or
      *     {@link net.jxta.protocol.ModuleImplAdvertisement}.</li>
      * </ul>
-     */ 
+     */    
     private final Map<ModuleClassID, Object> transports = new HashMap<ModuleClassID, Object>();
-
+    
     /**
      * The applications which will be loaded for this peer group.
      * <p/>
@@ -138,7 +142,7 @@ public class StdPeerGroupParamAdv {
      *     <li>Values are {@link net.jxta.platform.ModuleSpecID} or
      *     {@link net.jxta.protocol.ModuleImplAdvertisement}.</li>
      * </ul>
-     */ 
+     */    
     private final Map<ModuleClassID, Object> apps = new HashMap<ModuleClassID, Object>();
 
     /**
@@ -179,11 +183,11 @@ public class StdPeerGroupParamAdv {
         if(null == mcid) {
             throw new IllegalArgumentException("Illegal ModuleClassID");
         }
-
+        
         if(null == module) {
             throw new IllegalArgumentException("Illegal module");
         }
-
+        
         services.put(mcid, module);
     }
 
@@ -211,11 +215,11 @@ public class StdPeerGroupParamAdv {
         if(null == mcid) {
             throw new IllegalArgumentException("Illegal ModuleClassID");
         }
-
+        
         if(null == module) {
             throw new IllegalArgumentException("Illegal module");
         }
-
+        
         transports.put(mcid, module);
     }
 
@@ -243,11 +247,11 @@ public class StdPeerGroupParamAdv {
         if(null == mcid) {
             throw new IllegalArgumentException("Illegal ModuleClassID");
         }
-
+        
         if(null == module) {
             throw new IllegalArgumentException("Illegal module");
         }
-
+        
         apps.put(mcid, module);
     }
 
@@ -274,21 +278,20 @@ public class StdPeerGroupParamAdv {
         if(servicesTable.containsKey(null)) {
             throw new IllegalArgumentException("null key in servicesTable");
         }
-
+        
         if(servicesTable.containsValue(null)) {
             throw new IllegalArgumentException("null value in servicesTable");
-        }
-
+        }        
+        
         if (servicesTable == this.services) {
             return;
         }
 
         this.services.clear();
 
-        // We are assuming it is not null earlier (FindBugs)
-//        if (null != servicesTable) {
+        if (null != servicesTable) {
             this.services.putAll(servicesTable);
-//        }
+        }
     }
 
     /**
@@ -301,21 +304,20 @@ public class StdPeerGroupParamAdv {
         if(protosTable.containsKey(null)) {
             throw new IllegalArgumentException("null key in protosTable");
         }
-
+        
         if(protosTable.containsValue(null)) {
             throw new IllegalArgumentException("null value in protosTable");
-        }
-
+        }        
+        
         if (protosTable == this.transports) {
             return;
         }
 
         this.transports.clear();
 
-        // We are assuming it is not null earlier (FindBugs)
-//        if (null != protosTable) {
+        if (null != protosTable) {
             this.transports.putAll(protosTable);
-//        }
+        }
     }
 
     /**
@@ -328,22 +330,20 @@ public class StdPeerGroupParamAdv {
         if(appsTable.containsKey(null)) {
             throw new IllegalArgumentException("null key in appsTable");
         }
-
+        
         if(appsTable.containsValue(null)) {
             throw new IllegalArgumentException("null value in appsTable");
-        }
-
+        }        
+        
         if (appsTable == this.apps) {
             return;
         }
 
         this.apps.clear();
 
-        // We are assuming it is not null earlier (FindBugs)
-//        if (null != appsTable) {
+        if (null != appsTable) {
             this.apps.putAll(appsTable);
-//        }
-
+        }
     }
 
     private void initialize(XMLElement doc) {
@@ -415,7 +415,7 @@ public class StdPeerGroupParamAdv {
                     } else {
 
                         Logging.logCheckedWarning(LOG, "Unhandled field : ", fieldName);
-
+                        
                     }
                 }
             } catch (Exception any) {
@@ -487,7 +487,7 @@ public class StdPeerGroupParamAdv {
             if(null == mcid) {
                 throw new IllegalStateException("null ModuleClassID in " + mainTag );
             }
-
+            
             // For applications, we ignore the role ID. It is not meaningfull,
             // and a new one is assigned on the fly when loading this adv.
 

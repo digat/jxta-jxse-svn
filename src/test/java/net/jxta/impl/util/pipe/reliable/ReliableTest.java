@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2003-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,24 +37,25 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.util.pipe.reliable;
+
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -87,7 +88,7 @@ import net.jxta.endpoint.StringMessageElement;
 import net.jxta.endpoint.Message.ElementIterator;
 import net.jxta.id.IDFactory;
 import net.jxta.peergroup.PeerGroup;
-// import net.jxta.peergroup.PeerGroupFactory;
+import net.jxta.peergroup.PeerGroupFactory;
 import net.jxta.peergroup.PeerGroupID;
 import net.jxta.pipe.InputPipe;
 import net.jxta.pipe.OutputPipe;
@@ -103,7 +104,8 @@ import net.jxta.rendezvous.RendezvousEvent;
 import net.jxta.rendezvous.RendezvousListener;
 import org.junit.Ignore;
 
-@Ignore("JXTA Configurator & PeerGroupFactory required")
+
+@Ignore("JXTA Configurator required")
 public class ReliableTest extends TestCase implements
         RendezvousListener, DiscoveryListener, PipeMsgListener, OutputPipeListener {
 
@@ -133,7 +135,7 @@ public class ReliableTest extends TestCase implements
     private static int LATENCY = 0;
     private static int DELAY = 200;
     private static int ITERATIONS = 1000;
-
+    
     private Object rdvConnectLock = new Object();
     private Random random = new Random(System.currentTimeMillis());
 
@@ -141,10 +143,10 @@ public class ReliableTest extends TestCase implements
     private ArrayList loadElements = null;
 
     private int dropMsgCount = 0;
-
+    
     private ScheduledExecutorService scheduledExecutor;
     private ScheduledFuture<?> reliableTestTaskHandle = null;
-
+    
     private PeerGroup netPeerGroup = null;
     private RendezVousService rendezvousService = null;
     private DiscoveryService discoverySvc = null;
@@ -161,6 +163,7 @@ public class ReliableTest extends TestCase implements
 
     ReliableOutputStream ros = null;
     ReliableInputStream ris = null;
+    
 
     BlockingQueue<Message> bwQueue = new LinkedBlockingQueue<Message>(Integer.MAX_VALUE);
     long bwQueueSz = 0;
@@ -225,7 +228,7 @@ public class ReliableTest extends TestCase implements
         // We can inject a message if/after the last byte of the previous one
         // is done injecting. 
         nextInjectTime = Math.max(nextInjectTime, now) + delay;
-
+        
         // At the new nextInjectTime, we have injected the last byte of the
         // new message. The message is delivered when this last byte arrives.
         long delivDate = nextInjectTime + LATENCY;
@@ -261,7 +264,7 @@ public class ReliableTest extends TestCase implements
 
         return suite;
     }
-
+ 
     @Override
     protected void setUp() {
         scheduledExecutor = new ScheduledThreadPoolExecutor(2);
@@ -277,7 +280,7 @@ public class ReliableTest extends TestCase implements
         System.setProperty("net.jxta.tls.principal", PRINCIPAL);
 
         try {
-            netPeerGroup = null; // PeerGroupFactory.newNetPeerGroup(PeerGroupFactory.newPlatform());
+            netPeerGroup = PeerGroupFactory.newNetPeerGroup(PeerGroupFactory.newPlatform());
             discoverySvc = netPeerGroup.getDiscoveryService();
             pipeSvc = netPeerGroup.getPipeService();
             rendezvousService = netPeerGroup.getRendezVousService();
@@ -309,11 +312,11 @@ public class ReliableTest extends TestCase implements
                 reliableTestTaskHandle.cancel(false);
                 reliableTestTaskHandle = null;
             }
-
+            
         scheduledExecutor.shutdownNow();
         System.exit(0);
     }
-
+    
     public static void main(String[] args) throws Exception {
         parse(args);
         TestRunner.run(suite());
@@ -495,11 +498,11 @@ public class ReliableTest extends TestCase implements
 
             outgoing = new OutgoingPipeAdaptorSync(null);
             ros = ADAPTIVE
-                    ? new ReliableOutputStream(netPeerGroup, outgoing, new AdaptiveFlowControl(), scheduledExecutor)
-                    : new ReliableOutputStream(netPeerGroup, outgoing, new FixedFlowControl(40), scheduledExecutor);
+                    ? new ReliableOutputStream(outgoing, new AdaptiveFlowControl(), scheduledExecutor)
+                    : new ReliableOutputStream(outgoing, new FixedFlowControl(40), scheduledExecutor);
 
             for (int i = 0; i < ITERATIONS; i++) {
-
+                
                 // if we do not already have it resolved, retry
                 // to open the output pipe every so often
                 if (outputPipe == null) {
@@ -610,7 +613,7 @@ public class ReliableTest extends TestCase implements
             // create Advertisement from response
             Advertisement adv = null;
             XMLDocument advDocument = null;
-
+            
             try {
                 advDocument = (XMLDocument) StructuredDocumentFactory.newStructuredDocument( MimeMediaType.XMLUTF8, new StringReader(str) );
             	
@@ -686,7 +689,7 @@ public class ReliableTest extends TestCase implements
         // reliable input stream will block or return false if it is used.
 
         outgoing = new OutgoingPipeAdaptorSync(null);
-        ris = new ReliableInputStream(null, outgoing, 0);
+        ris = new ReliableInputStream(outgoing, 0);
 
         try {
             if (ackPipeAdv == null) {
@@ -696,7 +699,7 @@ public class ReliableTest extends TestCase implements
             }
 
             pipeSvc.createOutputPipe(ackPipeAdv, this);
-
+                
         } catch (IOException ex) {
             fail(ex.getMessage());
         }
@@ -741,7 +744,7 @@ public class ReliableTest extends TestCase implements
                 msg = ris.nextMessage(true);
             } catch (IOException ioe) {
                 System.err.println("Failed to obtain next message");
-                ioe.printStackTrace(); 
+                ioe.printStackTrace();             
             }
             ++nbMsgs;
             printMessageForDebug("doReceiver", msg);
@@ -749,7 +752,7 @@ public class ReliableTest extends TestCase implements
             String msgId = (msg.getMessageElement(MESSAGE_TAG)).toString();
             String sentAt = (msg.getMessageElement(SENT_AT_TAG)).toString();
             long size = msg.getByteLength();
-
+            
             long now = System.currentTimeMillis();
             long sent = now;
 
@@ -873,7 +876,7 @@ public class ReliableTest extends TestCase implements
             if (DEBUG) {
                 System.out.println("resolved msg output pipe " + outputPipe.getName());
             }
-        }
+        } 
 
         // this will happen in the receiver
         if (outputPipe == null && pid.equals(ackPipeAdv.getPipeID().toString())) {

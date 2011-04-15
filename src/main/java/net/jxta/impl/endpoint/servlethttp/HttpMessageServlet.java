@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.impl.endpoint.servlethttp;
@@ -163,10 +163,9 @@ public class HttpMessageServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        Logging.logCheckedFine(LOG, "GET ", req.getRequestURI(), " thread = ", Thread.currentThread());
+
         processRequest(req, res);
 
-        Logging.logCheckedFine(LOG, "GET done for thread = ", Thread.currentThread());
 
     }
 
@@ -176,9 +175,9 @@ public class HttpMessageServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        Logging.logCheckedFine(LOG, "POST ", req.getRequestURI(), " thread = ", Thread.currentThread());
+
         processRequest(req, res);
-        Logging.logCheckedFine(LOG, "POST done for thread = ", Thread.currentThread());
+
 
     }
 
@@ -277,7 +276,7 @@ public class HttpMessageServlet extends HttpServlet {
         if ((null != currentRequest.requestorAddr) && (currentRequest.responseTimeout >= 0) && (null != currentRequest.destAddr)) {
 
             // create the back channel messenger
-            Logging.logCheckedFine(LOG, "Creating back channel messenger for ", currentRequest.requestorAddr, " (", currentRequest.destAddr, ")");
+
 
             long messengerAliveFor;
 
@@ -294,7 +293,6 @@ public class HttpMessageServlet extends HttpServlet {
                                                  messengerAliveFor);
             boolean taken = owner.messengerReadyEvent(messenger, currentRequest.destAddr);
 
-            Logging.logCheckedFine(LOG, "Incoming messenger to: ", currentRequest.requestorAddr, " taken=", taken);
 
             if (!taken) {
                 // nobody cares. Just destroy it.
@@ -324,7 +322,6 @@ public class HttpMessageServlet extends HttpServlet {
 
                     String contentType = req.getContentType();
 
-                    Logging.logCheckedFine(LOG, "Reading message from request : ", contentType);
 
                     MimeMediaType contentMimeType = EndpointServiceImpl.DEFAULT_MESSAGE_TYPE;
 
@@ -334,7 +331,7 @@ public class HttpMessageServlet extends HttpServlet {
 
                     // FIXME 20040927 bondolo Should get message encoding from http header.
                     try {
-                        incomingMessage = WireFormatMessageFactory.fromWireExternal(in, contentMimeType, null, this.servletHttpTransport.group);
+                        incomingMessage = WireFormatMessageFactory.fromWire(in, contentMimeType, null);
                     } catch (NoSuchElementException noValidWireFormat) {
                         IOException failure = new IOException("Unrecognized content type MIME type : " + contentType);
 
@@ -363,7 +360,7 @@ public class HttpMessageServlet extends HttpServlet {
                 }
 
                 // post the incoming message to the endpoint demux
-                Logging.logCheckedFine(LOG, "Handing ", incomingMessage, " to the endpoint.");
+
 
                 try {
 
@@ -372,7 +369,7 @@ public class HttpMessageServlet extends HttpServlet {
                 } catch (Throwable e) {
 
                     Logging.logCheckedWarning(LOG, "Failure demuxing an incoming message\n", e);
-
+                    
                 }
             }
 
@@ -381,7 +378,6 @@ public class HttpMessageServlet extends HttpServlet {
             // Check if the back channel is to be used for sending messages.
             if ((currentRequest.responseTimeout >= 0) && (null != messenger)) {
 
-                Logging.logCheckedFine(LOG, "Wait for message from the messenger. timeout = ", currentRequest.responseTimeout);
 
                 long quitAt = (currentRequest.responseTimeout == 0)
                         ? Long.MAX_VALUE
@@ -393,7 +389,7 @@ public class HttpMessageServlet extends HttpServlet {
                     if ((remaining <= 0)) {
 
                         // done processing the request
-                        Logging.logCheckedFine(LOG, "Terminating expired request.");
+
 
                         // We know we did not respond anything.
                         // In general it's better if jetty closes the connection
@@ -419,7 +415,7 @@ public class HttpMessageServlet extends HttpServlet {
                     if (outMsg == null) {
 
                         // done processing the request
-                        Logging.logCheckedFine(LOG, "Terminating request with no message to send.");
+
 
                         if (TransportMeterBuildSettings.TRANSPORT_METERING && (transportBindingMeter != null)) {
                             transportBindingMeter.connectionClosed(false,
@@ -438,12 +434,11 @@ public class HttpMessageServlet extends HttpServlet {
 
                     long startMessageSend = TimeUtils.timeNow();
 
-                    Logging.logCheckedFine(LOG, "Sending ", outMsg, " on back channel to ", req.getRemoteHost());
 
                     if (!beganResponse) {
 
                         // valid request, send back OK response
-                        Logging.logCheckedFine(LOG, "Sending OK in response to request");
+
 
                         beganResponse = true;
                         res.setStatus(HttpServletResponse.SC_OK);
@@ -452,7 +447,7 @@ public class HttpMessageServlet extends HttpServlet {
                     }
 
                     // send the message
-                    WireFormatMessage serialed = WireFormatMessageFactory.toWireExternal(outMsg, EndpointServiceImpl.DEFAULT_MESSAGE_TYPE, null, this.servletHttpTransport.group);
+                    WireFormatMessage serialed = WireFormatMessageFactory.toWire(outMsg, EndpointServiceImpl.DEFAULT_MESSAGE_TYPE, null);
 
                     // if only one message is being returned, set the content
                     // length, otherwise try to use chunked encoding.
@@ -474,7 +469,6 @@ public class HttpMessageServlet extends HttpServlet {
 
                         messenger.messageSent(true);
 
-                        Logging.logCheckedFine(LOG, "Successfully sent ", outMsg, " on back channel to ", req.getRemoteHost());
 
                         if (TransportMeterBuildSettings.TRANSPORT_METERING && (transportBindingMeter != null)) {
                             lastReadWriteTime = TimeUtils.timeNow();
@@ -486,7 +480,7 @@ public class HttpMessageServlet extends HttpServlet {
 
                     } catch (IOException ex) {
 
-                        Logging.logCheckedFine(LOG, "Failed sending Message on back channel to ", req.getRemoteHost());
+
                         messenger.messageSent(false);
 
                         if (TransportMeterBuildSettings.TRANSPORT_METERING && (transportBindingMeter != null)) {
@@ -509,7 +503,7 @@ public class HttpMessageServlet extends HttpServlet {
 
                     // If we never generated a response then make it clear we gave up waiting.
                     if (!beganResponse) res.setStatus(HttpServletResponse.SC_NO_CONTENT);
-
+                    
                 }
 
             } else {
@@ -531,12 +525,12 @@ public class HttpMessageServlet extends HttpServlet {
         // allows Jetty to keep to keep the connection open unless what's on the
         // other side is a 1.0 proxy.
         if (mustSetContentLength) res.setContentLength(0);
-
+        
         // make sure the response is pushed out
         res.flushBuffer();
 
         // done processing the request
-        Logging.logCheckedFine(LOG, "Finished processing the request from ", req.getRemoteHost());
+
 
         if (TransportMeterBuildSettings.TRANSPORT_METERING && (transportBindingMeter != null)) {
             transportBindingMeter.connectionClosed(false,
@@ -553,7 +547,6 @@ public class HttpMessageServlet extends HttpServlet {
      */
     private void pingResponse(HttpServletResponse res) throws IOException {
 
-        Logging.logCheckedFine(LOG, "Responding to \'ping\' request with 200 and peerID");
 
         res.setStatus(HttpServletResponse.SC_OK);
         res.setContentLength(pingResponseBytes.length);
@@ -571,7 +564,7 @@ public class HttpMessageServlet extends HttpServlet {
      *  Debugging output.
      */
     private static void printRequest(HttpServletRequest req) {
-
+        
         final char nl = '\n';
 
         StringBuilder builder = new StringBuilder();
@@ -738,14 +731,9 @@ public class HttpMessageServlet extends HttpServlet {
                 extraResponsesTimeout = -1;
                 destAddr = null;
             }
-
+           
             // check for incoming message
             messageContent = hasMessageContent(req);
-
-            Logging.logCheckedFiner(LOG,
-                        "New JXTA Request for Requestor=", requestorAddr, "\n\tResponse Timeout=", responseTimeout,
-                        "\tAdditional Response Timeout=", extraResponsesTimeout, "\tRequest Destination Address=", destAddr,
-                        "\tHas Message Content=", Boolean.toString(messageContent));
 
         }
 
@@ -779,8 +767,6 @@ public class HttpMessageServlet extends HttpServlet {
                 }
             }
 
-            Logging.logCheckedFiner(LOG, "requestorPeerId = ", requestorPeerId);
-
             return requestorPeerId;
         }
 
@@ -800,14 +786,12 @@ public class HttpMessageServlet extends HttpServlet {
                 // want to make sure we quit timely if the client's gone.
                 if (timeout > MAXIMUM_RESPONSE_DURATION || timeout == 0) 
                     timeout = MAXIMUM_RESPONSE_DURATION;
-
+                
             } catch (NumberFormatException e) {
 
                 Logging.logCheckedWarning(LOG, "The requestTimeout does not contain a decimal number ", requestTimeoutString);
-
+                
             }
-
-            Logging.logCheckedFiner(LOG, "requestTimeout = ", timeout);
 
             return timeout;
         }
@@ -828,14 +812,13 @@ public class HttpMessageServlet extends HttpServlet {
                 // want to make sure we quit timely if the client's gone.
                 if (timeout > (2 * TimeUtils.AMINUTE) || timeout == 0) 
                     timeout = (2 * TimeUtils.AMINUTE);
-
+                
             } catch (NumberFormatException e) {
 
                 Logging.logCheckedWarning(LOG, "The extraResponseTimeoutString does not contain a decimal number ", extraResponseTimeoutString);
-
+                
             }
 
-            Logging.logCheckedFine(LOG, "extraResponseTimeout = ", timeout);
 
             return timeout;
         }
@@ -866,8 +849,6 @@ public class HttpMessageServlet extends HttpServlet {
                 hasContent = "chunked".equals(transferEncoding);
 
             }
-
-            Logging.logCheckedFiner(LOG, "hasMessageContent = ", hasContent);
 
             return hasContent;
         }

@@ -1,32 +1,32 @@
 /*
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Copyright (c) 2001-2007 Sun Microsystems, Inc. All rights reserved.
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
 
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -65,7 +65,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.Logger;
-import net.jxta.logging.Logging;
+
 import net.jxta.content.Content;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.content.ContentID;
@@ -74,7 +74,6 @@ import net.jxta.content.ContentTransferListener;
 import net.jxta.content.ContentTransferState;
 import net.jxta.content.TransferException;
 import net.jxta.document.FileDocument;
-import net.jxta.document.MimeMediaType;
 import net.jxta.impl.content.AbstractContentTransfer;
 import net.jxta.protocol.ContentAdvertisement;
 import net.jxta.protocol.ContentShareAdvertisement;
@@ -174,7 +173,7 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
         setDiscoveryThreshold(DISCOVERY_THRESHOLD);
         peerGroup = group;
     }
-
+    
     //////////////////////////////////////////////////////////////////////////
     // AbstractContentTransfer methods:
 
@@ -210,7 +209,6 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
 
         ContentTransferState result;
 
-        Logging.logCheckedFine(LOG, "Transfer attempt starting");
 
         // Add new sources to our tracked list
         for (ContentShareAdvertisement candidate : newSources) {
@@ -220,12 +218,10 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
             }
         }
 
-        Logging.logCheckedFine(LOG, "Sources remaining: ", sourcesRemaining.size());
-        Logging.logCheckedFine(LOG, "Sources tried    : ", sourcesTried.size());
 
         if (sourcesRemaining.size() == 0) {
 
-            Logging.logCheckedFine(LOG, "No sources remaining to try");
+
             return ContentTransferState.STALLED;
 
             /* Another option:
@@ -246,9 +242,6 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
             ContentRequest request = new ContentRequest();
             request.setContentID(getTransferContentID());
 
-            Logging.logCheckedFiner(LOG, "Sending content request to:\n", adv.getPipeAdvertisement());
-            Logging.logCheckedFiner(LOG, "Request:\n", request.getDocument(MimeMediaType.XMLUTF8));
-
             socket = new JxtaSocket(
                     peerGroup, null, adv.getPipeAdvertisement(),
                     SOCKET_TIMEOUT, true);
@@ -256,21 +249,14 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
             OutputStream outStream = socket.getOutputStream();
             request.writeToStream(outStream);
 
-            Logging.logCheckedFiner(LOG, "Request sent.  Awaiting response.");
-
             InputStream inStream = socket.getInputStream();
             ContentResponse response = ContentResponse.readFromStream(inStream);
 
-            Logging.logCheckedFiner(LOG, "Got response: ", response.getDocument(MimeMediaType.XMLUTF8));
-
             if (response.getSuccess()) {
 
-                Logging.logCheckedFiner(LOG, "Retrieving content");
                 resultContent = transferContent(dest, adv, inStream);
 
             }
-
-            Logging.logCheckedFiner(LOG, "Transaction completed");
 
         } catch (IOException iox) {
 
@@ -282,7 +268,8 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
                 try {
                     socket.close();
                 } catch (IOException iox) {
-                    Logging.logCheckedFinest(LOG, "Ignoring exception\n" + iox);
+
+
                 }
             }
 
@@ -295,7 +282,7 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
             result = ContentTransferState.COMPLETED;
         }
 
-        Logging.logCheckedFine(LOG, "Transfer attempt exiting with result: ", result);
+
         return result;
     }
 
@@ -309,6 +296,7 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
 
     //////////////////////////////////////////////////////////////////////////
     // Private methods:
+
 
     /**
      * Notify listeners of a change in the source location state.
@@ -345,7 +333,8 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
             destFile.createNewFile();
             fileOut = new FileOutputStream(destFile);
         } catch (Throwable t) {
-            Logging.logCheckedFine(LOG, "Caught exception\n", t);
+
+
             return null;
         }
 
@@ -358,7 +347,6 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
 
             readCount = stream.read(buffer);
 
-            Logging.logCheckedFinest(LOG, "Read count: ", readCount);
 
             if (readCount < 0) {
                 // EOS
@@ -375,15 +363,12 @@ public class SRDISocketContentTransfer extends AbstractContentTransfer {
         // Final status update
         fireTransferProgress(totalReceived);
 
-        Logging.logCheckedFiner(LOG, "Content data transfer successful");
-
         ContentAdvertisement cAdv = adv.getContentAdvertisement();
         FileDocument fileDocument =
                 new FileDocument(destFile, cAdv.getMimeType());
         Content result = new Content(
                 adv.getContentID(), cAdv.getMetaID(), fileDocument);
 
-        Logging.logCheckedFiner(LOG, "Result Content object: ", result);
         return result;
     }
 
