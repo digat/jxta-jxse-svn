@@ -14,6 +14,7 @@ import net.jxta.exception.PeerGroupException;
 import net.jxta.exception.ProtocolNotSupportedException;
 import net.jxta.exception.ServiceNotFoundException;
 import net.jxta.id.ID;
+import net.jxta.impl.pipe.WirePipe;
 import net.jxta.impl.util.threads.TaskManager;
 import net.jxta.membership.MembershipService;
 import net.jxta.peer.PeerID;
@@ -175,10 +176,6 @@ public class FakePeerGroup implements PeerGroup {
         throw new RuntimeException("not implemented");
     }
 
-    public PeerGroup newGroup(PeerGroupID gid, Advertisement impl, String name, String description, boolean publish) throws PeerGroupException {
-        throw new RuntimeException("not implemented");
-    }
-
     public PeerGroup newGroup(PeerGroupID gid) throws PeerGroupException {
         throw new RuntimeException("not implemented");
     }
@@ -187,17 +184,17 @@ public class FakePeerGroup implements PeerGroup {
         throw new RuntimeException("not implemented");
     }
 
-//    public boolean unref() {
-//        throw new RuntimeException("not implemented");
-//    }
+    public boolean unref() {
+        throw new RuntimeException("not implemented");
+    }
 
     public Advertisement getImplAdvertisement() {
         throw new RuntimeException("not implemented");
     }
 
-//    public PeerGroup getInterface() {
-//        throw new RuntimeException("not implemented");
-//    }
+    public PeerGroup getInterface() {
+        throw new RuntimeException("not implemented");
+    }
 
     public void init(PeerGroup group, ID assignedID, Advertisement implAdv) throws PeerGroupException {
         throw new RuntimeException("not implemented");
@@ -216,6 +213,11 @@ public class FakePeerGroup implements PeerGroup {
     }
 
     public TaskManager getTaskManager() {
+        throw new RuntimeException("not implemented");
+    }
+
+    public WirePipe.IDCache getWirePipeIDCache()
+    {
         throw new RuntimeException("not implemented");
     }
 

@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.util;
@@ -99,10 +99,10 @@ public class JxtaServerPipe implements PipeMsgListener {
     protected static final String reliableTag = "reliable";
     protected static final String directSupportedTag = "direct";
     protected static final String connectionPropertiesTag = "connectionproperties";
-
+    
     public static final int DEFAULT_TIMEOUT = 30 * 1000; // 30 seconds
     public static final int DEFAULT_BACKLOG = 50;
-
+    
     private PeerGroup group;
     private InputPipe serverPipe;
     private PipeAdvertisement pipeadv;
@@ -110,9 +110,9 @@ public class JxtaServerPipe implements PipeMsgListener {
     private boolean bound = false;
     private boolean closed = false;
     protected StructuredDocument myCredentialDoc = null;
-
+    
     private volatile ServerPipeAcceptListener listener;
-    private final QueuingServerPipeAcceptor defaultListener;
+    private final QueuingServerPipeAcceptor defaultListener; 
 
     /**
      * Default constructor for the JxtaServerPipe
@@ -143,7 +143,7 @@ public class JxtaServerPipe implements PipeMsgListener {
     public JxtaServerPipe(PeerGroup group, PipeAdvertisement pipeadv, int backlog) throws IOException {
         this(group, pipeadv, backlog, DEFAULT_TIMEOUT);
     }
-
+    
     /**
      * Constructor for the JxtaServerPipe
      *
@@ -160,7 +160,7 @@ public class JxtaServerPipe implements PipeMsgListener {
         this.listener = defaultListener;
         bind(group, pipeadv);
     }
-
+    
     /**
      * Creates a server pipe for the specified group, configured using the properties of the specified pipe
      * advertisement. Additionally, accepting incoming pipe connections will be sent asynchronously to the
@@ -226,7 +226,7 @@ public class JxtaServerPipe implements PipeMsgListener {
     public JxtaBiDiPipe accept() throws IOException {
     	checkNotClosed();
         checkBound();
-
+        
         if(usingBlockingAccept()) {
             return defaultListener.acceptBackwardsCompatible();
         } else {
@@ -283,12 +283,14 @@ public class JxtaServerPipe implements PipeMsgListener {
         bound = true;
     }
 
+    
+    
     private void checkNotClosed() throws SocketException {
         if (isClosed()) {
             throw new SocketException("Server Pipe is closed");
         }
     }
-
+    
     private void checkBound() throws SocketException {
         if (!isBound()) {
             throw new SocketException("JxtaServerPipe is not bound yet");
@@ -310,7 +312,7 @@ public class JxtaServerPipe implements PipeMsgListener {
             throw new IllegalStateException("Custom ServerPipeAcceptListener is in use, timeout does not apply");
         }
     }
-
+    
     /**
      * Sets the Timeout attribute of the JxtaServerPipe. A timeout of 0 blocks forever, and
      * a timeout value less than zero is illegal.
@@ -325,7 +327,7 @@ public class JxtaServerPipe implements PipeMsgListener {
         } else {
             throw new IllegalStateException("Custom ServerPipeAcceptListener is in use, timeout does not apply");
         }
-
+        
     }
 
     /**
@@ -356,13 +358,13 @@ public class JxtaServerPipe implements PipeMsgListener {
         if (message == null) {
             return;
         }
-
+        
         JxtaBiDiPipe bidi = processMessage(message);
         // make sure we have a socket returning
         if (bidi == null) {
             return;
         }
-
+            
         listener.pipeAccepted(bidi);
     }
 
@@ -408,7 +410,7 @@ public class JxtaServerPipe implements PipeMsgListener {
             if (el != null) {
 
                 isReliable = Boolean.valueOf((el.toString()));
-                Logging.logCheckedFine(LOG, "Connection request [isReliable] :", isReliable);
+
 
             }
 
@@ -418,39 +420,38 @@ public class JxtaServerPipe implements PipeMsgListener {
             if (el != null) {
 
                 directSupported = Boolean.valueOf((el.toString()));
-                Logging.logCheckedFine(LOG, "Connection request [directSupported] :", directSupported);
+
 
             }
-
+            
             el = msg.getMessageElement(nameSpace, connectionPropertiesTag);
             byte[] connectionPropertiesBytes = null;
 
             if (el != null) {
 
                 connectionPropertiesBytes = el.getBytes(false);
-                Logging.logCheckedFine(LOG, "Connection request [connectionPropertiesBytes] :", connectionPropertiesBytes);
 
-                if (connectionPropertiesBytes != null) 
+
+                if (connectionPropertiesBytes != null)
                     connectionProperties = bytesToProperties(connectionPropertiesBytes);
-
+                
             }
 
             Messenger msgr;
             boolean direct = false;
-//            if (directSupported) {
-//                msgr = JxtaBiDiPipe.getDirectMessenger(group, outputPipeAdv, peerAdv);
-//                if (msgr == null) {
-//                    msgr = JxtaBiDiPipe.lightweightOutputPipe(group, outputPipeAdv, peerAdv);
-//                } else {
-//                    direct = true;
-//                }
-//            } else {
+            if (directSupported) {
+                msgr = JxtaBiDiPipe.getDirectMessenger(group, outputPipeAdv, peerAdv);
+                if (msgr == null) {
+                    msgr = JxtaBiDiPipe.lightweightOutputPipe(group, outputPipeAdv, peerAdv);
+                } else {
+                    direct = true;
+                }
+            } else {
                 msgr = JxtaBiDiPipe.lightweightOutputPipe(group, outputPipeAdv, peerAdv);
-//            }
+            }
 
             if (msgr != null) {
 
-                Logging.logCheckedFine(LOG, "Reliability set to :", isReliable);
 
                 PipeAdvertisement newpipe = newInputPipe(group, outputPipeAdv);
                 JxtaBiDiPipe pipe = null;
@@ -471,10 +472,10 @@ public class JxtaServerPipe implements PipeMsgListener {
         } catch (IOException e) {
 
             // deal with the error
-            Logging.logCheckedFine(LOG, "IOException occured\n", e);
+
 
         }
-
+        
         return null;
     }
 
@@ -486,7 +487,7 @@ public class JxtaServerPipe implements PipeMsgListener {
         } catch (IOException e) {
         }
         return properties;
-    }
+    } 
 
     /**
      * Method sendResponseMessage get the createResponseMessage and sends it.
@@ -510,6 +511,7 @@ public class JxtaServerPipe implements PipeMsgListener {
                     new TextDocumentMessageElement(credTag, (XMLDocument) myCredentialDoc, null));
         }
 
+
         final String neverAllowDirectBreaksRelay = Boolean.toString(false);
         msg.addMessageElement(JxtaServerPipe.nameSpace,
                 new StringMessageElement(JxtaServerPipe.directSupportedTag, neverAllowDirectBreaksRelay, null));
@@ -518,7 +520,7 @@ public class JxtaServerPipe implements PipeMsgListener {
                 new TextDocumentMessageElement(remPipeTag, (XMLDocument) pipeAd.getDocument(MimeMediaType.XMLUTF8), null));
 
         msg.addMessageElement(nameSpace,
-                new TextDocumentMessageElement(remPeerTag, (XMLDocument) peerAdv.getSignedDocument(), null));
+                new TextDocumentMessageElement(remPeerTag, (XMLDocument) peerAdv.getDocument(MimeMediaType.XMLUTF8), null));
         if (msgr instanceof TcpMessenger) {
             ((TcpMessenger) msgr).sendMessageDirect(msg, null, null, true);
         } else {

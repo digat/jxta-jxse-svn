@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,24 +37,25 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.protocol;
+
 
 import net.jxta.document.*;
 import net.jxta.id.ID;
@@ -79,6 +80,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Logger;
+
 
 /**
  *  Contains parameters for configuration of the PSE Membership Service.
@@ -215,7 +217,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
 
             if (super.handleAttribute(anAttr)) {
                 // nothing to do
-
+                
             } else if (KEY_STORE_TYPE_ATTR.equals(anAttr.getName())) {
 
                 keyStoreType = anAttr.getValue().trim();
@@ -227,7 +229,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
             } else {
 
                 Logging.logCheckedWarning(LOG, "Unhandled Attribute: ", anAttr.getName());
-
+                
             }
         }
 
@@ -239,8 +241,11 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
 
             XMLElement elem = (XMLElement) elements.nextElement();
 
-            if (!handleElement(elem)) 
-                Logging.logCheckedFine(LOG, "Unhandled Element: ", elem);
+            if (!handleElement(elem))
+            {
+
+
+            }
 
         }
 
@@ -360,14 +365,14 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
             CertificateFactory cf = CertificateFactory.getInstance("X509");
 
             setCertificate((X509Certificate) cf.generateCertificate(new ByteArrayInputStream(cert_der)));
-
+        
         } catch (Exception failed) {
 
             Logging.logCheckedSevere(LOG, "Failed to process seed cert\n", failed);
 
             IllegalArgumentException failure = new IllegalArgumentException("Failed to process seed cert");
             failure.initCause(failed);
-
+            
             throw failure;
 
         }
@@ -382,7 +387,6 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      */
     public void setCertificate(X509Certificate newCert) {
 
-        Logging.logCheckedFine(LOG, "setCert : ", newCert);
 
         certs.clear();
 
@@ -394,7 +398,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
     }
 
     /**
-     *  Sets the seed Certificate chain for this peer. If {@code null} then the
+     *  Sets the seed Certificate chain for this peer. If {@code null} then the  
      *  Private Key is also cleared.
      *
      *  @param newCerts The seed certificate chain  or {@code null}
@@ -402,7 +406,6 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      */
     public void setCertificateChain(X509Certificate[] newCerts) {
 
-        Logging.logCheckedFine(LOG, "setCert : ", newCerts);
 
         certs.clear();
 
@@ -478,7 +481,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      *  the default Keystore type should be used. The PSE Membership Service
      *  will create the keystore via 
      *  {@code KeyStore.getInstance(keystore_type)}.
-     *
+     *  
      *  @return The name of the Keystore type which the PSE Membership Service
      *  will use or {@code null} if the default keystore type should be used.
      */
@@ -536,7 +539,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      *  Membership Service should use the default location. The actual default
      *  location may vary depending upon they Keystore type and provider and not
      *  all location values may be valid for all Keystore types and providers.
-     *
+     *  
      *  @return The location of the Keystore or {@code null} if the PSE 
      *  Membership Service should use the default location.
      */
@@ -549,7 +552,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      *  Membership Service should use the default location. The actual default
      *  location may vary depending upon they Keystore type and provider and not
      *  all location values may be valid for all Keystore types and providers.
-     *
+     *  
      *  @param location The location of the Keystore or {@code null} if the PSE 
      *  Membership Service should use the default location.
      */
@@ -595,7 +598,6 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      */
     public void setEncryptedPrivateKey(EncryptedPrivateKeyInfo newPriv, String algorithm) {
 
-        Logging.logCheckedFine(LOG, "setPrivateKey : ", newPriv);
 
         encryptedPrivateKey = newPriv;
         privAlgorithm = algorithm;
@@ -610,11 +612,10 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
      */
     public void setPrivateKey(PrivateKey newPriv, char[] password) {
 
-        Logging.logCheckedFine(LOG, "setPrivateKey : ", newPriv);
 
         EncryptedPrivateKeyInfo encypted = PSEUtils.pkcs5_Encrypt_pbePrivateKey(password, newPriv, 500);
         setEncryptedPrivateKey(encypted, newPriv.getAlgorithm());
-
+        
     }
 
     /**
@@ -666,7 +667,6 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
                     continue;
                 }
 
-                Logging.logCheckedFine(LOG, "Unhandled Element: ", eachcertelem.getName());
 
             }
 
@@ -683,7 +683,7 @@ public final class PSEConfigAdv extends ExtendableAdvertisement implements Clone
 
                 throw iae;
             }
-
+            
             return true;
         }
 

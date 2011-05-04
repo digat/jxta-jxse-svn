@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -77,7 +77,6 @@ import net.jxta.service.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -215,18 +214,18 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 		// the same is automatically generated.
 	}
 
-//	/**
-//	 * {@inheritDoc}
-//	 * <p/>
-//	 * We create only a single interface object and return it over and over
-//	 * again.
-//	 */
-//	public synchronized PipeService getInterface() {
-//		if (null == myInterface) {
-//			myInterface = new PipeServiceInterface(this);
-//		}
-//		return myInterface;
-//	}
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * We create only a single interface object and return it over and over
+	 * again.
+	 */
+	public synchronized PipeService getInterface() {
+		if (null == myInterface) {
+			myInterface = new PipeServiceInterface(this);
+		}
+		return myInterface;
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -397,9 +396,8 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 					"PipeAdvertisement PipeID may not be null");
 		}
 
-		Logging.logCheckedFine(LOG, "Create ", type, " InputPipe for ", pipeId);
 
-		InputPipe inputPipe;
+        InputPipe inputPipe;
 		// create an InputPipe.
 		if (type.equals(PipeService.UnicastType)) {
 			inputPipe = new InputPipeImpl(pipeResolver, adv, listener);
@@ -419,7 +417,7 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 			throw new IOException("Cannot create pipe for unknown type : " + type);
 
 		}
-
+                
 		return inputPipe;
 	}
 
@@ -451,10 +449,8 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 
 		createOutputPipe(adv, resolvablePeers, localListener, queryid);
 
-		Logging.logCheckedFine(LOG, "Waiting synchronously for ", timeout,
-                    "ms to resolve OutputPipe for ", adv.getPipeID());
 
-		try {
+        try {
 			synchronized (localListener) {
 				while ((null == localListener.event)
 						&& (TimeUtils.toRelativeTimeMillis(TimeUtils.timeNow(),
@@ -519,9 +515,8 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 
 		}
 
-		Logging.logCheckedFine(LOG, "Create ", type, " OutputPipe for ", pipeId);
 
-		if (PipeService.PropagateType.equals(type)) {
+        if (PipeService.PropagateType.equals(type)) {
 			OutputPipe op;
 
 			if (resolvablePeers.size() == 1) {
@@ -537,12 +532,10 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 			}
 
 			if (null != op) {
-//				OutputPipeEvent newevent = new OutputPipeEvent(this
-//						.getInterface(), op, pipeId.toString(),
-//						PipeResolver.ANYQUERY);
 				OutputPipeEvent newevent = new OutputPipeEvent(this
-						, op, pipeId.toString(),
+						.getInterface(), op, pipeId.toString(),
 						PipeResolver.ANYQUERY);
+
 				try {
 
 				    listener.outputPipeEvent(newevent);
@@ -576,8 +569,8 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 					} else {
 
                                             Logging.logCheckedWarning(LOG,
-                                                MessageFormat.format("rejecting local pipe ({0}) because type is not ({1})",
-                                                    local.getType(), pipeAdv.getType()));
+                                                "rejecting local pipe ({0}) because type is not ({1})",
+                                                    local.getType(), pipeAdv.getType());
 						
 					}
 				}
@@ -588,7 +581,7 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 			// Unknown type
 			Logging.logCheckedSevere(LOG, "createOutputPipe: cannot create pipe for unknown type : ", type);
 			throw new IOException("cannot create pipe for unknown type : " + type);
-
+                        
 		}
 	}
 
@@ -611,10 +604,8 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 						+ pipeHolder.queryid);
 			}
 
-			Logging.logCheckedFine(LOG, "Adding pipe listener for pipe ", pipeId,
-		            " and query ", pipeHolder.queryid);
 
-			perpipelisteners.put(pipeHolder.queryid, pipeHolder);
+            perpipelisteners.put(pipeHolder.queryid, pipeHolder);
 		}
 	}
 
@@ -644,8 +635,9 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 
                         if (pl.listener == listener) {
                                 pipeResolver.removeListener((PipeID) pipeID, pl.queryid);
-                                Logging.logCheckedFine(LOG, "Removing listener for query ", pl.queryid);
-                                perpipelisteners.remove(entry.getKey());
+
+
+                            perpipelisteners.remove(entry.getKey());
                         }
 
                     }
@@ -684,7 +676,6 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
                     OutputPipeHolder pipeHolder = perpipelisteners.get(queryID);
                     perpipelisteners.remove(queryID);
 
-                    Logging.logCheckedFine(LOG, "Removing listener for query ", queryID);
 
                     // clean up the map if there are no more listeners for the pipe
                     if (perpipelisteners.isEmpty()) outputPipeListeners.remove(pipeID);
@@ -698,7 +689,7 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
             }
 
             return null;
-
+                
 	}
 
 	/**
@@ -719,7 +710,7 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 
                     if (perpipelisteners == null) {
 
-                        Logging.logCheckedFine(LOG, "No listener for event for pipe ", pipeID);
+
                         return false;
 
                     }
@@ -728,7 +719,7 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 
                     if (pipeHolder == null) {
 
-                        Logging.logCheckedFine(LOG, "No listener for event for query ", queryID);
+
                         return false;
 
                     }
@@ -764,12 +755,9 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
                 }
 
                 // Generate an event when the output pipe was succesfully opened.
-//                OutputPipeEvent newevent = new OutputPipeEvent(this.getInterface(),
-//                                op, pipeID.toString(), queryID);
-
-                OutputPipeEvent newevent = new OutputPipeEvent(this,
+                OutputPipeEvent newevent = new OutputPipeEvent(this.getInterface(),
                                 op, pipeID.toString(), queryID);
-
+                
                 try {
 
                     pipeHolder.listener.outputPipeEvent(newevent);
@@ -790,8 +778,8 @@ public class PipeServiceImpl implements PipeService, PipeResolver.Listener {
 
             }
 
-            Logging.logCheckedFine(LOG, "No listener for event for ", event.getPipeID());
-            return false;
+
+        return false;
 
 	}
 
