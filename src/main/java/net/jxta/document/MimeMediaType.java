@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,37 +37,36 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.document;
+
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 import net.jxta.util.ConcurrentWeakHashMap;
+
 
 /**
  * MIME Media Types are used to describe the format of data streams. MIME
@@ -110,7 +109,7 @@ public class MimeMediaType implements Serializable {
      * in the mean time.
      * 
      */
-    private static final ConcurrentMap<MimeMediaType, MimeMediaType> interned = new ConcurrentWeakHashMap<MimeMediaType, MimeMediaType>();
+    private static final Map<MimeMediaType, MimeMediaType> interned = new WeakHashMap<MimeMediaType, MimeMediaType>();
 
     /**
      * Common Mime Media Type for arbitrary unparsed binary data.
@@ -179,7 +178,7 @@ public class MimeMediaType implements Serializable {
      * The parameters for this media type
      */
     private transient List<parameter> parameters = new ArrayList<parameter>();
-
+    
     /**
      *  The hashcode value for this mime media type.
      */
@@ -432,7 +431,7 @@ public class MimeMediaType implements Serializable {
 
             cachedHashCode = (0 != calcedHash) ? calcedHash : 1;
         }
-
+        
         return cachedHashCode;
     }
 
@@ -605,7 +604,7 @@ public class MimeMediaType implements Serializable {
         boolean inSeperator = true;
         boolean inComment = false;
         boolean inAttribute = false;
-        StringBuffer currentValue = null;
+        StringBuilder currentValue = null;
         boolean inValue = false;
         boolean inQuoted = false;
         boolean nextEscaped = false;
@@ -649,7 +648,7 @@ public class MimeMediaType implements Serializable {
                 inValue = true;
                 inQuoted = false;
                 nextEscaped = false;
-                currentValue = new StringBuffer();
+                currentValue = new StringBuilder();
             } else if (inValue) {
                 if (inQuoted) {
                     if (nextEscaped) {
@@ -823,12 +822,16 @@ public class MimeMediaType implements Serializable {
      *         guaranteed to be from a pool of unique types.
      */
     public MimeMediaType intern() {
-    	MimeMediaType singleton = interned.putIfAbsent(this, this);
-    	if(singleton == null) {
-    		return this;
-    	}
-    	
-    	return singleton;
+        final MimeMediaType internedValue = interned.get(this);
+        if (internedValue == null)
+        {
+            interned.put(this, this);
+            return this;
+        }
+        else
+        {
+            return internedValue;
+        }
     }
 
     /**

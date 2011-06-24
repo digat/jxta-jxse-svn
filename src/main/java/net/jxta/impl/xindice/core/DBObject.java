@@ -1,5 +1,6 @@
 package net.jxta.impl.xindice.core;
 
+
 /*
  * The Apache Software License, Version 1.1
  *
@@ -57,6 +58,7 @@ package net.jxta.impl.xindice.core;
  *
 
  */
+
 
 /**
  * DBObject is the interface implemented by all Xindice database objects.

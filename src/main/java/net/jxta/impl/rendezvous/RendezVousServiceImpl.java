@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -182,20 +182,20 @@ public final class RendezVousServiceImpl implements RendezVousService {
     public RendezVousServiceImpl() {
     }
 
-//    /**
-//     * {@inheritDoc}
-//     *
-//     * @since 2.6 This method has been deprecated and now returns {@code this} rather than
-//     * an instance of {@code RendezVousServiceInterface}. It should be removed from the code
-//     * in a future release.
-//     *
-//     */
-//    @Deprecated
-//    public RendezVousService getInterface() {
-//
-//        return this;
-//
-//    }
+    /**
+     * {@inheritDoc}
+     *
+     * @since 2.6 This method has been deprecated and now returns {@code this} rather than
+     * an instance of {@code RendezVousServiceInterface}. It should be removed from the code
+     * in a future release.
+     *
+     */
+    @Deprecated
+    public RendezVousService getInterface() {
+
+        return this;
+
+    }
 
     /**
      * {@inheritDoc}
@@ -440,106 +440,106 @@ public final class RendezVousServiceImpl implements RendezVousService {
         return old;
     }
 
-//    /**
-//     * Attempt to connect to the specified rendezvous peer.
-//     *
-//     * @param addr The endpoint address of the rendezvous peer.
-//     * @param hint An optional hint which may be {@code null}.
-//     * @throws IOException If no connection could be made to the specified
-//     *                     peer.
-//     */
-//    private void connectToRendezVous(EndpointAddress addr, RouteAdvertisement hint) throws IOException {
-//        RendezVousServiceProvider currentProvider = provider;
-//
-//        if (currentProvider != null) {
-//            currentProvider.connectToRendezVous(addr, hint);
-//        } else {
-//            throw new IOException("Currently switching rendezvous roles.");
-//        }
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public void connectToRendezVous(PeerAdvertisement adv) throws IOException {
-//        EndpointAddress addr = new EndpointAddress("jxta", adv.getPeerID().getUniqueValue().toString(), null, null);
-//        connectToRendezVous(addr, EndpointUtils.extractRouteAdv(adv));
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public void connectToRendezVous(EndpointAddress addr) throws IOException {
-//        connectToRendezVous(addr, null);
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public void challengeRendezVous(ID peer, long delay) {
-//        RendezVousServiceProvider currentProvider = provider;
-//
-//        if (currentProvider != null) {
-//            currentProvider.challengeRendezVous(peer, delay);
-//        }
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public void disconnectFromRendezVous(ID peerId) {
-//
-//        RendezVousServiceProvider currentProvider = provider;
-//
-//        if (currentProvider != null) {
-//            currentProvider.disconnectFromRendezVous(peerId);
-//        }
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public Enumeration<ID> getConnectedRendezVous() {
-//
-//        Collection<ID> connectedPeers = getConnectedPeerIDs();
-//
-//        return Collections.enumeration(connectedPeers);
-//
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public Enumeration<ID> getDisconnectedRendezVous() {
-//
-//        Collection<ID> empty = Collections.emptyList();
-//
-//        return Collections.enumeration(empty);
-//
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public Enumeration<ID> getConnectedPeers() {
-//
-//        Collection<ID> connectedPeers = getConnectedPeerIDs();
-//
-//        return Collections.enumeration(connectedPeers);
-//
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public Vector<ID> getConnectedPeerIDs() {
-//        RendezVousServiceProvider currentProvider = provider;
-//
-//        if (currentProvider != null) {
-//            return currentProvider.getConnectedPeerIDs();
-//        }
-//        return new Vector<ID>();
-//    }
+    /**
+     * Attempt to connect to the specified rendezvous peer.
+     *
+     * @param addr The endpoint address of the rendezvous peer.
+     * @param hint An optional hint which may be {@code null}.
+     * @throws IOException If no connection could be made to the specified
+     *                     peer.
+     */
+    private void connectToRendezVous(EndpointAddress addr, RouteAdvertisement hint) throws IOException {
+        RendezVousServiceProvider currentProvider = provider;
+
+        if (currentProvider != null) {
+            currentProvider.connectToRendezVous(addr, hint);
+        } else {
+            throw new IOException("Currently switching rendezvous roles.");
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void connectToRendezVous(PeerAdvertisement adv) throws IOException {
+        EndpointAddress addr = new EndpointAddress("jxta", adv.getPeerID().getUniqueValue().toString(), null, null);
+        connectToRendezVous(addr, EndpointUtils.extractRouteAdv(adv));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void connectToRendezVous(EndpointAddress addr) throws IOException {
+        connectToRendezVous(addr, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void challengeRendezVous(ID peer, long delay) {
+        RendezVousServiceProvider currentProvider = provider;
+
+        if (currentProvider != null) {
+            currentProvider.challengeRendezVous(peer, delay);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void disconnectFromRendezVous(ID peerId) {
+
+        RendezVousServiceProvider currentProvider = provider;
+
+        if (currentProvider != null) {
+            currentProvider.disconnectFromRendezVous(peerId);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Enumeration<ID> getConnectedRendezVous() {
+
+        Collection<ID> connectedPeers = getConnectedPeerIDs();
+
+        return Collections.enumeration(connectedPeers);
+
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Enumeration<ID> getDisconnectedRendezVous() {
+
+        Collection<ID> empty = Collections.emptyList();
+
+        return Collections.enumeration(empty);
+
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Enumeration<ID> getConnectedPeers() {
+
+        Collection<ID> connectedPeers = getConnectedPeerIDs();
+
+        return Collections.enumeration(connectedPeers);
+
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Vector<ID> getConnectedPeerIDs() {
+        RendezVousServiceProvider currentProvider = provider;
+
+        if (currentProvider != null) {
+            return currentProvider.getConnectedPeerIDs();
+        }
+        return new Vector<ID>();
+    }
 
     /**
      * Gets the rendezvousConnected attribute of the RendezVousServiceImpl object
@@ -591,7 +591,7 @@ public final class RendezVousServiceImpl implements RendezVousService {
         } catch (IOException failure) {
 
             Logging.logCheckedWarning(LOG, "Failed to start rendezvous\n", failure);
-
+            
         }
     }
 
@@ -608,7 +608,7 @@ public final class RendezVousServiceImpl implements RendezVousService {
 
             IOException failed = new IOException("Currently switching rendezvous configuration. try again later.");
             Logging.logCheckedSevere(LOG, "Failed to stop rendezvous\n", failed);
-
+            
         }
 
         // If the service was already started, then it needs to be stopped,
@@ -633,36 +633,36 @@ public final class RendezVousServiceImpl implements RendezVousService {
         rdvProviderSwitchStatus.set(false);
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public boolean addPropagateListener(String serviceName, String serviceParam, EndpointListener listener) {
-//        if (null == endpoint) {
-//            throw new IllegalStateException("Unable to register propagate listener. (not started)");
-//        }
-//
-//        return endpoint.addIncomingMessageListener(listener, serviceName, serviceParam);
-//    }
-//
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public EndpointListener removePropagateListener(String serviceName, String serviceParam, EndpointListener listener) {
-//
-//        if (null == endpoint) {
-//            throw new IllegalStateException("Unable to remove propagate listener. (not started)");
-//        }
-//
-//        EndpointListener removed = endpoint.removeIncomingMessageListener(serviceName, serviceParam);
-//
-//        if ((removed != listener) && (null != removed)) {
-//            // Not the listener we expected.
-//            // It's kind of bad that we removed it at all, but putting it back should fix things.
-//            endpoint.addIncomingMessageListener(removed, serviceName, serviceParam);
-//            return null;
-//        }
-//        return listener;
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean addPropagateListener(String serviceName, String serviceParam, EndpointListener listener) {
+        if (null == endpoint) {
+            throw new IllegalStateException("Unable to register propagate listener. (not started)");
+        }
+
+        return endpoint.addIncomingMessageListener(listener, serviceName, serviceParam);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public EndpointListener removePropagateListener(String serviceName, String serviceParam, EndpointListener listener) {
+
+        if (null == endpoint) {
+            throw new IllegalStateException("Unable to remove propagate listener. (not started)");
+        }
+
+        EndpointListener removed = endpoint.removeIncomingMessageListener(serviceName, serviceParam);
+
+        if ((removed != listener) && (null != removed)) {
+            // Not the listener we expected.
+            // It's kind of bad that we removed it at all, but putting it back should fix things.
+            endpoint.addIncomingMessageListener(removed, serviceName, serviceParam);
+            return null;
+        }
+        return listener;
+    }
 
     /**
      * {@inheritDoc}
@@ -715,28 +715,28 @@ public final class RendezVousServiceImpl implements RendezVousService {
         currentProvider.walk(destPeerIDs, msg, serviceName, serviceParam, defaultTTL);
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public Vector<RdvAdvertisement> getLocalWalkView() {
-//
-//        Vector<RdvAdvertisement> result = new Vector<RdvAdvertisement>();
-//
-//        PeerView currView = getPeerView();
-//
-//        if (null == currView) {
-//            return result;
-//        }
-//
-//        Collection<PeerViewElement> allPVE = new ArrayList<PeerViewElement>(currView.getView());
-//
-//        for (PeerViewElement pve : allPVE) {
-//            RdvAdvertisement adv = pve.getRdvAdvertisement();
-//            result.add(adv);
-//        }
-//
-//        return result;
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    public Vector<RdvAdvertisement> getLocalWalkView() {
+
+        Vector<RdvAdvertisement> result = new Vector<RdvAdvertisement>();
+
+        PeerView currView = getPeerView();
+
+        if (null == currView) {
+            return result;
+        }
+
+        Collection<PeerViewElement> allPVE = new ArrayList<PeerViewElement>(currView.getView());
+
+        for (PeerViewElement pve : allPVE) {
+            RdvAdvertisement adv = pve.getRdvAdvertisement();
+            result.add(adv);
+        }
+
+        return result;
+    }
 
     /**
      * {@inheritDoc }
@@ -787,7 +787,7 @@ public final class RendezVousServiceImpl implements RendezVousService {
 
             // Which EDGE is connected to us RDV?
             Iterator<ID> TheIter = Temp.getConnectedPeerIDs().iterator();
-
+            
             while (TheIter.hasNext()) {
                 Result.add((PeerID)TheIter.next());
             }
@@ -860,10 +860,8 @@ public final class RendezVousServiceImpl implements RendezVousService {
     public final void generateEvent(int type, ID regarding) {
 
         Iterator eachListener = Arrays.asList(eventListeners.toArray()).iterator();
-//        RendezvousEvent event = new RendezvousEvent(getInterface(), type, regarding);
-        RendezvousEvent event = new RendezvousEvent(this, type, regarding);
+        RendezvousEvent event = new RendezvousEvent(getInterface(), type, regarding);
 
-        Logging.logCheckedFine(LOG, "Calling listeners for ", event);
 
         while (eachListener.hasNext()) {
 
@@ -903,13 +901,9 @@ public final class RendezVousServiceImpl implements RendezVousService {
     private class RdvWatchdogTask implements Runnable {
         public synchronized void run() {
             try {
-
-                //int connectedPeers = getConnectedPeerIDs().size();
+                int connectedPeers = getConnectedPeerIDs().size();
 
                 if (!isRendezVous()) {
-
-                    int connectedPeers = getLocalRendezVousView().size();
-
                     if (0 == connectedPeers) {
                         // This peer has not been able to connect to any rendezvous peer.
                         // become one.
@@ -920,14 +914,13 @@ public final class RendezVousServiceImpl implements RendezVousService {
                 } else {
                     // Perhaps we can demote ourselves back to an edge
 
-                    int peerViewSize = getLocalRendezVousView().size();
-                    int connectedEdges = getLocalEdgeView().size();
+                    int peerViewSize = getLocalWalkView().size();
 
                     boolean isManyElementsInPeerView = (peerViewSize > DEMOTION_MIN_PEERVIEW_COUNT);
-                    boolean isFewClients = (connectedEdges < DEMOTION_MIN_CLIENT_COUNT);
+                    boolean isFewClients = (connectedPeers < DEMOTION_MIN_CLIENT_COUNT);
 
                     if (isManyElementsInPeerView) {
-                        if (connectedEdges == 0) {
+                        if (connectedPeers == 0) {
                             // Demote ourselves if there are no clients and
                             // there are more than the minimum rendezvous around
                             stopRendezVous();
@@ -942,7 +935,7 @@ public final class RendezVousServiceImpl implements RendezVousService {
             } catch (Throwable all) {
 
                 Logging.logCheckedSevere(LOG, "Uncaught Throwable in Timer : " + Thread.currentThread().getName(), "\n", all);
-
+                
             }
         }
     }
@@ -955,7 +948,6 @@ public final class RendezVousServiceImpl implements RendezVousService {
             found = msgIds.contains(id);
         }
 
-        Logging.logCheckedFiner(LOG, id, " = ", found);
 
         return found;
 
@@ -984,8 +976,6 @@ public final class RendezVousServiceImpl implements RendezVousService {
 
             messagesReceived++;
         }
-
-        Logging.logCheckedFiner(LOG, "Added Message ID : ", id);
 
         return true;
     }

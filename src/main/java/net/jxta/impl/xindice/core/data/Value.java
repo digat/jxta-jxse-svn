@@ -1,6 +1,7 @@
 /*
  * The Apache Software License, Version 1.1
  *
+ *
  * Copyright (c) 1999 The Apache Software Foundation.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,7 +172,6 @@ public class Value implements Comparable {
 
     @Override
     public boolean equals(Object obj) {
-        if ( obj == null ) return false;
         if (this == obj) {
             return true;
         }

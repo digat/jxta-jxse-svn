@@ -218,15 +218,15 @@ public class JxseHttpTransportConfigurationTest {
 
         Temp.setHttpPublicAddress("12.whatever.com.255", true);
         assertTrue(Temp.getHttpPublicAddress().compareTo("12.whatever.com.255")==0);
-        assertTrue(Temp.isHttpPublicAddressExclusive()==true);
+        assertTrue(Temp.getHttpPublicAddressExclusive()==true);
 
         Temp.setHttpPublicAddress(null, false);
         assertTrue(Temp.getHttpPublicAddress()==null);
-        assertTrue(Temp.isHttpPublicAddressExclusive()==false);
+        assertTrue(Temp.getHttpPublicAddressExclusive()==false);
 
         Temp.setHttpPublicAddress("22.whatover.com.245", false);
         assertTrue(Temp.getHttpPublicAddress().compareTo("22.whatover.com.245")==0);
-        assertTrue(Temp.isHttpPublicAddressExclusive()==false);
+        assertTrue(Temp.getHttpPublicAddressExclusive()==false);
 
     }
 
@@ -269,7 +269,7 @@ public class JxseHttpTransportConfigurationTest {
         assertTrue(Restore.getHttpOutgoing()==false);
         assertTrue(Restore.getHttpInterfaceAddress().compareTo("12.whatever.com.255")==0);
         assertTrue(Restore.getHttpPublicAddress().compareTo("12.whatever.com.255")==0);
-        assertTrue(Restore.isHttpPublicAddressExclusive()==true);
+        assertTrue(Restore.getHttpPublicAddressExclusive()==true);
 
         Properties Defaults = Restore.getDefaultsCopy();
 

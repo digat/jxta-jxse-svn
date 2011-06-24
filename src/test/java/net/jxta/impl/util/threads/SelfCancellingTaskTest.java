@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import junit.framework.TestCase;
 
+import org.jmock.Expectations;
 
 
 //public class SelfCancellingTaskTest extends MockObjectTestCase {

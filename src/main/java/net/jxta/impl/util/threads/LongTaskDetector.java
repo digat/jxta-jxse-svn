@@ -3,9 +3,9 @@
  */
 package net.jxta.impl.util.threads;
 
-import java.io.StringWriter;
-import java.util.logging.Level;
 import net.jxta.logging.Logging;
+
+import java.util.logging.Level;
 
 /**
  * Used to monitor a task which is currently being executed in a thread pool,
@@ -19,30 +19,38 @@ import net.jxta.logging.Logging;
 class LongTaskDetector implements Runnable {
 
     private RunMetricsWrapper<?> taskToMonitor;
-
+    
     public LongTaskDetector(RunMetricsWrapper<?> taskToMonitor) {
         this.taskToMonitor = taskToMonitor;
     }
-
+    
     public void run() {
+        try
+        {
+            if (Logging.SHOW_WARNING && TaskManager.LOG.isLoggable(Level.WARNING))
+            {
+                StackTraceElement[] stack = taskToMonitor.getStack();
+                StringBuilder logMessage = new StringBuilder();
+                logMessage.append("task of type [");
+                logMessage.append(taskToMonitor.getWrappedType());
+                logMessage.append("] still running after ");
+                logMessage.append(taskToMonitor.getExecutionTime());
+                logMessage.append("ms in thread {");
+                logMessage.append(taskToMonitor.getExecutorThreadName());
+                logMessage.append("}, current stack:\n");
 
-        if(Logging.SHOW_WARNING && TaskManager.LOG.isLoggable(Level.WARNING)) {
+                for (StackTraceElement elem : stack)
+                {
+                    logMessage.append(elem.toString());
+                    logMessage.append('\n');
+                }
 
-            StackTraceElement[] stack = taskToMonitor.getStack();
-            StringWriter stackTrace = new StringWriter();
-
-            for(StackTraceElement elem : stack) {
-                stackTrace.append(elem.toString());
-                stackTrace.append('\n');
+                TaskManager.LOG.log(Level.WARNING, logMessage.toString());
             }
-
-            TaskManager.LOG.log(Level.WARNING, "task of type [{0}] still running after {1}ms in thread {2}, current stack:\n{3}", 
-                    new Object[] { 
-                        taskToMonitor.getWrappedType(), 
-                        taskToMonitor.getExecutionTime(), 
-                        taskToMonitor.getExecutorThreadName(),
-                        stackTrace
-                    });
+        }
+        catch (Throwable t)
+        {
+            TaskManager.LOG.log(Level.WARNING, "Unable to report long running task exception occurred " + t);
         }
     }
 }
