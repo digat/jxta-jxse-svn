@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -185,23 +185,23 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
          *	The current default credential
          */
         final Credential credential;
-
+        
         /**
          *	The current default credential in serialized XML form.
          */
         final XMLDocument credentialDoc;
-
+        
         CurrentCredential(Credential credential, XMLDocument credentialDoc) {
             this.credential = credential;
             this.credentialDoc = credentialDoc;
         }
     }
-
+    
     /**
      *   The current Membership service default credential.
      */
     CurrentCredential currentCredential;
-
+    
     /**
      *  Listener we use for membership property events.
      */
@@ -211,7 +211,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
          *  Standard Constructor
          */
         CredentialListener() {}
-
+        
         /**
          *  {@inheritDoc}
          */
@@ -219,14 +219,13 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
             if (MembershipService.DEFAULT_CREDENTIAL_PROPERTY.equals(evt.getPropertyName())) {
 
-                Logging.logCheckedFine(LOG, "New default credential event");
 
                 synchronized (RouteResolver.this) {
                     Credential cred = (Credential) evt.getNewValue();
                     XMLDocument credentialDoc;
 
                     if (null != cred) {
-
+                        
                         try {
 
                             credentialDoc = (XMLDocument) cred.getDocument(MimeMediaType.XMLUTF8);
@@ -347,7 +346,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         synchronized (this) {
             // register our credential listener.
             membership.addPropertyChangeListener(MembershipService.DEFAULT_CREDENTIAL_PROPERTY, membershipCredListener);
-
+            
             try {
                 // set the initial version of the default credential.
                 currentCredential = null;
@@ -362,7 +361,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             } catch (Exception all) {
 
                 Logging.logCheckedWarning(LOG, "could not get default credential\n", all);
-
+                
             }
         }
 
@@ -422,21 +421,20 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         // No need to pursue further if we haven't initialized our own route as
         // responding peers are not going to be able to respond to us.
         if (myRoute == null) {
-            Logging.logCheckedFine(LOG, "Cannot issue a find route if we don\'t know our own route");
+
+
             return;
         }
 
-        Logging.logCheckedFine(LOG, "Find route for peer = ", peer);
 
         try {
             // create a new RouteQuery message
             RouteQuery doc;
-
+     
             doc = new RouteQuery();
             doc.setDestPeerID(EndpointRouter.addr2pid(peer));
             doc.setSrcRoute(myRoute);
-            doc.setPeerGroup(group);
-
+            
             // check if we have some bad route information
             // for that peer, in that case pass the bad hop count
             BadRoute badRoute;
@@ -446,13 +444,13 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             if (badRoute != null) {
                 // ok we have a bad route
                 // pass the bad hops info as part of the query
-                Logging.logCheckedFine(LOG, "findRoute sends query: known bad Hops", badRoute);
+
+
                 doc.setBadHops(badRoute.getBadHops());
             } else {
             	doc.setBadHops(null);
             }
 
-            Logging.logCheckedFine(LOG, "Sending query for peer : ", peer);
 
             XMLDocument credentialDoc;
             CurrentCredential current = currentCredential;
@@ -462,7 +460,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             } else {
                 credentialDoc = null;
             }
-
+          
             ResolverQuery query = new ResolverQuery();
 
             query.setHandlerName(routerSName);
@@ -470,7 +468,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             query.setSrcPeer(localPeerId);
             query.setQuery(doc.toString());
             query.setQueryId(qid.incrementAndGet());
-
+            
             // only run SRDI if we are a rendezvous
             // FIXME 20060106 bondolo This is not dynamic enough. The route 
             // resolver needs to respond to changes in rendezvous configuration 
@@ -505,9 +503,10 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                             query.incrementHopCount();
 
                             srdiManager.forwardQuery(clean, query, 1);
-                            Logging.logCheckedFine(LOG, "found an srdi entry forwarding query to SRDI peer");
-                            return;
 
+
+                            return;
+                            
                         }
                     } else {
                         // it is not in our cache, look for the replica peer
@@ -518,7 +517,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
                             // don't push anywhere if we do not have a replica
                             // or we are trying to push to ourself
-                            Logging.logCheckedFine(LOG, "processQuery srdiIndex DHT forward :", destPeer);
+
+
                             srdiManager.forwardQuery(destPeer, query);
                             return;
 
@@ -531,22 +531,22 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
             // if we reach that point then we just use the resolver walk
             resolver = group.getResolverService();
-
+            
             if (resolver != null) {
 
                 resolver.sendQuery(null, query);
-                Logging.logCheckedFine(LOG, "find route query sent");
+
 
             } else {
 
                 Logging.logCheckedWarning(LOG, "cannot get the resolver service");
-
+                
             }
 
         } catch (Exception ee) {
 
             Logging.logCheckedWarning(LOG, "Exception in findRoute\n", ee);
-
+            
         }
     }
 
@@ -560,7 +560,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
         if (!useRouteResolver) return; // Route resolver disabled
 
-        Logging.logCheckedFine(LOG, "processResponse got a response");
 
         // convert the response into a RouteResponse
         RouteResponse doc = null;
@@ -620,11 +619,10 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             // The dest peer itself managed to respond to us. That means we
             // learned the route from the reverseRoute in the message
             // itself. So, there's nothing we need to do.
-            Logging.logCheckedFine(LOG, "learn route directly from the destination");
+
 
         } else {
 
-            Logging.logCheckedFine(LOG, "learn route:", routingPeer);
 
             try {
 
@@ -641,7 +639,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                 // believe that we are the last hop on the route - which
                 // obviously we are not.
                 if (candidateRoute.size() == 0) {
-                    Logging.logCheckedFine(LOG, "Route response outdated: NACK responder");
+
+
                     generateNACKRoute(EndpointRouter.addr2pid(routingPeer), EndpointRouter.addr2pid(destPeer), dstRoute.getVectorHops());
                     return;
                 }
@@ -658,7 +657,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                     RouteAdvertisement routeToRouter = router.getRoute(candidateRouter, false);
 
                     if (routeToRouter == null) {
-                        Logging.logCheckedFine(LOG, "Route response useless: no route to next router hop");
+
+
                         return;
                     }
 
@@ -666,7 +666,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                     if (RouteAdvertisement.stichRoute(candidateRoute, routeToRouter, (PeerID) localPeerId)) {
                         router.setRoute(candidateRoute, false);
                     } else {
-                        Logging.logCheckedFine(LOG, "Route response error stiching route response");
+
+
                         return;
                     }
 
@@ -682,10 +683,9 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
                 Logging.logCheckedWarning(LOG, "Failure building response route\n", ex);
                 Logging.logCheckedWarning(LOG, "bad dstRoute: ", dstRoute.display());
-
+                
             }
 
-            Logging.logCheckedFine(LOG, "finish process route response successfully");
 
         }
     }
@@ -712,10 +712,10 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
         }
 
-        Logging.logCheckedFine(LOG, "remove bad route info for dest ", dest.display());
 
         if (badHop != null) {
-            Logging.logCheckedFine(LOG, "remove bad route bad hop ", badHop);
+
+
         }
 
         try {
@@ -746,11 +746,13 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                     if (!currentRoute.containsHop(badHop)) {
                         return; // we are ok
                     } else {
-                        Logging.logCheckedFine(LOG, "current route is bad because it contains known bad hop", badHop);
+
+
                     }
 
                 } else {
-                    Logging.logCheckedFine(LOG, "current route is bad because it contains known bad destination", badHop);
+
+
                 }
 
             }
@@ -800,7 +802,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         } catch (Exception ex) {
 
             Logging.logCheckedWarning(LOG, "exception during bad route removal\n", ex);
-
+            
         }
     }
 
@@ -813,25 +815,25 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
         if (!useRouteResolver) return ResolverService.OK; // Route resolver disabled
 
-        Logging.logCheckedFine(LOG, "processQuery starts");
 
         RouteQuery routeQuery;
 
         try {
             Reader ip = new StringReader(query.getQuery());
             XMLDocument asDoc = (XMLDocument) StructuredDocumentFactory.newStructuredDocument(MimeMediaType.XMLUTF8, ip);
-            routeQuery = new RouteQuery(asDoc, this.group);
+            routeQuery = new RouteQuery(asDoc);
         } catch (RuntimeException e) {
-            Logging.logCheckedFine(LOG, "Malformed Route query\n", e);
+
+
             return ResolverService.OK;
         } catch (IOException e) {
-            Logging.logCheckedFine(LOG, "Malformed Route query\n", e);
+
+
             return ResolverService.OK;
-        }
+        } 
 
         PeerID pId = routeQuery.getDestPeerID();
 
-        Logging.logCheckedFine(LOG, "Looking for route to ", pId);
 
         RouteAdvertisement srcRoute = routeQuery.getSrcRoute();
         Collection<PeerID> badHops = routeQuery.getBadHops();
@@ -855,7 +857,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                 // longer than its expiration time.
                 try {
 
-                    Logging.logCheckedFine(LOG, "Publishing sender route info ", srcRoute.getDestPeerID());
 
                     // we only need to publish this route if
                     // we don't know about it yet
@@ -866,17 +867,20 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                         routeCM.publishRoute(srcRoute);
                     }
                 } catch (Exception e) {
-                    Logging.logCheckedFine(LOG, "Could not publish Route Adv from query - discard\n", e);
+
+
                     return ResolverService.OK;
                 }
             }
         } else {
-            Logging.logCheckedFine(LOG, "No src Route in route query - discard ");
+
+
             return ResolverService.OK;
         }
 
         if (pId == null) {
-            Logging.logCheckedFine(LOG, "Malformed route query request, no PeerId - discard");
+
+
             return ResolverService.OK;
         }
 
@@ -902,7 +906,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             // incoming messengers.
             if (router.isLocalRoute(qReqAddr)) {
 
-                Logging.logCheckedFine(LOG, "Peer has direct route to destination ");
+
                 // we should set the route to something  :-)
 
                 found = true;
@@ -939,7 +943,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                         }
 
                         if (route.containsHop(aBadHop)) {
-                            Logging.logCheckedFine(LOG, "Peer has bad route due to ", aBadHop);
+
+
                             processBadRoute(aBadHop, route);
                             found = false;
                             break;
@@ -954,7 +959,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             // discard the request if we are not a rendezvous
             // else forward to the next peers
             if (!group.isRendezvous()) {
-                Logging.logCheckedFine(LOG, "discard query forwarding as not a rendezvous");
+
+
                 return ResolverService.OK;
             }
 
@@ -976,7 +982,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
                 if (results.size() > 0) {
 
-                    Logging.logCheckedFine(LOG, "processQuery srdiIndex lookup match : ", results.size());
 
                     // remove any non-rdv peers to avoid sending
                     // to a non-rdv peers and garbage collect the SRDI
@@ -985,7 +990,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
                     if (clean.size() > 0) {
 
-                        Logging.logCheckedFine(LOG, "found an srdi entry forwarding query to SRDI peer");
 
                         // The purpose of incrementing the hopcount
                         // when an SRDI index match is found (we got a
@@ -1008,7 +1012,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                 }
             }
 
-            Logging.logCheckedFine(LOG, "did not find a route or SRDI index");
 
             // force a walk
             return ResolverService.Repropagate;
@@ -1017,11 +1020,11 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         // we found a route send the response
         try {
             if (route == null) {
-                Logging.logCheckedFine(LOG, "we should have had a route at this point");
+
+
                 return ResolverService.OK;
             }
 
-            Logging.logCheckedFine(LOG, "we have a route build route response", route.display());
 
             RouteAdvertisement myRoute = router.getMyLocalRoute();
 
@@ -1039,7 +1042,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             routeResponse.setSrcRoute(myRoute);
 
             if (routeResponse == null) {
-                Logging.logCheckedFine(LOG, "error creating route response");
+
+
                 return ResolverService.OK;
             }
 
@@ -1057,7 +1061,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             return ResolverService.OK;
 
         } catch (Exception ee) {
-            Logging.logCheckedFine(LOG, "processQuery: error while processing query\n", ee);
+
+
             return ResolverService.OK;
         }
     }
@@ -1084,7 +1089,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         // trying to send NACKS. We can't: it just causes NPEs.
         if (resolver == null) return;
 
-        Logging.logCheckedFine(LOG, "generate NACK Route response ", src);
 
         // check first, if we are not already in process of looking for a
         // route to the destination peer of the NACK. We should not try to
@@ -1097,7 +1101,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         // the next NACK processing will be sent.
 
         if (router.isPendingRouteQuery(src)) {
-            Logging.logCheckedFine(LOG, "drop NACK due to pending route discovery ", src);
+
+
             return;
         }
 
@@ -1127,18 +1132,18 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
 
         routeResponse.setDestRoute(route);
         routeResponse.setSrcRoute(routeSrc);
-
+        
         ResolverResponse res = new ResolverResponse();
 
         res.setHandlerName(routerSName);
-
+        
         CurrentCredential current = currentCredential;
 
         if (null != current) {
             res.setCredential(current.credentialDoc); 
-        }
-
-        res.setQueryId(NACKROUTE_QUERYID);
+        } 
+        
+        res.setQueryId(NACKROUTE_QUERYID);        
         res.setResponse(routeResponse.toString());
 
         // send the NACK response back to the originator
@@ -1154,13 +1159,12 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         if(!group.isRendezvous()) {
             return true;
         }
-
+        
         String value;
         SrdiMessage srdiMsg;
 
         try {
 
-            Logging.logCheckedFine(LOG, "Received a SRDI messsage in group", group.getPeerGroupName());
 
             XMLDocument asDoc = (XMLDocument) StructuredDocumentFactory.newStructuredDocument(MimeMediaType.XMLUTF8, new StringReader(message.getPayload()));
             srdiMsg = new SrdiMessageImpl(asDoc);
@@ -1199,7 +1203,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             // acceptable, since it is localized
             srdiIndex.add(srdiMsg.getPrimaryKey(), RouteAdvertisement.DEST_PID_TAG, entry.key, pid, entry.expiration);
 
-            Logging.logCheckedFine(LOG, "Primary Key [", srdiMsg.getPrimaryKey(), "] key [RouteAdvertisement.DEST_PID_TAG] value [", entry.key, "] exp [", entry.expiration, "]");
 
         }
 
@@ -1253,7 +1256,6 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                     1,
                     "route", routeIx);
 
-            Logging.logCheckedFine(LOG, "Sending a SRDI messsage of [All=", all, "] routes");
 
             // this will replicate entry to the  SRDI replica peers
             srdiManager.replicateEntries(srdiMsg);
@@ -1261,7 +1263,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
         } catch (Exception e) {
 
             Logging.logCheckedWarning(LOG, "SRDI Push failed\n", e);
-
+            
         }
     }
 
@@ -1299,11 +1301,11 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
             // don't push anywhere if we do not have a replica
             // or we are trying to send the query to ourself
             if (!localPeerId.equals(peer)) srdiManager.pushSrdi(peer, srdiMsg);
-
+            
         } catch (Exception e) {
 
             Logging.logCheckedWarning(LOG, "SRDI push failed\n", e);
-
+            
         }
     }
 
@@ -1325,7 +1327,7 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                     0);
 
             srdiManager.getReplicaPeer(id.toString());
-            Logging.logCheckedFine(LOG, "sending a router SRDI message delete route ", id);
+
 
             if (peer == null) {
                 PeerID destPeer = srdiManager.getReplicaPeer(id.toString());
@@ -1337,7 +1339,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                 }
             }
         } catch (Exception e) {
-            Logging.logCheckedFine(LOG, "Removing srdi entry failed\n", e);
+
+
         }
     }
 
@@ -1379,7 +1382,8 @@ class RouteResolver implements Module, QueryHandler, SrdiHandler, SrdiPushEntrie
                 continue;
             }
             if (rpvId.contains(pid)) {
-                Logging.logCheckedFine(LOG, "valid rdv for SRDI forward ", pid);
+
+
                 clean.add(pid);
             } else {
                 // cleanup our SRDI cache for that peer

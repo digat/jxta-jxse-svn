@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.socket;
@@ -60,10 +60,8 @@ import net.jxta.credential.CredentialValidator;
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.document.StructuredDocumentFactory;
 import net.jxta.document.XMLDocument;
-import net.jxta.endpoint.EndpointAddress;
 import net.jxta.endpoint.Message;
 import net.jxta.endpoint.MessageElement;
-import net.jxta.impl.endpoint.EndpointServiceImpl;
 import net.jxta.logging.Logging;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.pipe.InputPipe;
@@ -79,12 +77,10 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.Set;
 
 /**
  * JxtaServerSocket is a bi-directional Pipe that behaves very much like
@@ -128,8 +124,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
     protected final static String closeReqValue = "close";
     protected final static String closeAckValue = "closeACK";
     protected static final String streamTag = "stream";
-    protected static final String encryptTag = "encrypt";
-    protected static final String symmetricKeyTag = "symmetricKey";
 
     private final static int DEFAULT_BACKLOG = 50;
     private final static long DEFAULT_TIMEOUT = 60 * 1000L;
@@ -173,15 +167,10 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
     protected volatile boolean bound = false;
     protected volatile boolean closed = false;
     private CredentialValidator credValidator = null;
-
+    
     private volatile Throwable creatorTrace =
             new Throwable("Instance construction stack trace");
     private PeerGroup netPeerGroup;
-
-    /**
-     * The data encryption flag.
-     */
-    private boolean encrypt = false;
 
     /**
      * Default Constructor
@@ -205,19 +194,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
     }
 
     /**
-     * Constructs and binds a JxtaServerSocket using a JxtaSocketAddress as
-     * the address.
-     *
-     * @param address an instance of JxtaSocketAddress
-     * @param encrypt the data
-     * @throws IOException if an io error occurs
-     * @see net.jxta.socket.JxtaSocketAddress
-     */
-    public JxtaServerSocket(SocketAddress address, boolean encrypt) throws IOException {
-        this(address, DEFAULT_BACKLOG, encrypt);
-    }
-
-    /**
      * Constructs and binds a JxtaServerSocket to the specified pipe.
      *
      * @param group   JXTA PeerGroup
@@ -226,18 +202,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
      */
     public JxtaServerSocket(PeerGroup group, PipeAdvertisement pipeAdv) throws IOException {
         this(group, pipeAdv, DEFAULT_BACKLOG);
-    }
-
-    /**
-     * Constructs and binds a JxtaServerSocket to the specified pipe.
-     *
-     * @param group   JXTA PeerGroup
-     * @param pipeAdv PipeAdvertisement on which pipe requests are accepted
-     * @param encrypt the data
-     * @throws IOException if an I/O error occurs
-     */
-    public JxtaServerSocket(PeerGroup group, PipeAdvertisement pipeAdv, boolean encrypt) throws IOException {
-        this(group, pipeAdv, DEFAULT_BACKLOG, encrypt);
     }
 
     /**
@@ -254,20 +218,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
     }
 
     /**
-     * Constructs and binds a JxtaServerSocket using a JxtaSocketAddress as
-     * the address.
-     *
-     * @param address an instance of JxtaSocketAddress
-     * @param backlog the size of the backlog queue
-     * @param encrypt the data
-     * @throws IOException if an I/O error occurs
-     * @see net.jxta.socket.JxtaSocketAddress
-     */
-    public JxtaServerSocket(SocketAddress address, int backlog, boolean encrypt) throws IOException {
-        this(address, backlog, (int) DEFAULT_TIMEOUT, encrypt);
-    }
-
-    /**
      * Constructor for the JxtaServerSocket object
      *
      * @param group   JXTA PeerGroup
@@ -277,19 +227,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
      */
     public JxtaServerSocket(PeerGroup group, PipeAdvertisement pipeAdv, int backlog) throws IOException {
         this(group, pipeAdv, backlog, (int) DEFAULT_TIMEOUT);
-    }
-
-    /**
-     * Constructor for the JxtaServerSocket object
-     *
-     * @param group   JXTA PeerGroup
-     * @param pipeAdv PipeAdvertisement on which pipe requests are accepted
-     * @param backlog the maximum length of the queue.
-     * @param encrypt the data
-     * @throws IOException if an I/O error occurs
-     */
-    public JxtaServerSocket(PeerGroup group, PipeAdvertisement pipeAdv, int backlog, boolean encrypt) throws IOException {
-        this(group, pipeAdv, backlog, (int) DEFAULT_TIMEOUT, encrypt);
     }
 
     /**
@@ -304,23 +241,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
      */
     public JxtaServerSocket(SocketAddress address, int backlog, int timeout) throws IOException {
         setSoTimeout(timeout);
-        bind(address, backlog);
-    }
-
-    /**
-     * Constructs and binds a JxtaServerSocket using a JxtaSocketAddress as
-     * the address.
-     *
-     * @param address an instance of JxtaSocketAddress
-     * @param backlog the size of the backlog queue
-     * @param timeout connection timeout in milliseconds
-     * @param encrypt the data
-     * @throws IOException if an I/O error occurs
-     * @see net.jxta.socket.JxtaSocketAddress
-     */
-    public JxtaServerSocket(SocketAddress address, int backlog, int timeout, boolean encrypt) throws IOException {
-        setSoTimeout(timeout);
-        this.encrypt = encrypt;
         bind(address, backlog);
     }
 
@@ -344,20 +264,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
      * @param pipeAdv PipeAdvertisement on which pipe requests are accepted
      * @param backlog the maximum length of the queue.
      * @param timeout the specified timeout, in milliseconds
-     * @param encrypt the data
-     * @throws IOException if an I/O error occurs
-     */
-    public JxtaServerSocket(PeerGroup group, PipeAdvertisement pipeAdv, int backlog, int timeout, boolean encrypt) throws IOException {
-        this(group, pipeAdv, backlog, timeout, null, encrypt);
-    }
-
-    /**
-     * Constructor for the JxtaServerSocket object.
-     *
-     * @param group   JXTA PeerGroup
-     * @param pipeAdv PipeAdvertisement on which pipe requests are accepted
-     * @param backlog the maximum length of the queue.
-     * @param timeout the specified timeout, in milliseconds
      * @param credValidator the CredentialValidator
      * @throws IOException if an I/O error occurs
      */
@@ -368,31 +274,13 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
     }
 
     /**
-     * Constructor for the JxtaServerSocket object.
-     *
-     * @param group   JXTA PeerGroup
-     * @param pipeAdv PipeAdvertisement on which pipe requests are accepted
-     * @param backlog the maximum length of the queue.
-     * @param timeout the specified timeout, in milliseconds
-     * @param credValidator the CredentialValidator
-     * @param encrypt the data
-     * @throws IOException if an I/O error occurs
-     */
-    public JxtaServerSocket(PeerGroup group, PipeAdvertisement pipeAdv, int backlog, int timeout, CredentialValidator credValidator, boolean encrypt) throws IOException {
-        setSoTimeout(timeout);
-        this.credValidator = credValidator;
-        this.encrypt = encrypt;
-        bind(group, pipeAdv, backlog);
-    }
-
-    /**
      * {@inheritDoc}
      * <p/>
      * Closes the JxtaServerPipe.
      */
     @Override
     protected void finalize() throws Throwable {
-
+        
         super.finalize();
         if (!closed) Logging.logCheckedWarning(LOG, "JxtaServerSocket is being finalized without being previously closed. This is likely an application level bug.", creatorTrace);
         close();
@@ -427,7 +315,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
 
         try {
 
-            Logging.logCheckedFine(LOG, "Waiting for a connection");
 
             while (true) {
 
@@ -436,7 +323,7 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
                 Message msg = queue.poll(timeout, TimeUnit.MILLISECONDS);
 
                 if (isClosed()) throw new SocketException("Socket is closed");
-
+                
                 if (msg == null) throw new SocketTimeoutException("Timeout reached");
 
                 if (QUEUE_END_MESSAGE == msg) throw new SocketException("Socket is closed.");
@@ -446,11 +333,11 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
                 // make sure we have a socket returning
                 if (socket != null) {
 
-                    Logging.logCheckedFine(LOG, "New socket connection ", socket);
+
                     return socket;
 
                 } else {
-
+                    
                     Logging.logCheckedWarning(LOG, "No connection.");
 
                 }
@@ -528,9 +415,8 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
                         "Can't connect socket in PeerGroup with id " + socketAddress.getPeerGroupId()
                         + ". No running instance of the group is registered.");
             }
-//            bind(pg.getWeakInterface(), socketAddress.getPipeAdv(), backlog);
-            bind(pg, socketAddress.getPipeAdv(), backlog);
-//            pg.unref();
+            bind(pg.getWeakInterface(), socketAddress.getPipeAdv(), backlog);
+            pg.unref();
         } else {
             throw new IllegalArgumentException("Unsupported subclass of SocketAddress; " + "use JxtaSocketAddress instead.");
         }
@@ -568,7 +454,7 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
         }
 
         Logging.logCheckedInfo(LOG, "Closed : ", this);
-
+        
     }
 
     /**
@@ -644,28 +530,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
     }
 
     /**
-     * Gets the encrypt flag status. If true, data will be encrypted between
-     * the remote JxtaSocket and the JxtaSocket created by the JxtaServerSocket.
-     * 
-     * @return encrypt
-     */
-    public boolean isEncrypted() {
-        return encrypt;
-    }
-
-    /**
-     * Sets the encrypt flag status. If true, data will be encrypted between
-     * the remote JxtaSocket and the JxtaSocket created by the JxtaServerSocket.
-     * Can only be set before the JxtaServerSocket is bound
-     *
-     * @param encrypt
-     */
-    public void setEncrypted(boolean encrypt) {
-        if (!isBound())
-            this.encrypt = encrypt;
-    }
-
-    /**
      * Gets the group associated with this JxtaServerSocket object
      *
      * @return The group value
@@ -703,12 +567,11 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
 
         } catch (InterruptedException woken) {
 
-            Logging.logCheckedFine(LOG, "Interrupted\n", woken);
 
         }
 
         Logging.logCheckedWarning(LOG, "backlog queue full, connect request dropped");
-
+        
     }
 
     /**
@@ -726,7 +589,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
         PeerAdvertisement remotePeerAdv = null;
         Credential credential = null;
 
-        Logging.logCheckedFine(LOG, "Processing a connection message : ", msg);
 
         try {
             MessageElement el = msg.getMessageElement(MSG_ELEMENT_NAMESPACE, reqPipeTag);
@@ -764,12 +626,9 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
                 isReliable = Boolean.valueOf(el.toString());
             }
 
-            Set<EndpointAddress> verifiedAddressSet = (Set)msg.getMessageProperty(EndpointServiceImpl.VERIFIED_ADDRESS_SET);
-            Set<X509Certificate> tempCertSet = (Set)msg.getMessageProperty(EndpointServiceImpl.MESSAGE_SIGNER_SET);
-
             if ((null != remoteEphemeralPipeAdv) && (null != remotePeerAdv)) {
 
-                return createEphemeralSocket(group, pipeAdv, remoteEphemeralPipeAdv, remotePeerAdv, localCredential, credential, isReliable, verifiedAddressSet, tempCertSet);
+                return createEphemeralSocket(group, pipeAdv, remoteEphemeralPipeAdv, remotePeerAdv, localCredential, credential, isReliable);
 
             } else {
 
@@ -782,12 +641,12 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
 
             // deal with the error
             Logging.logCheckedWarning(LOG, "IOException occured\n", e);
-
+            
         } catch (RuntimeException e) {
 
             // deal with the error
             Logging.logCheckedWarning(LOG, "Exception occured\n", e);
-
+            
         }
         return null;
     }
@@ -819,28 +678,6 @@ public class JxtaServerSocket extends ServerSocket implements PipeMsgListener {
      */
     protected JxtaSocket createEphemeralSocket(PeerGroup group, PipeAdvertisement pipeAdv, PipeAdvertisement remoteEphemeralPipeAdv, PeerAdvertisement remotePeerAdv, Credential localCredential, Credential credential, boolean isReliable) throws IOException {
         return new JxtaSocket(group, pipeAdv, remoteEphemeralPipeAdv, remotePeerAdv, localCredential, credential, isReliable);
-    }
-
-    /**
-     * Construct the emphemeral socket result from accept. This method exists
-     * primarily so that sub-classes can substitute a different JxtaSocket
-     * sub-class.
-     *
-     * @param group               The peer group for the socket.
-     * @param pipeAdv             The public pipe advertisement.
-     * @param remoteEphemeralPipeAdv The pipe advertisement of the remote peer's
-     *                            ephemeral pipe.
-     * @param remotePeerAdv          The peer advertisement of the remote peer.
-     * @param localCredential        Our credential.
-     * @param credential          The credential of the remote peer.
-     * @param isReliable          if true, uses the reliability library in non-direct mode
-     * @param verifiedAddressSet          The verified address set from the connect Message
-     * @param verifiedAddressCertSet          The verified cert set from the connect Message
-     * @return The new JxtaSocket instance.
-     * @throws IOException if an io error occurs
-     */
-    protected JxtaSocket createEphemeralSocket(PeerGroup group, PipeAdvertisement pipeAdv, PipeAdvertisement remoteEphemeralPipeAdv, PeerAdvertisement remotePeerAdv, Credential localCredential, Credential credential, boolean isReliable, Set<EndpointAddress> verifiedAddressSet, Set<X509Certificate> verifiedAddressCertSet) throws IOException {
-        return new JxtaSocket(group, pipeAdv, remoteEphemeralPipeAdv, remotePeerAdv, localCredential, credential, isReliable, verifiedAddressSet, verifiedAddressCertSet, encrypt);
     }
 
     /**

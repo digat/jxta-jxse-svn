@@ -1,32 +1,32 @@
 /*
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Copyright (c) 2001-2007 Sun Microsystems, Inc. All rights reserved.
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
 
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -60,7 +60,6 @@ import net.jxta.content.*;
 import net.jxta.document.Advertisement;
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.document.Document;
-import net.jxta.document.MimeMediaType;
 import net.jxta.id.ID;
 import net.jxta.id.IDFactory;
 import net.jxta.impl.content.ModuleWrapperFactory;
@@ -195,7 +194,7 @@ public class SRDISocketContentProvider
 
             Logging.logCheckedSevere(LOG, "Uncaught throwable in pool thread: ",
                 thread, "\n", throwable);
-
+            
         }
     }
 
@@ -239,7 +238,6 @@ public class SRDISocketContentProvider
      */
     public void init(PeerGroup group, ID assignedID, Advertisement implAdv) {
 
-        Logging.logCheckedFine(LOG, "initProvider(): group=", group);
 
         peerGroup = group;
         executor = Executors.newScheduledThreadPool(
@@ -259,17 +257,16 @@ public class SRDISocketContentProvider
      */
     public synchronized int startApp(String[] args) {
 
-        Logging.logCheckedFine(LOG, "startApp()");
 
         if (running) return Module.START_OK;
-
+        
         if (peerGroup.getPipeService() == null) {
 
             Logging.logCheckedWarning(LOG, "Stalled until there is a PipeService");
             return Module.START_AGAIN_STALLED;
 
         }
-
+        
         running = true;
 
         // Start the accept loop
@@ -287,7 +284,6 @@ public class SRDISocketContentProvider
      */
     public synchronized void stopApp() {
 
-        Logging.logCheckedFine(LOG, "stopApp()");
 
         if (!running) return;
 
@@ -307,14 +303,14 @@ public class SRDISocketContentProvider
 
     }
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public ContentProviderSPI getInterface() {
-//        return (ContentProviderSPI) ModuleWrapperFactory.newWrapper(
-//                new Class[]{ContentProviderSPI.class},
-//                this);
-//    }
+    /**
+     * {@inheritDoc}
+     */
+    public ContentProviderSPI getInterface() {
+        return (ContentProviderSPI) ModuleWrapperFactory.newWrapper(
+                new Class[]{ContentProviderSPI.class},
+                this);
+    }
 
     /**
      * {@inheritDoc}
@@ -353,7 +349,6 @@ public class SRDISocketContentProvider
      */
     public ContentTransfer retrieveContent(ContentID contentID) {
 
-        Logging.logCheckedFine(LOG, "retrieveContent(" + contentID + ")");
 
         synchronized (this) {
             if (!running) {
@@ -377,7 +372,6 @@ public class SRDISocketContentProvider
      */
     public ContentTransfer retrieveContent(ContentShareAdvertisement adv) {
 
-        Logging.logCheckedFine(LOG, "retrieveContent(ContentShareAdvertisement)");
 
         synchronized (this) {
             if (!running) {
@@ -399,12 +393,12 @@ public class SRDISocketContentProvider
      */
     public List<ContentShare> shareContent(Content content) {
 
-        Logging.logCheckedFine(LOG, "shareContent(): Content=", content);
 
         PipeAdvertisement pAdv;
         synchronized (this) {
             if (pipeAdv == null) {
-                Logging.logCheckedFine(LOG, "Cannot create share before initialization");
+
+
                 return null;
             }
             pAdv = pipeAdv;
@@ -439,7 +433,6 @@ public class SRDISocketContentProvider
      */
     public boolean unshareContent(ContentID contentID) {
 
-        Logging.logCheckedFine(LOG, "unhareContent(): ContentID=", contentID);
 
         ContentShare oldShare;
         synchronized (shares) {
@@ -495,7 +488,6 @@ public class SRDISocketContentProvider
      */
     private void acceptExecution() {
 
-        Logging.logCheckedFine(LOG, "Acceptor thread starting");
 
         JxtaServerSocket serverSocket = null;
 
@@ -514,23 +506,21 @@ public class SRDISocketContentProvider
                         serverSocket = new JxtaServerSocket(peerGroup, pipeAdv);
                     }
 
-                    Logging.logCheckedFiner(LOG, "Waiting to accept client...");
-
                     Socket socket = serverSocket.accept();
 
                     if (socket != null) {
-                        Logging.logCheckedFine(LOG, "Incoming socket connection");
+
+
                         executor.execute(new Client(socket));
                     }
 
                 } catch (SocketTimeoutException socktox) {
 
-                    Logging.logCheckedFinest(LOG, "Socket timed out");
 
                 } catch (IOException iox) {
 
                     Logging.logCheckedSevere(LOG, "Caught exception in acceptor loop\n", iox);
-
+                    
                     // Close and deref the current socket
                     try {
                         serverSocket.close();
@@ -539,7 +529,7 @@ public class SRDISocketContentProvider
                     } finally {
                         serverSocket = null;
                     }
-
+                    
                     // Wait a while before the next attempt
                     try {
 
@@ -567,7 +557,6 @@ public class SRDISocketContentProvider
             }
         }
 
-        Logging.logCheckedFine(LOG, "Accceptor thread exiting");
 
     }
 
@@ -581,7 +570,6 @@ public class SRDISocketContentProvider
 
         try {
 
-            Logging.logCheckedFine(LOG, "Client executing against socket: ", socket);
 
             InputStream inStream = socket.getInputStream();
             ContentRequest request = ContentRequest.readFromStream(inStream);
@@ -592,8 +580,6 @@ public class SRDISocketContentProvider
 
             if (share != null) share.fireShareSessionOpened(remote);
 
-            Logging.logCheckedFine(LOG, "Client response being sent:\n",
-                        response.getDocument(MimeMediaType.XMLUTF8));
 
             OutputStream outStream = socket.getOutputStream();
             response.writeToStream(outStream);
@@ -601,7 +587,7 @@ public class SRDISocketContentProvider
             if (response.getSuccess()) {
 
                 // Send the content data
-                Logging.logCheckedFine(LOG, "Client transfer starting");
+
 
                 // Notify listeners of access by remote peer
                 share.fireShareSessionAccessed(remote);
@@ -612,12 +598,11 @@ public class SRDISocketContentProvider
                 outStream.flush();
             }
 
-            Logging.logCheckedFine(LOG, "Client transaction completed");
 
         } catch (IOException iox) {
 
             Logging.logCheckedWarning(LOG, "Caught exception in client thread\n", iox);
-
+            
         } catch (RuntimeException rtx) {
 
             Logging.logCheckedSevere(LOG, "Caught runtime exception\n", rtx);
@@ -632,7 +617,8 @@ public class SRDISocketContentProvider
             try {
                 socket.close();
             } catch (IOException ignore) {
-                Logging.logCheckedFinest(LOG, "Ignoring exception", ignore);
+
+
             }
 
         }

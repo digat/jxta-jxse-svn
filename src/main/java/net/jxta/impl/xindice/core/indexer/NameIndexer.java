@@ -1,5 +1,6 @@
 package net.jxta.impl.xindice.core.indexer;
 
+
 /*
  * The Apache Software License, Version 1.1
  *
@@ -65,6 +66,7 @@ import net.jxta.impl.xindice.core.filer.BTreeCorruptException;
 
 import java.io.File;
 import java.io.IOException;
+
 
 /**
  * NameIndexer is a basic implementation of the Indexer interface.

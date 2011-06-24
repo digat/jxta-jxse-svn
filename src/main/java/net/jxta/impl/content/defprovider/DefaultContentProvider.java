@@ -1,32 +1,32 @@
 /*
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Copyright (c) 2001-2007 Sun Microsystems, Inc. All rights reserved.
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
 
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
@@ -197,7 +197,7 @@ public class DefaultContentProvider implements
      * Parsed and ready-to-use version of MODULE_SPEC_ID.
      */
     private static final ModuleSpecID specID;
-
+    
     // Initialized at construction
     private final Map<ID, DefaultContentShare> shares =
             new HashMap<ID, DefaultContentShare>();
@@ -245,15 +245,15 @@ public class DefaultContentProvider implements
         }
 
         public void uncaughtException(Thread thread, Throwable throwable) {
-
+            
             Logging.logCheckedSevere(LOG, "Uncaught throwable in pool thread: ", thread, "\n", throwable);
-
+            
         }
     }
 
     //////////////////////////////////////////////////////////////////////////
     // Constructors and initializers:
-
+    
     /**
      * Static initializer.
      */
@@ -276,7 +276,6 @@ public class DefaultContentProvider implements
      */
     public void init(PeerGroup group, ID assignedID, Advertisement implAdv) {
 
-        Logging.logCheckedFine(LOG, "initProvider(): group=", group);
 
         peerGroup = group;
         executor = Executors.newScheduledThreadPool(
@@ -299,10 +298,9 @@ public class DefaultContentProvider implements
      */
     public synchronized int startApp(String[] args) {
 
-        Logging.logCheckedFine(LOG, "startApp()");
 
         if (running) return Module.START_OK;
-
+        
         running = true;
 
         if (requestPipe == null) {
@@ -335,7 +333,8 @@ public class DefaultContentProvider implements
                 try {
                     processMessages();
                 } catch (InterruptedException intx) {
-                    Logging.logCheckedFine(LOG, "Interrupted\n" + intx);
+
+
                     Thread.interrupted();
                 }
             }
@@ -351,10 +350,9 @@ public class DefaultContentProvider implements
      */
     public synchronized void stopApp() {
 
-        Logging.logCheckedFine(LOG, "stopApp()");
 
         if (!running) return;
-
+        
         tracker.stop();
         msgQueue.clear();
 
@@ -368,18 +366,18 @@ public class DefaultContentProvider implements
          * like the idea of each instance using it's own dedicated thread.
          * Suggestions?
          */
-
+        
         running = false;
         notifyAll();
     }
-
+    
     /**
      * {@inheritDoc}
      */
     public ContentProviderSPI getInterface() {
         return  (ContentProviderSPI) ModuleWrapperFactory.newWrapper(
                 new Class[] { ContentProviderSPI.class },
-                this);
+                this);        
     }
 
     /**
@@ -394,9 +392,10 @@ public class DefaultContentProvider implements
         adv.setProvider("https://jxta.dev.java.net/");
         adv.setDescription("ContentProvider implementation using a simple, "
                 + "proprietary, portable, but slow protocol");
-
+        
         return adv;
     }
+
 
     //////////////////////////////////////////////////////////////////////////
     // ContentProvider interface methods:
@@ -421,7 +420,6 @@ public class DefaultContentProvider implements
      */
     public ContentTransfer retrieveContent(ContentID contentID) {
 
-        Logging.logCheckedFine(LOG, "retrieveContent(", contentID, ")");
 
         synchronized(this) {
             if (!running) return null;
@@ -441,7 +439,6 @@ public class DefaultContentProvider implements
      */
     public ContentTransfer retrieveContent(ContentShareAdvertisement adv) {
 
-        Logging.logCheckedFine(LOG, "retrieveContent(", adv, ")");
 
         synchronized(this) {
             if (!running) return null;
@@ -461,7 +458,6 @@ public class DefaultContentProvider implements
      */
     public List<ContentShare> shareContent(Content content) {
 
-        Logging.logCheckedFine(LOG, "shareContent(): Content=", content, " ", this);
 
         PipeAdvertisement pAdv;
 
@@ -470,7 +466,8 @@ public class DefaultContentProvider implements
         }
 
         if (pipeAdv == null) {
-            Logging.logCheckedFine(LOG, "Cannot create share before initialization");
+
+
             return null;
         }
 
@@ -503,7 +500,6 @@ public class DefaultContentProvider implements
      */
     public boolean unshareContent(ContentID contentID) {
 
-        Logging.logCheckedFine(LOG, "unhareContent(): ContentID=", contentID);
 
         ContentShare oldShare;
         synchronized(shares) {
@@ -569,7 +565,8 @@ public class DefaultContentProvider implements
         if (msgQueue.offer(pme)) {
             notifyAll();
         } else {
-            Logging.logCheckedFine(LOG, "Dropped message due to full queue");
+
+
         }
     }
 
@@ -616,7 +613,6 @@ public class DefaultContentProvider implements
         PipeMsgEvent pme;
         Message msg;
 
-        Logging.logCheckedFine(LOG, "Worker thread starting");
 
         while (true) {
             synchronized(this) {
@@ -639,11 +635,10 @@ public class DefaultContentProvider implements
             } catch (Exception x) {
 
                 Logging.logCheckedWarning(LOG, "Uncaught exception\n", x);
-
+                
             }
         }
 
-        Logging.logCheckedFine(LOG, "Worker thread closing up shop");
 
     }
 
@@ -657,7 +652,6 @@ public class DefaultContentProvider implements
         StructuredDocument doc;
         DataRequest req;
 
-        Logging.logCheckedFinest(LOG, "Incoming message:\n", msg.toString(), "\n");
 
         it = msg.getMessageElementsOfNamespace(MSG_NAMESPACE);
 
@@ -677,12 +671,12 @@ public class DefaultContentProvider implements
 
             } catch (IOException iox) {
 
-                Logging.logCheckedFine(LOG, "Could not process message\n", iox);
+
                 return;
 
             }
 
-            Logging.logCheckedFinest(LOG, "Request: ", req.getDocument(MimeMediaType.XMLUTF8));
+
             processDataRequest(req);
 
         }
@@ -699,12 +693,6 @@ public class DefaultContentProvider implements
         DefaultContentShare share;
         int written;
 
-        Logging.logCheckedFinest(LOG, "DataRequest:");
-        Logging.logCheckedFinest(LOG, "   ContentID: ", req.getContentID());
-        Logging.logCheckedFinest(LOG, "   Offset : ", req.getOffset());
-        Logging.logCheckedFinest(LOG, "   Length : ", req.getLength());
-        Logging.logCheckedFinest(LOG, "   QID    : ", req.getQueryID());
-        Logging.logCheckedFinest(LOG, "   PipeAdv: ", req.getResponsePipe());
 
         share = getShare(req.getContentID());
 
@@ -722,7 +710,7 @@ public class DefaultContentProvider implements
             byteOut = new ByteArrayOutputStream();
             written = session.getData(
                     req.getOffset(), req.getLength(), byteOut);
-
+            
             // Send response
             resp = new DataResponse(req);
             if (written <= 0) {
@@ -738,11 +726,11 @@ public class DefaultContentProvider implements
         } catch (TooManyClientsException tmcx) {
 
             Logging.logCheckedWarning(LOG, "Too many concurrent clients.  Discarding.");
-
+            
         } catch (IOException iox) {
 
             Logging.logCheckedWarning(LOG, "Exception while handling data request\n", iox);
-
+            
         }
     }
 
@@ -767,18 +755,15 @@ public class DefaultContentProvider implements
             msg.addMessageElement(MSG_NAMESPACE, msge);
         }
 
-        Logging.logCheckedFiner(LOG, "Sending response: " + msg);
-
         try {
             if (destPipe.send(msg)) return;
         } catch (IOException iox) {
             Logging.logCheckedWarning(LOG, "IOException during message send\n", iox);
         }
 
-        Logging.logCheckedFine(LOG, "Did not send message");
 
     }
-
+    
     /**
      * Notify our listeners that the provided shares are being exposed.
      * 

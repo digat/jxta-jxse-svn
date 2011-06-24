@@ -74,6 +74,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.jxta.access.AccessService;
 import net.jxta.content.ContentService;
 import net.jxta.discovery.DiscoveryService;
@@ -89,6 +90,7 @@ import net.jxta.exception.ServiceNotFoundException;
 import net.jxta.id.ID;
 import net.jxta.id.IDFactory;
 import net.jxta.impl.loader.RefJxtaLoader;
+import net.jxta.impl.pipe.WirePipe;
 import net.jxta.impl.protocol.PSEConfigAdv;
 import net.jxta.impl.protocol.PeerGroupConfigAdv;
 import net.jxta.impl.protocol.PeerGroupConfigFlag;
@@ -138,6 +140,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
             return CompatibilityUtils.isCompatible(test);
         }
     };
+            
 
     /**
      * Statically scoped JxtaLoader which is used as the root of the
@@ -247,6 +250,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
      */
     protected volatile boolean initComplete = false;
 
+
     /**
      * {@inheritDoc}
      * <p/>
@@ -263,8 +267,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (parentGroup == null) {
             return null;
         }
-        return parentGroup;
-//        return parentGroup.getWeakInterface();
+        return parentGroup.getWeakInterface();
     }
 
     /**
@@ -534,8 +537,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
             throw new ServiceNotFoundException("Not found: " + mcid.toString());
         }
 
-//        return p.getInterface();
-        return p;
+        return p.getInterface();
     }
 
     /**
@@ -673,8 +675,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
                 }
 
                 newMod = clazz.newInstance();
-//                newMod.init(privileged ? this : getInterface(), assigned, implAdv);
-                newMod.init(this, assigned, implAdv);
+                newMod.init(privileged ? this : getInterface(), assigned, implAdv);
 
                 Logging.logCheckedInfo(LOG, "Loaded", (privileged ? " privileged" : ""),
                     " module : ", implAdv.getDescription(), " (", implAdv.getCode(), ")");
@@ -752,6 +753,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
 
     	ModuleImplAdvertisement loadedImplAdv = loader.findModuleImplAdvertisement(specID);
 
+
     	// We already have a module defined for this spec id.
     	// We test the spec id before deciding to use it
     	if (null != loadedImplAdv && specID.equals(loadedImplAdv.getModuleSpecID())) {
@@ -806,7 +808,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
             } catch (ProtocolNotSupportedException failed) {
 
                 // Incompatible implementation.
-                Logging.logCheckedFine(LOG, "Incompatbile impl adv");
+                Logging.logCheckedWarning(LOG, "Initialization failed incompatible implementation\n", failed);
 
             } catch (PeerGroupException failed) {
 
@@ -1045,7 +1047,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
             // the config to see if we have any PeerGroupConfigAdv params
             if (null == parentGroup) {
 
-                Logging.logCheckedFine(LOG, "Setting up group loader -> static loader");
+
                 loader = new RefJxtaLoader(new URL[0], staticLoader, COMP_EQ, this);
 
             } else {
@@ -1066,7 +1068,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
                     }
                 }
 
-                Logging.logCheckedFine(LOG, "Setting up group loader -> ", upLoader);
+
                 loader = new RefJxtaLoader(new URL[0], upLoader, COMP_EQ, this);
 
             }
@@ -1171,10 +1173,10 @@ public abstract class GenericPeerGroup implements PeerGroup {
                 configInfo.append("\n\t\tImpl Description : ").append(implAdvertisement.getDescription());
                 configInfo.append("\n\t\tImpl URI : ").append(implAdvertisement.getUri());
                 configInfo.append("\n\t\tImpl Code : ").append(implAdvertisement.getCode());
-                configInfo.append("\n\t\tModule Spec ID : ").append(implAdvertisement.getModuleSpecID());
-            }
 
+            }
             configInfo.append("\n\tGroup Params :");
+            configInfo.append("\n\t\tModule Spec ID : ").append(implAdvertisement.getModuleSpecID());
             configInfo.append("\n\t\tPeer Group ID : ").append(getPeerGroupID());
             configInfo.append("\n\t\tGroup Name : ").append(getPeerGroupName());
             configInfo.append("\n\t\tPeer ID in Group : ").append(getPeerID());
@@ -1239,7 +1241,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         // to terminate if this group object was itself the last reference
         // to it.
         if (parentGroup != null) {
-//            parentGroup.unref();
+            parentGroup.unref();
             parentGroup = null;
         }
         // executors from TaskManager are now shutdown by the NetworkManager
@@ -1247,16 +1249,16 @@ public abstract class GenericPeerGroup implements PeerGroup {
         initComplete = false;
     }
 
-//    /**
-//     * {@inheritDoc}
-//     * <p/>
-//     * May be called by a module which has a direct reference to the group
-//     * object and wants to notify its abandoning it. Has no effect on the real
-//     * group object.
-//     */
-//    public boolean unref() {
-//        return true;
-//    }
+    /**
+     * {@inheritDoc}
+     * <p/>
+     * May be called by a module which has a direct reference to the group
+     * object and wants to notify its abandoning it. Has no effect on the real
+     * group object.
+     */
+    public boolean unref() {
+        return true;
+    }
 
     /**
      * Called every time an interface object that refers to this group
@@ -1292,54 +1294,54 @@ public abstract class GenericPeerGroup implements PeerGroup {
         stopApp();
     }
 
-//    /*
-//     * Implement the Service API so that we can make groups services when we
-//     * decide to.
-//     */
-//    /**
-//     * {@inheritDoc}
-//     */
-//    @Deprecated
-//    public PeerGroup getInterface() {
-//
-//        /*
-//         * Interfaces try to solve a problem solved by OSGi. We should rely on OSGi in the
-//         * future to solve reference issues.
-//         */
-//        return this;
-//
-////        if (stopping) {
-////            throw new IllegalStateException("Group has been shutdown. getInterface() is not available");
-////        }
-////
-////        if (initComplete) {
-////            // If init is complete the group can become sensitive to its ref
-////            // count reaching zero. Before there could be transient references
-////            // before there is a chance to give a permanent reference to the
-////            // invoker of newGroup.
-////            stopWhenUnreferenced = true;
-////        }
-////
-////        int new_count = masterRefCount.incrementAndGet();
-////
-////        PeerGroupInterface pgInterface = new RefCountPeerGroupInterface(this);
-////
-////        if (Logging.SHOW_INFO && LOG.isLoggable(Level.INFO)) {
-////            Throwable trace = new Throwable("Stack Trace");
-////            StackTraceElement elements[] = trace.getStackTrace();
-////
-////            LOG.info("[" + pgInterface + "] GROUP REF COUNT INCREMENTED TO: " + new_count + " by\n\t" + elements[2]);
-////        }
-////
-////        return pgInterface;
-//    }
+    /*
+     * Implement the Service API so that we can make groups services when we
+     * decide to.
+     */
+    /**
+     * {@inheritDoc}
+     */
+    @Deprecated
+    public PeerGroup getInterface() {
 
-//    /**
-//     * {@inheritDoc}
-//     */
-//    public PeerGroup getWeakInterface() {
-//        return new PeerGroupInterface(this);
-//    }
+        /*
+         * Interfaces try to solve a problem solved by OSGi. We should rely on OSGi in the
+         * future to solve reference issues.
+         */
+        return this;
+
+//        if (stopping) {
+//            throw new IllegalStateException("Group has been shutdown. getInterface() is not available");
+//        }
+//
+//        if (initComplete) {
+//            // If init is complete the group can become sensitive to its ref
+//            // count reaching zero. Before there could be transient references
+//            // before there is a chance to give a permanent reference to the
+//            // invoker of newGroup.
+//            stopWhenUnreferenced = true;
+//        }
+//
+//        int new_count = masterRefCount.incrementAndGet();
+//
+//        PeerGroupInterface pgInterface = new RefCountPeerGroupInterface(this);
+//
+//        if (Logging.SHOW_INFO && LOG.isLoggable(Level.INFO)) {
+//            Throwable trace = new Throwable("Stack Trace");
+//            StackTraceElement elements[] = trace.getStackTrace();
+//
+//            LOG.info("[" + pgInterface + "] GROUP REF COUNT INCREMENTED TO: " + new_count + " by\n\t" + elements[2]);
+//        }
+//
+//        return pgInterface;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public PeerGroup getWeakInterface() {
+        return new PeerGroupInterface(this);
+    }
 
     /**
      * {@inheritDoc}
@@ -1416,24 +1418,13 @@ public abstract class GenericPeerGroup implements PeerGroup {
             throw new PeerGroupException("Could not find group implementation with " + adv.getModuleSpecID());
         }
 
-//        return theNewGroup.getInterface();
-        return theNewGroup;
+        return theNewGroup.getInterface();
     }
 
     /**
      * {@inheritDoc}
      */
     public PeerGroup newGroup(PeerGroupID gid, Advertisement impl, String name, String description) throws PeerGroupException {
-
-        return this.newGroup(gid, impl, name, description, true);
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public PeerGroup newGroup(PeerGroupID gid, Advertisement impl, String name, String description, boolean publish) throws PeerGroupException {
-
         PeerGroup theNewGroup = null;
 
         if (null != gid) {
@@ -1453,22 +1444,18 @@ public abstract class GenericPeerGroup implements PeerGroup {
 
         }
 
-        if ( publish ) {
+        try {
 
-            try {
+            // The group adv definitely needs to be published.
+            theNewGroup.publishGroup(name, description);
 
-                // The group adv definitely needs to be published.
-                theNewGroup.publishGroup(name, description);
+        } catch (Exception any) {
 
-            } catch (Exception any) {
-
-                Logging.logCheckedWarning(LOG, "Could not publish group or implementation:\n", any);
-
-            }
+            Logging.logCheckedWarning(LOG, "Could not publish group or implementation:\n", any);
 
         }
 
-        return theNewGroup;
+        return theNewGroup.getInterface();
 
     }
 
@@ -1573,7 +1560,11 @@ public abstract class GenericPeerGroup implements PeerGroup {
      */
     public boolean isRendezvous() {
 
-        if (rendezvous == null) Logging.logCheckedFine(LOG, "Rendezvous service null");
+        if (rendezvous == null)
+        {
+
+
+        }
 
         return (rendezvous != null) && rendezvous.isRendezVous();
 
@@ -1599,9 +1590,9 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (resolver == null) {
             return null;
         }
-        return resolver; // .getInterface();
+        return (ResolverService) resolver.getInterface();
     }
-
+    
     public GlobalRegistry getGlobalRegistry()
     {
         return parentGroup.getGlobalRegistry();
@@ -1614,7 +1605,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (discovery == null) {
             return null;
         }
-        return discovery; // .getInterface();
+        return (DiscoveryService) discovery.getInterface();
     }
 
     /**
@@ -1624,7 +1615,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (peerinfo == null) {
             return null;
         }
-        return peerinfo; // .getInterface();
+        return (PeerInfoService) peerinfo.getInterface();
     }
 
     /**
@@ -1634,7 +1625,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (membership == null) {
             return null;
         }
-        return membership; // .getInterface();
+        return (MembershipService) membership.getInterface();
     }
 
     /**
@@ -1644,7 +1635,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (pipe == null) {
             return null;
         }
-        return pipe; // .getInterface();
+        return (PipeService) pipe.getInterface();
     }
 
     /**
@@ -1654,7 +1645,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (rendezvous == null) {
             return null;
         }
-        return rendezvous; // .getInterface();
+        return (RendezVousService) rendezvous.getInterface();
     }
 
     /**
@@ -1664,7 +1655,7 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (access == null) {
             return null;
         }
-        return access; // .getInterface();
+        return (AccessService) access.getInterface();
     }
 
     /**
@@ -1674,15 +1665,20 @@ public abstract class GenericPeerGroup implements PeerGroup {
         if (content == null) {
             return null;
         }
-        return content; // .getInterface();
+        return (ContentService) content.getInterface();
     }
 
     public TaskManager getTaskManager() {
         return parentGroup.getTaskManager();
         }
 
-//    @Deprecated
-//    public ThreadGroup getHomeThreadGroup() {
-//        return JXSE_THREAD_GROUP;
-//    }
+    public WirePipe.IDCache getWirePipeIDCache()
+    {
+        return parentGroup.getWirePipeIDCache();
+    }
+
+    @Deprecated
+    public ThreadGroup getHomeThreadGroup() {
+        return JXSE_THREAD_GROUP;
+    }
 }

@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.impl.endpoint.tcp;
@@ -73,7 +73,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Logger;
@@ -164,7 +163,7 @@ public class IncomingUnicastServer implements Runnable {
         }
 
         // Start daemon thread
-        acceptThread = new Thread(this, "ServerSocketChannel acceptor for " + getLocalSocketAddress());
+        acceptThread = new Thread(transport.group.getHomeThreadGroup(), this, "ServerSocketChannel acceptor for " + getLocalSocketAddress());
         acceptThread.setDaemon(true);
         acceptThread.start();
 
@@ -242,7 +241,7 @@ public class IncomingUnicastServer implements Runnable {
                         serverSocket = null;
 
                         if (null == (serverSocChannel = openServerSocket(acceptSelector))) {
-
+                            
                             Logging.logCheckedWarning(LOG, "Failed to open Server Channel");
                             break;
 
@@ -276,8 +275,8 @@ public class IncomingUnicastServer implements Runnable {
                                 transport.executor.execute(builder);
                                 transport.incrementConnectionsAccepted();
                             } catch (RejectedExecutionException re) {
-                                Logging.logCheckedFine(LOG, MessageFormat.format("Executor rejected task : {0}", builder.toString()),
-                                    "\n", re.toString());
+
+
                             }
                         }
                     }
@@ -287,7 +286,7 @@ public class IncomingUnicastServer implements Runnable {
                     break;
 
                 } catch (InterruptedIOException woken) {
-
+                    
                     Thread.interrupted();
 
                 } catch (IOException e1) {
@@ -295,7 +294,7 @@ public class IncomingUnicastServer implements Runnable {
                     if (!acceptSelector.isOpen()) break;
 
                     Logging.logCheckedWarning(LOG, "[1] ServerSocket.accept() failed on ", serverSocket.getInetAddress(), ":", serverSocket.getLocalPort(), "\n", e1);
-
+                    
                 } catch (SecurityException e2) {
 
                     Logging.logCheckedWarning(LOG, "[2] ServerSocket.accept() failed on ", serverSocket.getInetAddress(), ":", serverSocket.getLocalPort(), "\n", e2);
@@ -307,7 +306,7 @@ public class IncomingUnicastServer implements Runnable {
         } catch (Throwable all) {
 
             Logging.logCheckedSevere(LOG, "Uncaught Throwable in thread :", Thread.currentThread().getName(), "\n", all);
-
+            
         } finally {
 
             synchronized (this) {
@@ -318,14 +317,15 @@ public class IncomingUnicastServer implements Runnable {
                     try {
                         temp.close();
                     } catch (IOException ignored) {
-                        Logging.logCheckedFine(LOG, "Exception occurred while closing server socket\n", ignored);
+
+
                     }
                 }
                 acceptThread = null;
             }
 
             Logging.logCheckedInfo(LOG, "Server has been shut down. ", transport.getPublicAddress());
-
+            
         }
     }
 
@@ -351,7 +351,7 @@ public class IncomingUnicastServer implements Runnable {
                         // If there is a port range then forget our preferred port and rest
                         serverBindPreferredLocalPort = (0 == serverBindStartLocalPort) ? 0 : -1;
                         continue;
-
+                        
                     }
 
                     Logging.logCheckedSevere(LOG, "Cannot bind ServerSocket on ", serverBindLocalInterface, ":", serverBindPreferredLocalPort, failed);
@@ -376,12 +376,12 @@ public class IncomingUnicastServer implements Runnable {
                 // Odd.... try again.
                 continue;
             }
-
+            
             break;
         }
 
         Logging.logCheckedInfo(LOG, "Server will accept connections at ", newChannel.socket().getLocalSocketAddress());
-
+        
         return newChannel;
 
     }
@@ -420,18 +420,18 @@ public class IncomingUnicastServer implements Runnable {
                 } else {
 
                     Logging.logCheckedWarning(LOG, socketChannel, " not connected.");
-
+                    
                 }
 
             } catch (IOException io) {
 
                 // protect against invalid connections
-                Logging.logCheckedFine(LOG, "Messenger creation failure\n\n", io);
+
 
             } catch (Throwable all) {
 
                 Logging.logCheckedSevere(LOG, "Uncaught Throwable\n", all);
-
+                
             }
         }
     }

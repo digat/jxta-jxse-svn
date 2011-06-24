@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,20 +37,20 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.impl.peergroup;
@@ -63,7 +63,7 @@ import net.jxta.exception.PeerGroupException;
 import net.jxta.exception.ServiceNotFoundException;
 import net.jxta.id.ID;
 import net.jxta.impl.endpoint.mcast.McastTransport;
-import net.jxta.impl.membership.pse.PSEMembershipService;
+import net.jxta.impl.pipe.WirePipe;
 import net.jxta.impl.util.threads.TaskManager;
 import net.jxta.logging.Logging;
 import net.jxta.peergroup.PeerGroup;
@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -100,6 +101,7 @@ public class Platform extends StdPeerGroup {
     private final static transient Logger LOG = Logger.getLogger(Platform.class.getName());
     private final GlobalRegistry globalRegistry = new GlobalRegistry();
     private final TaskManager taskManager = new TaskManager();
+    private WirePipe.IDCache idCache = new WirePipe.IDCache();
 
     /**
      *  Create and populate the default module impl Advertisement for this class.
@@ -120,7 +122,7 @@ public class Platform extends StdPeerGroup {
         // "Core" Services
         paramAdv.addService(PeerGroup.endpointClassID, PeerGroup.refEndpointSpecID);
         paramAdv.addService(PeerGroup.resolverClassID, PeerGroup.refResolverSpecID);
-        paramAdv.addService(PeerGroup.membershipClassID, PSEMembershipService.pseMembershipSpecID);
+        paramAdv.addService(PeerGroup.membershipClassID, PeerGroup.refMembershipSpecID);
         paramAdv.addService(PeerGroup.accessClassID, PeerGroup.refAccessSpecID);
 
         // "Standard" Services
@@ -142,7 +144,7 @@ public class Platform extends StdPeerGroup {
 
         // Insert the paramAdv in the World PeerGroup Impl Advertisement.
         implAdv.setParam((XMLDocument) paramAdv.getDocument(MimeMediaType.XMLUTF8));
-
+        
         return implAdv;
     }
 
@@ -190,7 +192,7 @@ public class Platform extends StdPeerGroup {
         //     so that we can use the passed-in loader as the overall root
         //     loader.
         JxtaLoader loader = getJxtaLoader();
-
+        
         ModuleImplAdvertisement implAdv = (ModuleImplAdvertisement) impl;
         if(null == implAdv) {
             implAdv = loader.findModuleImplAdvertisement(getClass());
@@ -206,7 +208,7 @@ public class Platform extends StdPeerGroup {
             } catch (MalformedURLException badPath) {
 
                 Logging.logCheckedWarning(LOG, "Could not install path for downloadables into JXTA Class Loader.");
-
+                
             }
         }
 
@@ -240,8 +242,8 @@ public class Platform extends StdPeerGroup {
      * The ModuleImplAdvertisement returned differs from the one returned by
      * StdPeerGroup in that it has a different specID, name and description, as
      * well as the high-level message transports . This definition is always the
-     * same and has a well known ModuleSpecID. It includes the basic services
-     * and high-level message transports.
+     * same and has a well known ModuleSpecID. It includes the basic services,
+     * high-level message transports and the shell for main application.
      *
      * @return A ModuleImplAdvertisement suitable for the Network Peer Group.
      */
@@ -253,7 +255,7 @@ public class Platform extends StdPeerGroup {
         // allPurpose PG because we use the class ShadowPeerGroup which 
         // initializes the peer config from its parent.
         ModuleImplAdvertisement implAdv = loader.findModuleImplAdvertisement(PeerGroup.refNetPeerGroupSpecID);
-
+        
         return implAdv;
     }
 
@@ -268,12 +270,18 @@ public class Platform extends StdPeerGroup {
         ignored = lookupService(rendezvousClassID);
         ignored = lookupService(peerinfoClassID);
     }
-
+    
     @Override
     public TaskManager getTaskManager() {
         return taskManager;
     }
 
+    @Override
+    public WirePipe.IDCache getWirePipeIDCache() {
+        return idCache;
+    }
+
+    
     @Override
     public void stopApp() {
         super.stopApp();

@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,29 +37,30 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.endpoint;
 
+
 import junit.framework.*;
 
 import net.jxta.peergroup.PeerGroup;
-// import net.jxta.peergroup.PeerGroupFactory;
+import net.jxta.peergroup.PeerGroupFactory;
 import net.jxta.endpoint.EndpointAddress;
 import net.jxta.document.*;
 import net.jxta.peergroup.WorldPeerGroupFactory;
@@ -80,7 +81,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Collections;
 
-@Ignore("JXTA Configurator & PeerGroupFactory required")
+@Ignore("JXTA Configurator required")
 public class XportConfTest extends TestCase {
 
     static PeerGroup pg;
@@ -125,7 +126,7 @@ public class XportConfTest extends TestCase {
     }
 
     private void saveConfig(ConfigParams advertisement, File file) throws Exception {
-
+        
         FileOutputStream out = null;
 
         try {
@@ -183,7 +184,7 @@ public class XportConfTest extends TestCase {
         } else {
             throw new IllegalArgumentException(TransportAdvertisement.getAdvertisementType() + " could not be located");
         }
-
+        
         Advertisement paramsAdv = AdvertisementFactory.newAdvertisement((XMLElement) param);
 
         if (!(paramsAdv instanceof TCPAdv)) {
@@ -196,19 +197,19 @@ public class XportConfTest extends TestCase {
     private HTTPAdv extractHttp(ConfigParams config) throws Exception {
 
         Element param = config.getServiceParam(PeerGroup.httpProtoClassID);
-
+            
         Enumeration httpChilds = param.getChildren(TransportAdvertisement.getAdvertisementType());
-
+            
         // get the TransportAdv
         if (httpChilds.hasMoreElements()) {
             param = (Element) httpChilds.nextElement();
             Attribute typeAttr = ((Attributable) param).getAttribute("type");
-
+                
             if (!HTTPAdv.getAdvertisementType().equals(typeAttr.getValue())) {
                 throw new IllegalArgumentException(
                         "transport adv is not a " + HTTPAdv.getAdvertisementType() + "(= " + typeAttr.getValue());
             }
-
+                
             if (httpChilds.hasMoreElements()) {
                 throw new IllegalArgumentException("Multiple transport advs detected for http");
             }
@@ -216,13 +217,13 @@ public class XportConfTest extends TestCase {
         } else {
             throw new IllegalArgumentException("configuration did not contain http advertisement");
         }
-
+            
         Advertisement paramsAdv = AdvertisementFactory.newAdvertisement((XMLElement) param);
-
+            
         if (!(paramsAdv instanceof HTTPAdv)) {
             throw new IllegalArgumentException("Provided Advertisement was not a " + HTTPAdv.getAdvertisementType());
         }
-
+            
         return (HTTPAdv) paramsAdv;
     }
 
@@ -254,7 +255,7 @@ public class XportConfTest extends TestCase {
 
         TCPAdv tcpAdv = extractTcp(config);
         HTTPAdv httpAdv = extractHttp(config);
-
+        
         fixTcp(tcpAdv);
         fixHttp(httpAdv);
 
@@ -302,15 +303,15 @@ public class XportConfTest extends TestCase {
                 if (count++ > 0) {
                     return;
                 }
-                final PeerGroup wpg = new WorldPeerGroupFactory().getWorldPeerGroup();
+                final PeerGroup wpg = new WorldPeerGroupFactory().getInterface();
                 // Create one for nothing. Just to make sure the config
                 // is created.
                 System.setProperty("net.jxta.tls.password", "password");
                 System.setProperty("net.jxta.tls.principal", "password");
-                pg = null; // PeerGroupFactory.newNetPeerGroup(wpg);
+                pg = PeerGroupFactory.newNetPeerGroup(wpg);
 
                 // Throw that one away.
-//                pg.unref();
+                pg.unref();
 
                 // Fix the config and start for good.
                 backupConfig();
@@ -318,10 +319,10 @@ public class XportConfTest extends TestCase {
 
                 System.setProperty("net.jxta.tls.password", "password");
                 System.setProperty("net.jxta.tls.principal", "password");
-                pg = null; // PeerGroupFactory.newNetPeerGroup(wpg);
+                pg = PeerGroupFactory.newNetPeerGroup(wpg);
             } catch (Exception e) {
                 if (pg != null) {
-//                    pg.unref();
+                    pg.unref();
                 }
                 restoreConfig();
                 throw e;
@@ -335,7 +336,7 @@ public class XportConfTest extends TestCase {
             if (--count > 0) {
                 return;
             }
-//            pg.unref();
+            pg.unref();
             pg = null;
             restoreConfig();
             System.out.flush();
@@ -358,7 +359,7 @@ public class XportConfTest extends TestCase {
         try {
             Enumeration paramChilds = endpParam.getChildren(RouteAdvertisement.getAdvertisementType());
             Element param = null;
-
+    
             if (paramChilds.hasMoreElements()) {
                 param = (Element) paramChilds.nextElement();
             }
@@ -420,7 +421,7 @@ public class XportConfTest extends TestCase {
 
         return suite;
     }
-
+    
     public static void main(java.lang.String[] args) {
         junit.textui.TestRunner.run(suite());
     }

@@ -56,6 +56,7 @@
 
 package net.jxta.impl.protocol;
 
+
 import net.jxta.document.Advertisement;
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.document.Attributable;
@@ -65,12 +66,13 @@ import net.jxta.document.Element;
 import net.jxta.document.MimeMediaType;
 import net.jxta.document.StructuredDocument;
 import net.jxta.document.XMLElement;
-import net.jxta.logging.Logging;
 import net.jxta.protocol.TransportAdvertisement;
+
 import java.util.logging.Logger;
 
 import java.util.Arrays;
 import java.util.Enumeration;
+
 
 /**
  * Configuration parameters for HttpServelet Message Transport.
@@ -208,7 +210,8 @@ public class HTTPAdv extends TransportAdvertisement {
             XMLElement elem = (XMLElement) elements.nextElement();
 
             if (!handleElement(elem)) {
-                Logging.logCheckedFine(LOG, "Unhandled Element: ", elem);
+
+
             }
 
         }
@@ -490,27 +493,27 @@ public class HTTPAdv extends TransportAdvertisement {
         listenPort = newPort;
     }
 
-//    /**
-//     * @return the proxy string
-//     * @deprecated This has been deprecated. Set your proxy directly with the JVM
-//     */
-//    @Deprecated
-//    public String getProxy() {
-//        return proxy;
-//    }
+    /**
+     * @return the proxy string
+     * @deprecated This has been deprecated. Set your proxy directly with the JVM
+     */
+    @Deprecated
+    public String getProxy() {
+        return proxy;
+    }
 
     public String getServer() {
         return server;
     }
 
-//    /**
-//     * @return true if proxy enabled
-//     * @deprecated This has been deprecated. Set your proxy directly with the JVM
-//     */
-//    @Deprecated
-//    public boolean isProxyEnabled() {
-//        return proxyEnabled;
-//    }
+    /**
+     * @return true if proxy enabled
+     * @deprecated This has been deprecated. Set your proxy directly with the JVM
+     */
+    @Deprecated
+    public boolean isProxyEnabled() {
+        return proxyEnabled;
+    }
 
     public boolean isServerEnabled() {
         return serverEnabled;
@@ -523,30 +526,30 @@ public class HTTPAdv extends TransportAdvertisement {
     // If one of proxy, server, or router is cleared, the corresponding
     // enabled flag should be false (the opposite is not true).
 
-//    /**
-//     * @param name the proxy string
-//     * @deprecated This has been deprecated. Set your proxy directly with the JVM
-//     */
-//    @Deprecated
-//    public void setProxy(String name) {
-//        proxy = name;
-//        if (name == null) {
-//            proxyEnabled = false;
-//        }
-//    }
+    /**
+     * @param name the proxy string
+     * @deprecated This has been deprecated. Set your proxy directly with the JVM
+     */
+    @Deprecated
+    public void setProxy(String name) {
+        proxy = name;
+        if (name == null) {
+            proxyEnabled = false;
+        }
+    }
 
     public void setServer(String name) {
         server = name;
     }
 
-//    /**
-//     * @param enabled true if proxy is enabled
-//     * @deprecated This has been deprecated. Set your proxy directly with the JVM
-//     */
-//    @Deprecated
-//    public void setProxyEnabled(boolean enabled) {
-//        proxyEnabled = enabled;
-//    }
+    /**
+     * @param enabled true if proxy is enabled
+     * @deprecated This has been deprecated. Set your proxy directly with the JVM
+     */
+    @Deprecated
+    public void setProxyEnabled(boolean enabled) {
+        proxyEnabled = enabled;
+    }
 
     public void setServerEnabled(boolean enabled) {
         serverEnabled = enabled;

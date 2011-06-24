@@ -62,11 +62,14 @@ import net.jxta.platform.Module;
 import net.jxta.test.util.JUnitRuleMockery;
 
 import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.jmock.Sequence;
+import org.jmock.integration.junit4.JMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import static org.junit.Assert.*;
 
 /**
@@ -83,7 +86,7 @@ public class ModuleLifecycleManagerTest {
     private PeerGroup peerGroup;
     private ID id;
     private PeerGroupException pgx;
-
+    
     @Rule
     public JUnitRuleMockery context = new JUnitRuleMockery();
 
@@ -332,10 +335,10 @@ public class ModuleLifecycleManagerTest {
             one(listener).moduleLifecycleStateUpdated(
                     with(any(ModuleLifecycleTracker.class)),
                     with(equal(ModuleLifecycleState.INITIALIZED)));
-
+            
             one(module1).startApp(with(any(String[].class)));
                 will(returnValue(Module.START_DISABLED));
-
+            
             one(listener).moduleLifecycleStateUpdated(
                     with(any(ModuleLifecycleTracker.class)),
                     with(equal(ModuleLifecycleState.DISABLED)));
@@ -355,7 +358,7 @@ public class ModuleLifecycleManagerTest {
 
         context.assertIsSatisfied();
     }
-
+    
     @Test
     public void testRemoveModule() throws Exception {
         context.checking(new Expectations() {{
@@ -363,13 +366,13 @@ public class ModuleLifecycleManagerTest {
             one(listener).moduleLifecycleStateUpdated(
                     with(any(ModuleLifecycleTracker.class)),
                     with(equal(ModuleLifecycleState.INITIALIZED)));
-
+            
             one(module1).startApp(with(any(String[].class)));
                 will(returnValue(Module.START_OK));
             one(listener).moduleLifecycleStateUpdated(
                     with(any(ModuleLifecycleTracker.class)),
                     with(equal(ModuleLifecycleState.STARTED)));
-
+            
             one(module1).stopApp();
             one(listener).moduleLifecycleStateUpdated(
                     with(any(ModuleLifecycleTracker.class)),
@@ -384,11 +387,11 @@ public class ModuleLifecycleManagerTest {
 
         manager.start();
         assertEquals(1, manager.getModuleCount());
-
+        
         manager.removeModule(module1, true);
         assertEquals(0, manager.getModuleCount());
 
         context.assertIsSatisfied();
     }
-
+    
 }

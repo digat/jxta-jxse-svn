@@ -1159,6 +1159,7 @@ public abstract class Paged {
         }
     }
 
+
     /**
      * PageHeader
      */
@@ -1325,6 +1326,7 @@ public abstract class Paged {
             return nextPage;
         }
     }
+
 
     /**
      * Paged file's page
