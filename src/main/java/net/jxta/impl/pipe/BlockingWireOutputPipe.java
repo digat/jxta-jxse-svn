@@ -71,6 +71,7 @@ import net.jxta.protocol.PipeAdvertisement;
 import net.jxta.protocol.RouteAdvertisement;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -153,7 +154,7 @@ public class BlockingWireOutputPipe implements OutputPipe {
 
         checkMessenger();
         Logging.logCheckedInfo(LOG, "Created output pipe for ", getPipeID());
-
+        
     }
 
     /**
@@ -162,9 +163,9 @@ public class BlockingWireOutputPipe implements OutputPipe {
     public synchronized void close() {
 
         if (closed) return;
-
+        
         Logging.logCheckedInfo(LOG, "Closing ", getPipeID());
-
+        
         closed = true;
     }
 
@@ -216,10 +217,10 @@ public class BlockingWireOutputPipe implements OutputPipe {
             return true;
         }
 
-//        // Try making a direct messenger first.
-//        if (route != null) {
-//            destMessenger = endpoint.getDirectMessenger(destination, route, true);
-//        }
+        // Try making a direct messenger first.
+        if (route != null) {
+            destMessenger = endpoint.getDirectMessenger(destination, route, true);
+        }
 
         // Try making a regular messenger if that didn't work.
         if ((destMessenger == null) || ((destMessenger.getState() & Messenger.TERMINAL) != 0)) {

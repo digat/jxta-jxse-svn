@@ -56,7 +56,6 @@
 
 package net.jxse.impl.OSGi.Services;
 
-import net.jxse.configuration.ValidJxsePeerConfiguration;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -328,7 +327,7 @@ public class JxseOSGiNetworkManagerActivatorTest {
 
         assertTrue(TheNC.getHttpInterfaceAddress().compareTo("123.45.67.89")==0);
         assertTrue(TheNC.getHttpPublicAddress().compareTo("321.34.22.66")==0);
-        assertFalse(TheNC.isHttpPublicAddressExclusive());
+        assertTrue(TheNC.getHttpPublicAddressExclusivity()==false);
 
         // Multicast config
         assertTrue(TheNC.getMulticastPort()==4444);
@@ -343,7 +342,7 @@ public class JxseOSGiNetworkManagerActivatorTest {
         assertTrue(TheNC.getTcpIncomingStatus()==true);
         assertTrue(TheNC.getTcpOutgoingStatus()==true);
         assertTrue(TheNC.getTcpPublicAddress().compareTo("12.34.56.78")==0);
-        assertTrue(TheNC.isTcpPublicAddressExclusive()==false);
+        assertTrue(TheNC.getTcpPublicAddressExclusivity()==false);
         assertTrue(TheNC.getTcpInterfaceAddress().compareTo("33.44.55.66")==0);
 
         // The rest

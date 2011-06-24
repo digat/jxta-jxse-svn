@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2003-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,30 +37,30 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 
 package net.jxta.impl.util.pipe.reliable;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -70,8 +70,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 
 import net.jxta.endpoint.ByteArrayMessageElement;
 import net.jxta.endpoint.Message;
@@ -79,11 +77,10 @@ import net.jxta.endpoint.MessageElement;
 import net.jxta.endpoint.StringMessageElement;
 import net.jxta.endpoint.WireFormatMessage;
 import net.jxta.endpoint.WireFormatMessageFactory;
-import net.jxta.impl.membership.pse.PSEUtils;
 import net.jxta.impl.util.TimeUtils;
 import net.jxta.impl.util.threads.SelfCancellingTask;
 import net.jxta.logging.Logging;
-import net.jxta.peergroup.PeerGroup;
+
 
 /**
  * Accepts data and packages it into messages for sending to the remote. The
@@ -91,12 +88,12 @@ import net.jxta.peergroup.PeerGroup;
  * receipt of the message.
  */
 public class ReliableOutputStream extends OutputStream implements Incoming {
-
+    
     /**
      * Logger
      */
     private final static Logger LOG = Logger.getLogger(ReliableOutputStream.class.getName());
-
+    
     /**
      * Initial estimated Round Trip Time
      * 
@@ -104,34 +101,34 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      * 
      */
     private final static long initRTT = 5 * TimeUtils.ASECOND;
-
+    
     /**
      *  The default size for the blocks we will chunk the stream into.
      */
     private final static int DEFAULT_MESSAGE_CHUNK_SIZE = 63 * 1024;
-
+    
     private final static MessageElement RETELT = new StringMessageElement(Defs.RETRY_ELEMENT_NAME, Defs.RETRY_ELEMENT_VALUE, null);
-
+    
     /**
      * A lock we use to ensure that write operations happen in order.
      */
-    private final Object writeLock = "writeLock";
-
+    private final Object writeLock = new String("writeLock");
+    
     /**
      * The buffer we cache writes to.
      */
     private byte[] writeBuffer = null;
-
+    
     /**
      * Number of bytes written to the write buffer.
      */
     private int writeCount = 0;
-
+    
     /**
      * Set the default write buffer size.
      */
     private int writeBufferSize = DEFAULT_MESSAGE_CHUNK_SIZE;
-
+    
     /**
      * If less than {@code TimeUtils.timenow()} then we are closed otherwise
      * this is the absolute time at which we will become closed. We begin by
@@ -139,163 +136,146 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      * close deadline.
      */
     private long closedAt = Long.MAX_VALUE;
-
+    
     /**
      * If {@code true} then we have received a close request from the remote
      * side. They do not want to receive any more messages from us.
      */
     private volatile boolean remoteClosed = false;
-
+    
     /**
      * If {@code true} then we have closed this stream locally and will not
      * accept any further messages for sending. Unacknowledged messages will
      * be retransmitted until the linger delay is passed.
      */
     private volatile boolean localClosed = false;
-
+    
     /**
      * The relative time in milliseconds that we will allow our connection to
      * linger.
      */
     private long lingerDelay = 120 * TimeUtils.ASECOND;
-
+    
     /**
      * Sequence number of the message we most recently sent out.
      */
     private final AtomicInteger sequenceNumber = new AtomicInteger(0);
-
+    
     /**
      * Sequence number of highest sequential ACK.
      */
     private volatile int maxACK = 0;
-
+    
     /**
      * connection we are working for
      */
     private final Outgoing outgoing;
-
+    
     // for retransmission
     /**
      * Average round trip time in milliseconds.
      */
     private volatile long aveRTT = initRTT;
     private volatile long remRTT = 0;
-
+    
     /**
      * Has aveRTT been set at least once over its initial guesstimate value.
      */
     private boolean aveRTTreset = false;
-
+    
     /**
      * Number of ACK message received.
      */
     private final AtomicInteger numACKS = new AtomicInteger(0);
-
+    
     /**
      * When to start computing aveRTT
      */
     private int rttThreshold = 0;
-
+    
     /**
      * Retry Time Out measured in milliseconds.
      */
     private volatile long RTO = 0;
-
+    
     /**
      * Minimum Retry Timeout measured in milliseconds.
      */
     private volatile long minRTO =  500; // We begin with a reasonable value for an average network.  This will not be used if RTT is greater.
-
+    
     /**
      * absolute time in milliseconds of last sequential ACK.
      */
     private volatile long lastACKTime = 0;
-
+    
     /**
      * absolute time in milliseconds of last SACK based retransmit.
      */
     private volatile long sackRetransTime = 0;
-
+    
     // running average of receipients Input Queue
     private int nIQTests = 0;
     private int aveIQSize = 0;
-
+    
     /**
      * Our estimation of the current free space in the remote input queue.
      */
     private volatile int mrrIQFreeSpace = 0;
-
+    
     /**
      * Our estimation of the maximum size of the remote input queue.
      */
     private int rmaxQSize = Defs.MAXQUEUESIZE;
-
+    
     /**
      * The flow control module.
      */
     private final FlowControl fc;
-
+    
     /**
      * Cache of the last rwindow recommendation by fc.
      */
     private volatile int rwindow = 0;
-
+    
     /**
      * Number of acknowledged sends (round trips) before the connection is regarded as 'stable'
      * Once stabilisation is established, downward tracking of RTO is suspended
      * Set to zero to defeat this behaviour.
      */
     private volatile int stabalizationAckCount = 0;
-
+    
     private ReliableOutputStream.Retransmitter retransmitter;
-
-    private PeerGroup group;
-
-    /**
-     * isEncrypt encryptAsymmetric the data stream
-     */
-    private boolean isEncrypt = false;
-
-    /**
-     * cipher cipher for encryption
-     */
-    private Cipher cipher = null;
-
-    /**
-     * cipher secretKey for cipher
-     */
-    private SecretKey secretKey = null;
 
     /**
      * retrans queue element
      */
     private static class RetrQElt {
-
+        
         /**
          * sequence number of this message.
          */
         final int seqnum;
-
+        
         /**
          * the message
          */
         final Message msg;
-
+        
         /**
          * absolute time of original enqueuing
          */
         final long enqueuedAt;
-
+        
         /**
          * has been marked as retransmission
          */
         int marked;
-
+        
         /**
          * absolute time when this msg was last transmitted
          */
         long sentAt;
-
+        
         /**
          * Constructor for the RetrQElt object
          *
@@ -310,12 +290,12 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             this.marked = 0;
         }
     }
-
+    
     /**
      * The collection of messages available for re-transmission.
      */
     protected final List<RetrQElt> retrQ = new ArrayList<RetrQElt>();
-
+    
     private ScheduledExecutorService executor;
 
     /**
@@ -323,35 +303,18 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      *
      * @param outgoing the outgoing object
      */
-    public ReliableOutputStream(PeerGroup group, Outgoing outgoing, ScheduledExecutorService executor) {
+    public ReliableOutputStream(Outgoing outgoing, ScheduledExecutorService executor) {
         // By default use the old behaviour: fixed fc with a rwin of 20
-        this(group, outgoing, new FixedFlowControl(20), executor);
+        this(outgoing, new FixedFlowControl(20), executor);
     }
-
-    /**
-     * Constructor for the ReliableOutputStream object
-     *
-     * @param outgoing the outgoing object
-     * @param fc       flow-control
-     * @param isEncrypt encrypt the stream
-     * @param cipher the encryption cipher
-     * @param secretKey the secret key
-     */
-    public ReliableOutputStream(PeerGroup group, Outgoing outgoing, FlowControl fc, ScheduledExecutorService executor, boolean isEncrypt, Cipher cipher, SecretKey secretKey) {
-        this(group, outgoing, fc, executor);
-        this.isEncrypt = isEncrypt;
-        this.cipher = cipher;
-        this.secretKey = secretKey;
-    }
-
+    
     /**
      * Constructor for the ReliableOutputStream object
      *
      * @param outgoing the outgoing object
      * @param fc       flow-control
      */
-    public ReliableOutputStream(PeerGroup group, Outgoing outgoing, FlowControl fc, ScheduledExecutorService executor) {
-        this.group = group;
+    public ReliableOutputStream(Outgoing outgoing, FlowControl fc, ScheduledExecutorService executor) {
         this.outgoing = outgoing;
         this.executor = executor;
 
@@ -364,64 +327,65 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
         if( null != ackStabilizaton ){
         	this.stabalizationAckCount = Integer.parseInt( ackStabilizaton );
         }
-
+        
         // initial RTO is set to maxRTO so as to give time
         // to the receiver to catch-up
         this.RTO = outgoing.getMaxRetryAge();
-
+        
         this.mrrIQFreeSpace = rmaxQSize;
         this.rttThreshold = rmaxQSize;
-
+        
         // Init last ACK Time to now
         this.lastACKTime = TimeUtils.timeNow();
         this.sackRetransTime = TimeUtils.timeNow();
-
+        
         // Attach the flowControl module
         this.fc = fc;
-
+        
         // Update our initial rwindow to reflect fc's initial value
         this.rwindow = fc.getRwindow();
 
     }
-
+    
     /**
      * {@inheritDoc}
      */
     @Override
     public void close() throws IOException {
         flush();
-
+        
         super.close();
         localClosed = true;
         closedAt = TimeUtils.toAbsoluteTimeMillis(lingerDelay);
-
+        
         synchronized (retrQ) {
             retrQ.notifyAll();
-            if ( retransmitter != null ) {
+            if (retransmitter != null)
+            {
                 retransmitter.doRetransmitCheck();
             }
         }
-
+        
         Logging.logCheckedInfo(LOG, "Closed.");
-
+        
     }
-
+    
     public long getLingerDelay() {
         return lingerDelay;
     }
-
+    
     public void setLingerDelay(long linger) {
         if (linger < 0) {
             throw new IllegalArgumentException("Linger delay may not be negative.");
         }
-
+        
         if (0 == linger) {
             linger = Long.MAX_VALUE;
         }
-
+        
         lingerDelay = linger;
     }
-
+    
     /**
      * Return the size of the buffers we are using for accumulating writes.
      *
@@ -430,7 +394,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     public int setSendBufferSize() {
         return writeBufferSize;
     }
-
+    
     /**
      * Set the size of the buffers we will use for accumulating writes.
      *
@@ -441,14 +405,14 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
         if (size <= 0) {
             throw new IllegalArgumentException("Send buffer size may not be <= 0");
         }
-
+        
         // Flush any existing buffered writes. Then next write will use the new buffer size.
         synchronized (writeLock) {
             flushBuffer();
             writeBufferSize = size;
         }
     }
-
+    
     /**
      * We have received a close request from the remote peer. We must stop
      * retransmissions immediately.
@@ -456,23 +420,23 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     public void hardClose() {
         remoteClosed = true;
         closedAt = TimeUtils.timeNow();
-
+        
         // Clear the retry queue. Remote side doesn't care.
         synchronized (retrQ) {
             retrQ.clear();
             retrQ.notifyAll();
         }
-
+        
         // Clear the write queue. Remote side doesn't care.
         synchronized (writeLock) {
             writeCount = 0;
             writeBuffer = null;
         }
-
+        
         Logging.logCheckedInfo(LOG, "Hard closed.");
-
+        
     }
-
+    
     /**
      * Returns the state of the stream
      *
@@ -481,7 +445,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     public boolean isClosed() {
         return localClosed || remoteClosed;
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -491,7 +455,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             flushBuffer();
         }
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -499,7 +463,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     public void write(int b) throws IOException {
         write(new byte[] { (byte) b }, 0, 1);
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -509,40 +473,40 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             if (isClosed()) {
                 throw new IOException("stream is closed");
             }
-
+            
             if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
                 throw new IndexOutOfBoundsException();
             }
-
+            
             if (len == 0) {
                 return;
             }
-
+            
             int current = off;
             int end = current + len;
-
+            
             while (current < end) {
                 if (0 == writeCount) {
                     // No bytes written? We need a new buffer.
                     writeBuffer = new byte[writeBufferSize];
                 }
-
+                
                 int remain = end - current;
-
+                
                 int available = writeBuffer.length - writeCount;
                 int copy = Math.min(available, remain);
-
+                
                 System.arraycopy(b, current, writeBuffer, writeCount, copy);
                 writeCount += copy;
                 current += copy;
-
+                
                 if (writeBuffer.length == writeCount) {
                     flushBuffer();
                 }
             }
         }
     }
-
+    
     /**
      * Flush the internal buffer. {@code writeLock} must have been previously
      * acquired.
@@ -559,7 +523,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             }
         }
     }
-
+    
     /**
      * Write the internal buffer. {@code writeLock} must have been previously
      * acquired.
@@ -573,7 +537,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
         if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
             throw new IndexOutOfBoundsException();
         }
-
+        
         if (len == 0) {
             return;
         }
@@ -582,7 +546,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             retransmitter = new Retransmitter();
             retransmitter.scheduleReTransmitCheck();
         }
-
+        
         // allocate new message
         Message jmsg = new Message();
 
@@ -600,42 +564,30 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 }
                 break;
             }
-
+            
             int sequenceToUse = sequenceNumber.incrementAndGet();
-
-            MessageElement element;
-
-            if (isEncrypt) {
-                byte[] encryptedBuffer = PSEUtils.encryptSymmetric(b, off, len, cipher, secretKey);
-                element = new ByteArrayMessageElement(Integer.toString(sequenceToUse), Defs.MIME_TYPE_BLOCK, encryptedBuffer, null);
-
-            } else {
-                element = new ByteArrayMessageElement(Integer.toString(sequenceToUse), Defs.MIME_TYPE_BLOCK, b, off
+            MessageElement element = new ByteArrayMessageElement(Integer.toString(sequenceToUse), Defs.MIME_TYPE_BLOCK, b, off
                     ,
                     len, null);
-
-            }
 
             jmsg.addMessageElement(Defs.NAMESPACE, element);
             RetrQElt retrQel = new RetrQElt(sequenceToUse, jmsg.clone());
 
-            Logging.logCheckedFine(LOG, "Reliable WRITE : seqn#", sequenceNumber, " length=", len);
 
             // place copy on retransmission queue
             retrQ.add(retrQel);
 
-            Logging.logCheckedFine(LOG, "Retrans Enqueue added seqn#", sequenceNumber, " retrQ.size()=", retrQ.size());
 
         }
-
+        
         outgoing.send(jmsg);
         mrrIQFreeSpace--;
 
         // assume we have now taken a slot
-        Logging.logCheckedFine(LOG, "SENT : seqn#", sequenceNumber, " length=", len);
+
 
     }
-
+    
     /**
      * Serialize a JXTA message as a reliable message.
      *
@@ -646,20 +598,20 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      * @throws IOException if an I/O error occurs
      */
     public int send(Message msg) throws IOException {
-        WireFormatMessage msgSerialized = WireFormatMessageFactory.toWireExternal(msg, Defs.MIME_TYPE_MSG, null, group);
+        WireFormatMessage msgSerialized = WireFormatMessageFactory.toWire(msg, Defs.MIME_TYPE_MSG, null);
         ByteArrayOutputStream baos = new ByteArrayOutputStream((int) msgSerialized.getByteLength());
 
         msgSerialized.sendToStream(baos);
         baos.close();
         byte[] bytes = baos.toByteArray();
-
+        
         synchronized (writeLock) {
             flushBuffer();
             writeBuffer(bytes, 0, bytes.length);
             return sequenceNumber.get();
         }
     }
-
+    
     /**
      * Gets the maxAck attribute of the ReliableOutputStream object
      *
@@ -668,7 +620,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     public int getMaxAck() {
         return maxACK;
     }
-
+    
     /**
      * Gets the seqNumber attribute of the ReliableOutputStream object
      *
@@ -677,7 +629,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     public int getSeqNumber() {
         return sequenceNumber.get();
     }
-
+    
     /**
      * Gets the queueFull attribute of the ReliableOutputStream object
      *
@@ -686,7 +638,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
     protected boolean isQueueFull() {
         return mrrIQFreeSpace < 1;
     }
-
+    
     /**
      * Gets the queueEmpty attribute of the ReliableOutputStream object.
      *
@@ -697,7 +649,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             return retrQ.isEmpty();
         }
     }
-
+    
     /**
      * Waits for the retransmit queue to become empty.
      *
@@ -708,20 +660,20 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      */
     public boolean waitQueueEmpty(long timeout) throws InterruptedException {
         long timeoutAt = TimeUtils.toAbsoluteTimeMillis(timeout);
-
+        
         synchronized (retrQ) {
             while (!retrQ.isEmpty() && (TimeUtils.timeNow() < timeoutAt)) {
                 long sleepTime = TimeUtils.toRelativeTimeMillis(timeoutAt);
-
+                
                 if (sleepTime > 0) {
                     retrQ.wait(sleepTime);
                 }
             }
-
+            
             return retrQ.isEmpty();
         }
     }
-
+    
     /**
      * wait for activity on the retry queue
      *
@@ -733,7 +685,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             retrQ.wait(timeout);
         }
     }
-
+    
     /**
      * Calculates a message retransmission time-out
      *
@@ -741,13 +693,13 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      * @param msgSeqNum Message sequence number
      */
     private void calcRTT(long dt, int msgSeqNum) {
-
+        
         if (numACKS.incrementAndGet() == 1) {
             // First ACK arrived. We can start computing aveRTT on the messages
             // we send from now on.
             rttThreshold = sequenceNumber.get() + 1;
         }
-
+        
         if (msgSeqNum > rttThreshold) {
             // Compute only when it has stabilized a bit
             // Since the initial mrrIQFreeSpace is small; the first few
@@ -767,19 +719,20 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
         	// See http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm for
         	// more discussion on the exponential smoothing algorithm(s) and running averages
 
+            
             if (!aveRTTreset) {
                 aveRTT = dt;
                 aveRTTreset = true;
             } else {
                 long tmp = (6 * aveRTT) + ((6 * remRTT) / 9) + (3 * dt);
-
+                
                 aveRTT = tmp / 9;
                 remRTT = tmp - aveRTT * 9;
             }
         }
-
+        
         long newRTO = aveRTT * 2;
-
+        
         // Unless stabalizationAckCount is zero, after a period of stream stabilisation, do not reduce the RTO value further. 
         // This avoids the situation where a few small message sends reduce the RTO so much that when a large
         // message is sent it immediately requires repetitive retransmission until the value of RTO climbs again.
@@ -792,10 +745,9 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             RTO = Math.min(RTO, outgoing.getMaxRetryAge());
         }
 
-        Logging.logCheckedFine(LOG, "RTT = ", dt, "ms aveRTT = ", aveRTT, "ms", " RTO = ", RTO, "ms", " maxRTO = ", outgoing.getMaxRetryAge(), "ms");
 
     }
-
+    
     /**
      * @param iq Description of the Parameter
      * @return Description of the Return Value
@@ -807,22 +759,22 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
         aveIQSize = ((n * aveIQSize) + iq) / nIQTests;
         return aveIQSize;
     }
-
+    
     /**
      * process an incoming message
      *
      * @param msg message to process
      */
     public void recv(Message msg) {
-
+        
         Iterator<MessageElement> eachACK = msg.getMessageElements(Defs.NAMESPACE, Defs.MIME_TYPE_ACK);
-
+        
         while (eachACK.hasNext()) {
             MessageElement elt = eachACK.next();
 
             eachACK.remove();
             int sackCount = ((int) elt.getByteLength() / 4) - 1;
-
+            
             try {
                 DataInputStream dis = new DataInputStream(elt.getStream());
                 int seqack = dis.readInt();
@@ -839,11 +791,11 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             } catch (IOException failed) {
 
                 Logging.logCheckedWarning(LOG, "Failure processing ACK\n", failed);
-
+                
             }
         }
     }
-
+    
     /**
      * Process an ACK Message. We remove ACKed
      * messages from the retry queue.  We only
@@ -867,19 +819,19 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      * @param sackList array of message sequence numbers
      */
     public void ackReceived(int seqnum, int[] sackList) {
-
+        
         int numberACKed = 0;
         long rttCalcDt = 0;
         int rttCalcSeqnum = -1;
         long fallBackDt = 0;
         int fallBackSeqnum = -1;
-
+        
         // remove acknowledged messages from retrans Q.
         synchronized (retrQ) {
             lastACKTime = TimeUtils.timeNow();
             fc.ackEventBegin();
             maxACK = Math.max(maxACK, seqnum);
-
+            
             // dump the current Retry queue and the SACK list
             if (Logging.SHOW_FINE && LOG.isLoggable(Level.FINE)) {
 
@@ -903,10 +855,8 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                     dumpRETRQ.append(sackList[y]);
                 }
 
-                Logging.logCheckedFine(LOG, dumpRETRQ);
-
             }
-
+            
             Iterator<RetrQElt> eachRetryQueueEntry = retrQ.iterator();
 
             // First remove monotonically increasing seq#s in retrans vector
@@ -918,7 +868,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 }
                 // Acknowledged
                 eachRetryQueueEntry.remove();
-
+                
                 // Update RTT, RTO. Use only those that where acked
                 // w/o retrans otherwise the number may be phony (ack
                 // of first xmit received just after resending => RTT
@@ -959,7 +909,6 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 outgoing.setLastAccessed(TimeUtils.timeNow());
             }
 
-            Logging.logCheckedFine(LOG, "SEQUENTIALLY ACKD SEQN = ", seqnum, ", (", numberACKed, " acked)");
 
             // most recent remote IQ free space
             mrrIQFreeSpace = rmaxQSize - sackList.length;
@@ -970,7 +919,6 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             // We will keep the rwin <= ave real input queue size.
             int aveIQ = calcAVEIQ(sackList.length);
 
-            Logging.logCheckedFine(LOG, "remote IQ free space = ", mrrIQFreeSpace, " remote avg IQ occupancy = ", aveIQ);
 
             int retrans = 0;
 
@@ -994,7 +942,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                         fc.packetACKed(retrQElt.seqnum);
                         numberACKed++;
                         eachRetrQElement.remove();
-
+                        
                         // Update RTT, RTO. Use only those that where acked w/o retrans
                         // otherwise the number is completely phony.
                         // Also, we keep the worst of the bunch we encounter.
@@ -1020,15 +968,14 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                             }
                         }
 
-                        Logging.logCheckedFine(LOG, "SACKD SEQN = ", retrQElt.seqnum);
 
                         // GC this stuff
                         retrQElt = null;
-
+                        
                     } else {
                         // Retransmit? Only if there is a hole in the selected
                         // acknowledgement list. Otherwise let RTO deal.
-
+                        
                         // Given that this SACK acknowledged messages still
                         // in the retrQ:
                         // seqnum is the max consectively SACKD message.
@@ -1040,17 +987,15 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                             fc.packetMissing(retrQElt.seqnum);
                             retrans++;
 
-                            Logging.logCheckedFine(LOG, "RETR: Fill hole, SACK, seqn#", retrQElt.seqnum, ", Window =", retrans);
 
                         }
 
                     }
                 }
 
-                Logging.logCheckedFine(LOG, "SELECTIVE ACKD (", numberACKed, ") ", retrans, " retrans wanted");
 
             }
-
+            
             // Compute aveRTT on the most representative message,
             // if any. That's the most accurate data.
             // Failing that we use the fall back, provided that it not
@@ -1067,12 +1012,10 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 rwindow = fc.ackEventEnd(rmaxQSize, aveRTT, fallBackDt);
             }
             retrQ.notifyAll();
-            if ( retransmitter != null ) {
-                retransmitter.doRetransmitCheck();
-            }
+            retransmitter.doRetransmitCheck();
         }
     }
-
+    
     /**
      * retransmit unacknowledged  messages
      *
@@ -1081,17 +1024,16 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
      * @return number of messages retransmitted.
      */
     private int retransmit(int rwin, long triggerTime) {
-
+        
         List<RetrQElt> retransMsgs = new ArrayList<RetrQElt>();
-
+        
         int numberToRetrans;
-
+        
         // build a list of retries.
         synchronized (retrQ) {
 
             numberToRetrans = Math.min(retrQ.size(), rwin);
 
-            Logging.logCheckedFine(LOG, "Number of messages pending retransmit =", numberToRetrans);
 
             for (int j = 0; j < numberToRetrans; j++) {
 
@@ -1117,7 +1059,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                     // but we have to anticipate its loss at the risk of making dupes.
                     // Otherwise the receiver will reach the hole, and that's really
                     // expensive. (Think that we've been trying for a while already.)
-
+                    
                     if (TimeUtils.toRelativeTimeMillis(triggerTime, r.sentAt) < aveRTT) {
                         // Nothing to worry about, yet.
                         continue;
@@ -1128,7 +1070,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 retransMsgs.add(r);
             }
         }
-
+        
         // send the retries.
         int retransmitted = 0;
         Iterator<RetrQElt> eachRetrans = retransMsgs.iterator();
@@ -1137,10 +1079,9 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
             RetrQElt r = eachRetrans.next();
 
             eachRetrans.remove();
-
+            
             try {
 
-                Logging.logCheckedFine(LOG, "RETRANSMIT seqn#", r.seqnum);
 
                 Message sending = r.msg;
 
@@ -1162,37 +1103,36 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 }
             } catch (IOException e) {
 
-                Logging.logCheckedFine(LOG, "FAILED RETRANS seqn#", r.seqnum, "\n", e);
+
                 break;
                 // don't bother continuing.
-
+                
             }
         }
 
-        Logging.logCheckedFine(LOG, "RETRANSMITED ", retransmitted, " of ", numberToRetrans);
 
         return retransmitted;
 
     }
-
+    
     /**
      * Retransmission daemon thread
      */
     private class Retransmitter {
-
+        
         int nAtThisRTO = 0;
         volatile int nretransmitted = 0;
         private volatile SelfCancellingTask currentTask;
-
+        
         /**
          * Constructor for the Retransmitter object
          */
         public Retransmitter() {
 
             Logging.logCheckedInfo(LOG, "STARTED Reliable Retransmitter, RTO = ", RTO);
-
+            
         }
-
+        
         /**
          * Gets the retransCount attribute of the Retransmitter object
          *
@@ -1227,11 +1167,11 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                 hardClose();
                 return;
             }
-
+        
             if(currentTask != null && delay > 0) {
                 currentTask.cancel();
             }
-
+            
             currentTask = new RetransmitTask();
             executor.schedule(currentTask, delay, TimeUnit.MILLISECONDS);
         }
@@ -1242,33 +1182,34 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
          *  <p/>Main processing method for the Retransmitter object
          */
         public void run() {
-
+            
             try {
 
                 int idleCounter = 0;
-
+                
                     long sinceLastACK;
                     long oldestInQueueWait;
-
+                    
                     synchronized (retrQ) {
-
+                        
                         if (TimeUtils.toRelativeTimeMillis(closedAt) <= 0) {
                             hardClose();
                             return;
                         }
-
+                        
                         // see if we recently did a retransmit triggered by a SACK
                         long sinceLastSACKRetr = TimeUtils.toRelativeTimeMillis(TimeUtils.timeNow(), sackRetransTime);
 
                         if (sinceLastSACKRetr < RTO) {
-                            Logging.logCheckedFine(LOG, "SACK retrans ", sinceLastSACKRetr, "ms ago");
+
+
                             scheduleReTransmitCheck();
                             return;
                         }
-
+                        
                         // See how long we've waited since RTO was set
                         sinceLastACK = TimeUtils.toRelativeTimeMillis(TimeUtils.timeNow(), lastACKTime);
-
+                        
                         if (!retrQ.isEmpty()) {
                             RetrQElt elt = retrQ.get(0);
 
@@ -1278,9 +1219,8 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                         }
                     }
 
-                    Logging.logCheckedFine(LOG, "Last ACK ", sinceLastACK, "ms ago. Age of oldest in Queue ", oldestInQueueWait, "ms.");
 
-                    // see if the queue has gone dead
+                // see if the queue has gone dead
                     if (oldestInQueueWait > outgoing.getMaxRetryAge()) {
 
                         Logging.logCheckedInfo(LOG, "Shutting down stale connection ", outgoing);
@@ -1288,7 +1228,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                         return;
 
                     }
-
+                    
                     // get real wait as max of age of oldest in retrQ and
                     // lastAck time
                     long realWait = Math.max(oldestInQueueWait, sinceLastACK);
@@ -1303,7 +1243,6 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                     // has not been idle for the RTO.
                     if ((realWait >= RTO) && (oldestInQueueWait >= RTO)) {
 
-                        Logging.logCheckedFine(LOG, "RTO RETRANSMISSION [", rwindow, "]");
 
                         // retransmit
                         int retransed = retransmit(rwindow, TimeUtils.timeNow());
@@ -1322,8 +1261,6 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                             nAtThisRTO = 0;
                         }
 
-                        Logging.logCheckedFine(LOG, "RETRANSMISSION ", retransed, " retrans ", nAtThisRTO, " at this RTO (", RTO, ") ",
-                            nretransmitted, " total retrans");
 
                     } else {
                         idleCounter += 1;
@@ -1335,7 +1272,7 @@ public class ReliableOutputStream extends OutputStream implements Incoming {
                             nAtThisRTO = 0;
                         }
 
-                        Logging.logCheckedFine(LOG, "IDLE : RTO=", RTO, " WAIT=", realWait);
+
                     }
                     scheduleReTransmitCheck();
             } catch (Throwable all) {

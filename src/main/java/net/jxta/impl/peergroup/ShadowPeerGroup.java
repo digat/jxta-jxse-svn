@@ -61,8 +61,7 @@ import net.jxta.document.XMLElement;
 import net.jxta.exception.PeerGroupException;
 import net.jxta.id.ID;
 import net.jxta.impl.content.ContentServiceImpl;
-//import net.jxta.impl.membership.none.NoneMembershipService;
-import net.jxta.impl.membership.pse.PSEMembershipService;
+import net.jxta.impl.membership.none.NoneMembershipService;
 import net.jxta.peergroup.PeerGroup;
 import net.jxta.platform.Application;
 import net.jxta.platform.Module;
@@ -74,10 +73,10 @@ import net.jxta.protocol.ModuleImplAdvertisement;
  */
 public class ShadowPeerGroup extends StdPeerGroup {
 
-//    /**
-//     *  Our application is the JXSE Shell.
-//     */
-//    private Application shell = null;
+    /**
+     *  Our application is the JXSE Shell.
+     */
+    private Application shell = null;
 
     /**
      *  Create and populate the default module impl Advertisement for this class.
@@ -96,7 +95,7 @@ public class ShadowPeerGroup extends StdPeerGroup {
         // "Core" Services
         paramAdv.addService(PeerGroup.endpointClassID, PeerGroup.refEndpointSpecID);
         paramAdv.addService(PeerGroup.resolverClassID, PeerGroup.refResolverSpecID);
-        paramAdv.addService(PeerGroup.membershipClassID, PSEMembershipService.pseMembershipSpecID);
+        paramAdv.addService(PeerGroup.membershipClassID, NoneMembershipService.noneMembershipSpecID);
         paramAdv.addService(PeerGroup.accessClassID, PeerGroup.refAccessSpecID);
 
         // "Standard" Services
@@ -107,6 +106,7 @@ public class ShadowPeerGroup extends StdPeerGroup {
 //        paramAdv.addService(PeerGroup.proxyClassID, PeerGroup.refProxySpecID);
         paramAdv.addService(PeerGroup.contentClassID, ContentServiceImpl.MODULE_SPEC_ID);
 
+
         /**
          * NPG used to be a StdPeerGroup in 2.5, however, it should be a ShadowPeerGroup.
          * StdPeerGroup does defines the below protos transports. There is no reason why
@@ -114,7 +114,7 @@ public class ShadowPeerGroup extends StdPeerGroup {
          */
 //        // High-level Message Transports.
         paramAdv.addProto(PeerGroup.routerProtoClassID, PeerGroup.refRouterProtoSpecID);
-        paramAdv.addProto(PeerGroup.tlsProtoClassID, PeerGroup.refTlsProtoSpecID);
+//        paramAdv.addProto(PeerGroup.tlsProtoClassID, PeerGroup.refTlsProtoSpecID);
 //        paramAdv.addProto(CbJxDefs.msgtptClassID, CbJxDefs.cbjxMsgTransportSpecID);
         paramAdv.addProto(PeerGroup.relayProtoClassID, PeerGroup.refRelayProtoSpecID);
 
@@ -155,6 +155,7 @@ public class ShadowPeerGroup extends StdPeerGroup {
     /**
      * {@inheritDoc}
      * <p/>
+     * If it is available, start the shell.
      */
     @Override
     public int startApp(String[] args) {
@@ -164,16 +165,16 @@ public class ShadowPeerGroup extends StdPeerGroup {
             return result;
         }
 
-//        // Main app is the shell (if it is available).
-//        if (null != getLoader().findModuleImplAdvertisement(PeerGroup.refShellSpecID)) {
-//            shell = (Application) loadModule(PeerGroup.applicationClassID, PeerGroup.refShellSpecID, PeerGroup.Both);
-//
-//            if (null == shell) {
-//                return -1;
-//            }
-//
-//            result = shell.startApp(new String[0]);
-//        }
+        // Main app is the shell (if it is available).
+        if (null != getLoader().findModuleImplAdvertisement(PeerGroup.refShellSpecID)) {
+            shell = (Application) loadModule(PeerGroup.applicationClassID, PeerGroup.refShellSpecID, PeerGroup.Both);
+
+            if (null == shell) {
+                return -1;
+            }
+
+            result = shell.startApp(new String[0]);
+        }
 
         return result;
     }
@@ -184,11 +185,10 @@ public class ShadowPeerGroup extends StdPeerGroup {
      */
     @Override
     public void stopApp() {
-
-//        if (null != shell) {
-//            shell.stopApp();
-//            shell = null;
-//        }
+        if (null != shell) {
+            shell.stopApp();
+            shell = null;
+        }
 
         super.stopApp();
     }

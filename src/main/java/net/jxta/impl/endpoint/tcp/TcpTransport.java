@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,23 +37,22 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
-
 package net.jxta.impl.endpoint.tcp;
 
 import net.jxta.document.Advertisement;
@@ -86,6 +85,7 @@ import net.jxta.platform.Module;
 import net.jxta.protocol.ConfigParams;
 import net.jxta.protocol.ModuleImplAdvertisement;
 import net.jxta.protocol.TransportAdvertisement;
+
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetAddress;
@@ -100,23 +100,13 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EmptyStackException;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 /**
  * This class implements the TCP Message Transport.
@@ -224,7 +214,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
             for (int i = 0; i < MAX_WRITE_SELECTORS; i++)
                 writeSelectorCache.add(Selector.open());
-
+            
         } catch (IOException ex) {
 
             Logging.logCheckedSevere(LOG, "Failed adding selector to  write selector pool");
@@ -237,11 +227,11 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
             if (connectTOStr != null) 
                 connectionTimeOut = Integer.parseInt(connectTOStr);
-
+            
         } catch (Exception e) {
 
             Logging.logCheckedWarning(LOG, "Could not parse system property: sun.net.client.defaultConnectTimeout");
-
+            
         }
     }
 
@@ -429,7 +419,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
         try {
             paramsAdv = AdvertisementFactory.newAdvertisement(param);
         } catch (NoSuchElementException notThere) {
-            Logging.logCheckedFine(LOG, "Could not find parameter document\n", notThere);
+
+
         }
 
         if (!(paramsAdv instanceof TCPAdv)) {
@@ -451,7 +442,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
             } catch (UnknownHostException failed) {
 
                 Logging.logCheckedWarning(LOG, "Invalid address for local interface address, using default");
-
+                
                 usingInterface = IPUtils.ANYADDRESS;
 
             }
@@ -609,14 +600,13 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
             StringBuilder configInfo = new StringBuilder("Configuring TCP Message Transport : " + assignedID);
 
-            // We are assuming it's not null earlier (FindBugs)
-//            if (implAdvertisement != null) {
+            if (implAdvertisement != null) {
                 configInfo.append("\n\tImplementation :");
                 configInfo.append("\n\t\tModule Spec ID: ").append(implAdvertisement.getModuleSpecID());
                 configInfo.append("\n\t\tImpl Description : ").append(implAdvertisement.getDescription());
                 configInfo.append("\n\t\tImpl URI : ").append(implAdvertisement.getUri());
                 configInfo.append("\n\t\tImpl Code : ").append(implAdvertisement.getCode());
-//            }
+            }
 
             configInfo.append("\n\tGroup Params:");
             configInfo.append("\n\t\tGroup : ").append(group);
@@ -675,7 +665,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
             Logging.logCheckedWarning(LOG, "Could not create a messenger selector\n", e);
         }
 
-        messengerSelectorThread = new Thread(new MessengerSelectorThread(), "TCP Transport MessengerSelectorThread for " + this);
+        messengerSelectorThread = new Thread(group.getHomeThreadGroup(), new MessengerSelectorThread(), "TCP Transport MessengerSelectorThread for " + this);
         messengerSelectorThread.setDaemon(true);
         messengerSelectorThread.start();
 
@@ -686,7 +676,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
             Logging.logCheckedSevere(LOG, "Transport registration refused");
             return -1;
-
+            
         }
 
         // Cannot start before registration, we could be announcing new messengers while we
@@ -713,7 +703,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
         isClosed = false;
 
         Logging.logCheckedInfo(LOG, "TCP Message Transport started.");
-
+        
         return Module.START_OK;
 
     }
@@ -817,13 +807,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
         return true;
     }
 
-    /**
-     * {@inheritDoc }
-     */
-    public Messenger getMessenger(EndpointAddress dst) {
-//    public Messenger getMessenger(EndpointAddress dst, Object hintIgnored) {
-        return getMessenger(dst, null, true);
-//        return getMessenger(dst, hintIgnored, true);
+    public Messenger getMessenger(EndpointAddress dst, Object hintIgnored) {
+        return getMessenger(dst, hintIgnored, true);
     }
 
     /**
@@ -838,7 +823,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
     public Messenger getMessenger(EndpointAddress dst, Object hintIgnored, boolean selfDestruct) {
 
         if (!dst.getProtocolName().equalsIgnoreCase(getProtocolName())) {
-
+            
             Logging.logCheckedWarning(LOG, "Cannot make messenger for protocol: ", dst.getProtocolName());
             return null;
 
@@ -850,7 +835,6 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
         // return a loopback messenger.
         if (publicAddresses.contains(plainAddr)) {
 
-            Logging.logCheckedFine(LOG, "return LoopbackMessenger for addr : ", dst);
 
             return new LoopbackMessenger(group, endpoint, getPublicAddress(), dst,
                     new EndpointAddress("jxta", group.getPeerID().getUniqueValue().toString(), null, null));
@@ -868,7 +852,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
             Logging.logCheckedWarning(LOG, "Could not get messenger for ", dst, " :\n", caught);
 
             if (caught instanceof RuntimeException) throw (RuntimeException) caught;
-
+            
             return null;
         }
     }
@@ -920,7 +904,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
             try {
                 if (!writeSelectorCache.isEmpty()) selector = writeSelectorCache.pop();
             } catch (EmptyStackException ese) {
-                Logging.logCheckedFine(LOG, "No write selector available, waiting for one");
+
+
             }
 
             int attempts = 0;
@@ -931,7 +916,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
                         selector = writeSelectorCache.pop();
                     }
                 } catch (EmptyStackException ese) {
-                    Logging.logCheckedFine(LOG, "Failed to get a write selector available, waiting for one\n", ese);
+
+
                 }
                 attempts++;
             }
@@ -984,10 +970,10 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
                             // this can be interrupted through wakeup
                             selectedKeys = messengerSelector.select();
                         } catch (CancelledKeyException cke) {
-                            Logging.logCheckedFine(LOG, "Key was cancelled\n", cke);
+
+
                         }
 
-                        Logging.logCheckedFine(LOG, MessageFormat.format("MessengerSelector has {0} selected keys", selectedKeys));
 
                         if (selectedKeys == 0 && messengerSelector.selectNow() == 0) {
                             // We were probably just woken.
@@ -996,7 +982,6 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
                         Set<SelectionKey> keySet = messengerSelector.selectedKeys();
 
-                        Logging.logCheckedFine(LOG, MessageFormat.format("KeySet has {0} selected keys", keySet.size()));
 
                         Iterator<SelectionKey> it = keySet.iterator();
 
@@ -1022,8 +1007,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
                                         try {
                                             executor.execute(msgr);
                                         } catch (RejectedExecutionException re) {
-                                            Logging.logCheckedFine(LOG, MessageFormat.format("Executor rejected task for messenger :{0}", msgr.toString()),
-                                                "\n", re);
+
+
                                         }
                                     }
                                 } catch (CancelledKeyException cce) {
@@ -1043,20 +1028,18 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
                     } catch (ClosedSelectorException cse) {
 
-                        Logging.logCheckedFine(LOG, "IO Selector closed");
 
                     } catch (InterruptedIOException woken) {
 
-                        Logging.logCheckedFine(LOG, "Thread inturrupted\n", woken);
 
                     } catch (IOException e1) {
 
                         Logging.logCheckedWarning(LOG, "An exception occurred while selecting keys\n", e1);
-
+                        
                     } catch (SecurityException e2) {
 
                         Logging.logCheckedWarning(LOG, "A security exception occurred while selecting keys\n", e2);
-
+                        
                     }
                 }
 
@@ -1067,7 +1050,7 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
             } catch (Throwable all) {
 
                 Logging.logCheckedSevere(LOG, "Uncaught Throwable\n", all);
-
+                
             } finally {
 
                 messengerSelectorThread = null;
@@ -1105,7 +1088,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
     private synchronized void updateChannelRegisterations() {
 
         if (!regisMap.isEmpty() ) {
-            Logging.logCheckedFine(LOG, MessageFormat.format("Registering {0} channels with MessengerSelectorThread", regisMap.size()));
+
+
         }
 
         if (!regisMap.isEmpty()) {
@@ -1125,8 +1109,6 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
                     key.interestOps(key.interestOps() | SelectionKey.OP_READ);
 
-                    Logging.logCheckedFiner(LOG, MessageFormat.format("Key interestOps on channel {0}, bit set :{1}", channel, key.interestOps()));
-
                 } catch (ClosedChannelException e) {
 
                     Logging.logCheckedWarning(LOG, "Failed to register Channel with messenger selector\n", e);
@@ -1136,11 +1118,10 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
                 } catch (CancelledKeyException e) {
 
-                    Logging.logCheckedFine(LOG, "Key is already cancelled, removing key from registeration map\n", e);
 
                 } catch (IllegalBlockingModeException e) {
 
-                    Logging.logCheckedFine(LOG, "Invalid blocking channel mode, closing messenger\n", e);
+
                     // messenger state is unknown
                     msgr.close();
 
@@ -1154,7 +1135,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
 
         // Unregister and close channels.
         if (!unregisMap.isEmpty()) {
-            Logging.logCheckedFine(LOG, MessageFormat.format("Unregistering {0} channels with MessengerSelectorThread", unregisMap.size()));
+
+
         }
 
         if (!unregisMap.isEmpty()) {
@@ -1175,7 +1157,8 @@ public class TcpTransport implements Module, MessageSender, MessageReceiver {
                     try {
                         key.cancel();
                     } catch (CancelledKeyException e) {
-                        Logging.logCheckedFine(LOG, "Key is already cancelled, removing key from registeration map\n", e);
+
+
                     }
                 }
             }

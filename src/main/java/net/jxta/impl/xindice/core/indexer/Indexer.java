@@ -1,5 +1,6 @@
 package net.jxta.impl.xindice.core.indexer;
 
+
 /*
  * The Apache Software License, Version 1.1
  *
@@ -62,6 +63,7 @@ import net.jxta.impl.xindice.core.DBException;
 import net.jxta.impl.xindice.core.DBObject;
 import net.jxta.impl.xindice.core.data.Key;
 
+
 /**
  * Indexer is the abstract indexing interface for Xindice.  An Indexer
  * object is implemented in order to retrieve and manage indexes.
@@ -74,7 +76,7 @@ import net.jxta.impl.xindice.core.data.Key;
  */
 
 public interface Indexer extends DBObject {
-
+   
     /**
      * remove removes all references to the specified Key from the Indexer.
      *
@@ -89,7 +91,7 @@ public interface Indexer extends DBObject {
      * @param pos record position
      */
     void add(Key key, long pos) throws DBException;
-
+   
     /**
      * flush forcefully flushes any unwritten buffers to disk.
      */

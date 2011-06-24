@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2001-2007 Sun Microsystems, Inc.  All rights reserved.
- *
+ *  
  *  The Sun Project JXTA(TM) Software License
- *
+ *  
  *  Redistribution and use in source and binary forms, with or without 
  *  modification, are permitted provided that the following conditions are met:
- *
+ *  
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *
+ *  
  *  2. Redistributions in binary form must reproduce the above copyright notice, 
  *     this list of conditions and the following disclaimer in the documentation 
  *     and/or other materials provided with the distribution.
- *
+ *  
  *  3. The end-user documentation included with the redistribution, if any, must 
  *     include the following acknowledgment: "This product includes software 
  *     developed by Sun Microsystems, Inc. for JXTA(TM) technology." 
  *     Alternately, this acknowledgment may appear in the software itself, if 
  *     and wherever such third-party acknowledgments normally appear.
- *
+ *  
  *  4. The names "Sun", "Sun Microsystems, Inc.", "JXTA" and "Project JXTA" must 
  *     not be used to endorse or promote products derived from this software 
  *     without prior written permission. For written permission, please contact 
  *     Project JXTA at http://www.jxta.org.
- *
+ *  
  *  5. Products derived from this software may not be called "JXTA", nor may 
  *     "JXTA" appear in their name, without prior written permission of Sun.
- *
+ *  
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SUN 
@@ -37,25 +37,26 @@
  *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
  *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
  *  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  *  JXTA is a registered trademark of Sun Microsystems, Inc. in the United 
  *  States and other countries.
- *
+ *  
  *  Please see the license information page at :
  *  <http://www.jxta.org/project/www/license.html> for instructions on use of 
  *  the license in source files.
- *
+ *  
  *  ====================================================================
- *
+ *  
  *  This software consists of voluntary contributions made by many individuals 
  *  on behalf of Project JXTA. For more information on Project JXTA, please see 
  *  http://www.jxta.org.
- *
+ *  
  *  This license is based on the BSD license adopted by the Apache Foundation. 
  */
 package net.jxta.impl.peergroup;
 
 import java.util.Enumeration;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.document.Element;
@@ -68,6 +69,7 @@ import net.jxta.logging.Logging;
 import net.jxta.platform.ModuleSpecID;
 import net.jxta.protocol.ModuleImplAdvertisement;
 
+
 /**
  * General compatibility utility library for centralizing default
  * compatibility information.  This class should not be used by applications.
@@ -76,7 +78,7 @@ import net.jxta.protocol.ModuleImplAdvertisement;
  * application use.
  */
 public final class CompatibilityUtils {
-
+    
     /**
      * Logger.
      */
@@ -88,12 +90,12 @@ public final class CompatibilityUtils {
      */
     private static final String MODULE_IMPL_STD_URI =
             "http://download.java.net/jxta/jxta-jxse/latest/jnlp/lib/jxta.jar";
-
+    
     /**
      * Default provider name to use in the default ModuleImplAdvertisement.
      */
     private static final String MODULE_IMPL_STD_PROVIDER = "sun.com";
-
+    
     /**
      * The Specification title and Specification version we require.
      */
@@ -101,37 +103,37 @@ public final class CompatibilityUtils {
     private static final String STD_COMPAT_FORMAT_VALUE = "JRE1.5";
     private static final String STD_COMPAT_BINDING = "Bind";
     private static final String STD_COMPAT_BINDING_VALUE = "V2.0 Ref Impl";
-
+    
     /**
      * Prevent construction.
      */
     private CompatibilityUtils() {
         // Empty
     }
+    
+    /**
+     * This method exists only to support the deprecated StdPeerGroup
+     * MODULE_IMPL_STD_URI field.  Do not use.
+     * 
+     * @return default module impl package URI
+     * @deprecated will be removed in 2.8
+     */
+    @Deprecated
+    public static String getDefaultPackageURI() {
+        return MODULE_IMPL_STD_URI;
+    }
 
-//    /**
-//     * This method exists only to support the deprecated StdPeerGroup
-//     * MODULE_IMPL_STD_URI field.  Do not use.
-//     *
-//     * @return default module impl package URI
-//     * @deprecated will be removed in 2.8
-//     */
-//    @Deprecated
-//    public static String getDefaultPackageURI() {
-//        return MODULE_IMPL_STD_URI;
-//    }
-
-//    /**
-//     * This method exists only to support the deprecated StdPeerGroup
-//     * MODULE_IMPL_STD_PROVIDER field.  Do not use.
-//     *
-//     * @return default module impl provider
-//     * @deprecated will be removed in 2.8
-//     */
-//    @Deprecated
-//    public static String getDefaultProvider() {
-//        return MODULE_IMPL_STD_PROVIDER;
-//    }
+    /**
+     * This method exists only to support the deprecated StdPeerGroup
+     * MODULE_IMPL_STD_PROVIDER field.  Do not use.
+     * 
+     * @return default module impl provider
+     * @deprecated will be removed in 2.8
+     */
+    @Deprecated
+    public static String getDefaultProvider() {
+        return MODULE_IMPL_STD_PROVIDER;
+    }
 
     /**
      * Given all the required information, constructs and returns a
@@ -149,7 +151,7 @@ public final class CompatibilityUtils {
         ModuleImplAdvertisement implAdv = (ModuleImplAdvertisement)
         AdvertisementFactory.newAdvertisement(
                 ModuleImplAdvertisement.getAdvertisementType());
-
+        
         implAdv.setModuleSpecID(msid);
         implAdv.setCompat(createDefaultCompatStatement());
         implAdv.setCode(className);
@@ -159,7 +161,7 @@ public final class CompatibilityUtils {
 
         return implAdv;
     }
-
+    
     /**
      * Create a default module compatibility statement.  This method should
      * not be used by applications to obtain a compatibility statement.
@@ -176,12 +178,12 @@ public final class CompatibilityUtils {
                 MimeMediaType.XMLUTF8, "Comp");
         XMLElement e = doc.createElement(STD_COMPAT_FORMAT, STD_COMPAT_FORMAT_VALUE);
         doc.appendChild(e);
-
+        
         e = doc.createElement(STD_COMPAT_BINDING, STD_COMPAT_BINDING_VALUE);
         doc.appendChild(e);
         return doc;
     }
-
+    
     /**
      * Evaluates if the given compatibility statement makes the module that
      * bears it is loadable by this group.
@@ -193,11 +195,11 @@ public final class CompatibilityUtils {
     public static boolean isCompatible(Element compat) {
         boolean formatOk = false;
         boolean bindingOk = false;
-
+        
         if(!(compat instanceof TextElement)) {
             return false;
         }
-
+        
         try {
             Enumeration<TextElement> hisChildren = ((TextElement)compat).getChildren();
             int i = 0;
@@ -206,17 +208,17 @@ public final class CompatibilityUtils {
                 if (++i > 2) {
                     return false;
                 }
-
+                
                 TextElement e = hisChildren.nextElement();
                 String key = e.getKey();
                 String val = e.getValue().trim();
-
+                
                 if (STD_COMPAT_FORMAT.equals(key)) {
                     Package javaLangPackage = Package.getPackage("java.lang");
-
+                    
                     boolean specMatches;
                     String version;
-
+                    
                     if (val.startsWith("JDK") || val.startsWith("JRE")) {
                         specMatches = true;
                         version = val.substring(3).trim(); // allow for spaces.
@@ -248,8 +250,8 @@ public final class CompatibilityUtils {
             return false;
 
         }
-
+        
         return formatOk && bindingOk;
     }
-
+    
 }
